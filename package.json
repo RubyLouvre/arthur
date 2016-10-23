@@ -9,6 +9,7 @@
   "author": "Sauce Labs",
   "license": "MIT",
   "devDependencies": {
+    "babel-core": "^6.17.0",
     "babel-plugin-external-helpers": "^6.8.0",
     "babel-preset-es2015": "^6.16.0",
     "babel-preset-es2015-loose": "^8.0.0",

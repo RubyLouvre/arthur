@@ -1,5 +1,7 @@
 import { avalon } from '../seed/core'
-
+/*
+https://github.com/hufyhang/orderBy/blob/master/index.js
+*/
 
 export function orderBy(array, by, decend) {
     var type = avalon.type(array)

@@ -40,7 +40,7 @@ export function fixClone(src) {
     var t = getAll(target)
     var s = getAll(src)
     for(var i = 0; i < s.length; i++){
-        fixElement(t[i], s[i])
+          fixElement(t[i], s[i])
     }
     return target
 }

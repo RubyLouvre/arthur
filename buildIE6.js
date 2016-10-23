@@ -33,8 +33,8 @@ module.exports = rollup.rollup({
   result.code = result.code.replace( 
           /Object\.defineProperty\(exports,\s*'__esModule',\s*\{\s*value:\s*true\s*\}\);/,
           "exports.__esModule = true" ).
-                  replace(/'use strict';?/,'')
-                  .replace(/avalon\$1/g, 'avalon')
+                  replace(/'use strict';?/,'').
+                  replace(/avalon\$1/g, 'avalon')
                   
   result = babel.transform(result.code, {
       presets: ['es2015-loose', 'stage-0']  })

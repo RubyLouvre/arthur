@@ -1,12 +1,13 @@
 import { avalon } from '../../src/seed/core'
 import { avEvent } from '../../src/dom/event/compact'
+import '../../src/dom/ready/compact'
 
 describe('event', function () {
-    it('avEvent', function () {
+    it('avEvent', function (done) {
         var event = {
             srcElement: {},
             type: 'click',
-            keyCode: 12, 
+            keyCode: 12,
             clientX: 11,
             clientY: 118,
             wheelDelta: 0
@@ -30,22 +31,26 @@ describe('event', function () {
         e.cancelBubble = 2
         e.stopImmediatePropagation()
         expect(e.cancelBubble).toBe(true)
-        expect(e+"").toMatch(/object\s+Event/)
+        expect(e + "").toMatch(/object\s+Event/)
         var e2 = new avEvent(e)
         expect(e2).toBe(e)
-        var div = document.createElement('div')
-        document.body.appendChild(div)
-        var changed = false
-        avalon(div).bind('click', function(){
-            changed = true
-            return false
+        avalon.ready(function () {
+            var div = document.createElement('div')
+            document.body.appendChild(div)
+            var changed = false
+            avalon(div).bind('click', function () {
+                changed = true
+                return false
+            })
+
+            avalon.fireDom(div, 'click')
+            fireClick(div)
+            expect(changed).toBe(true)
+            avalon(div).unbind('click')
+            done()
         })
-        
-        avalon.fireDom(div,'click')
-        div.click()
-        expect(changed).toBe(true)
-        avalon(div).unbind('click')
-        
+
+
     })
 
 })

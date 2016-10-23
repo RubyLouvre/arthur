@@ -105,8 +105,7 @@ describe('vdom', function () {
                     new VText('ooooo')
                 ])
             ])
-            console.log(hasChildren.toDOM().children)
-            expect(hasChildren.toDOM().children.length).toBe(1)
+            expect(hasChildren.toDOM().childNodes.length).toBe(1)
             expect(hasChildren.toHTML()).toBe('<p>ooooo</p>')
            
         })

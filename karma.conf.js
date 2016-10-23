@@ -1,4 +1,3 @@
-// Karma configuration
 // Generated on Sun Feb 21 2016 14:19:52 GMT+1100 (AEDT)
 
 
@@ -24,7 +23,7 @@ module.exports = function (config) {
         // list of files to exclude
         exclude: [
         ],
-       
+
 
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -56,8 +55,16 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Chrome'],
+        browsers: ['Chrome', 'IE_no_addons'],
 
+        customLaunchers: {
+            IE_no_addons: {
+                base: 'IE',
+                flags: ['-extoff'],
+                 'x-ua-compatible': 'IE=EmulateIE9'
+            }
+     
+        },
         coverageReporter: {
             dir: 'coverage/',
             reporters: [
