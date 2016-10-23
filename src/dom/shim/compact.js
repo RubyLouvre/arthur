@@ -9,8 +9,8 @@ avalon.cloneNode = function (a) {
 }
 
 //IE6-11的文档对象没有contains
- /* istanbul ignore next */
-function shimHack(){
+/* istanbul ignore next */
+function shimHack() {
     if (msie < 10) {
         avalon.cloneNode = fixClone
     }
@@ -19,7 +19,7 @@ function shimHack(){
             return fixContains(document, b)
         }
     }
-    
+
     if (window.Node && !document.createTextNode('x').contains) {
         Node.prototype.contains = function (child) {//IE6-8没有Node对象
             return fixContains(this, child)
@@ -36,6 +36,10 @@ function shimHack(){
     }
 }
 
-if(inBrowser){
-    shimHack()
+if (inBrowser) {
+    try {
+        shimHack()
+    } catch (e) {
+        avalon.log(e, 'shimHack error')
+    }
 }

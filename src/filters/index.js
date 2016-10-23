@@ -6,7 +6,7 @@ import {
 import { numberFilter } from "./number"
 import { sanitizeFilter } from "./sanitize"
 import { dateFilter } from "./date"
-import * as arrayFilters from "./array"
+import {filterBy,orderBy,selectBy,limitBy} from "./array"
 import { eventFilters } from "./event"
 import { escapeFilter } from  "./escape"
 var filters = avalon.filters = {}
@@ -44,7 +44,7 @@ avalon.mix(filters, {
             numberFilter(amount,
                 isFinite(fractionSize) ? /* istanbul ignore else*/ fractionSize : 2)
     }
-}, arrayFilters, eventFilters)
+}, {filterBy,orderBy,selectBy,limitBy}, eventFilters)
 
 export { avalon }
 

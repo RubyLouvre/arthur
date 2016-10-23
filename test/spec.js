@@ -8,6 +8,7 @@ import './filters/index.spec'
 import './vdom/compact.spec'
 
 import './dom/shim.compact.spec'
+
 import './dom/ready.compact.spec'
 import './dom/val.compact.spec'
 import './dom/class.compact.spec'

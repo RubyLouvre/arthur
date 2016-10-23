@@ -1,10 +1,12 @@
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
+    (typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
 })(this, function () {
 
-    var win = typeof window === 'object' ? window : typeof global === 'object' ? global : {};
+    var win = (typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' ? window : (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : {};
 
     var inBrowser = win.location && win.navigator;
     /* istanbul ignore if  */
@@ -33,7 +35,7 @@
         undefinedobject: NaN //Mobile Safari 8.0.0 (iOS 8.4.0) 
     };
     /* istanbul ignore next  */
-    var msie = inBrowser.documentMode || versions[typeof document.all + typeof XMLHttpRequest];
+    var msie = inBrowser.documentMode || versions[_typeof(document.all) + (typeof XMLHttpRequest === 'undefined' ? 'undefined' : _typeof(XMLHttpRequest))];
 
     var modern = msie !== msie;
 
@@ -182,7 +184,7 @@
     var ohasOwn = op.hasOwnProperty;
     var ap = Array.prototype;
 
-    var hasConsole = typeof console === 'object';
+    var hasConsole = (typeof console === 'undefined' ? 'undefined' : _typeof(console)) === 'object';
     avalon.config = { debug: true };
     function log() {
         if (hasConsole && avalon.config.debug) {
@@ -201,7 +203,7 @@
     }
     function noop() {}
     function isObject(a) {
-        return a !== null && typeof a === 'object';
+        return a !== null && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object';
     }
 
     function range(start, end, step) {
@@ -426,7 +428,7 @@
             return String(obj);
         }
         // 早期的webkit内核浏览器实现了已废弃的ecma262v4标准，可以将正则字面量当作函数使用，因此typeof在判定正则时会返回function
-        return typeof obj === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj;
+        return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj === 'undefined' ? 'undefined' : _typeof(obj);
     };
 
     avalon._quote = JSON.stringify;
@@ -466,7 +468,7 @@
         }
 
         //确保接受方为一个复杂的数据类型
-        if (typeof target !== 'object' && typeof target !== 'function') {
+        if ((typeof target === 'undefined' ? 'undefined' : _typeof(target)) !== 'object' && typeof target !== 'function') {
             target = {};
         }
 
@@ -510,7 +512,7 @@
     /*判定是否类数组，如节点集合，纯数组，arguments与拥有非负整数的length属性的纯JS对象*/
     function isArrayLike(obj) {
         /* istanbul ignore if*/
-        if (obj && typeof obj === 'object') {
+        if (obj && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
             var n = obj.length,
                 str = inspect.call(obj);
             if (rarraylike.test(str)) {
@@ -857,6 +859,10 @@
     locate.SHORTMONTH = locate.MONTH;
     dateFilter.locate = locate;
 
+    /*
+    https://github.com/hufyhang/orderBy/blob/master/index.js
+    */
+
     function orderBy(array, by, decend) {
         var type = avalon.type(array);
         if (type !== 'array' && type !== 'object') throw 'orderBy只能处理对象或数组';
@@ -1006,13 +1012,6 @@
         return ret;
     }
 
-    var arrayFilters = Object.freeze({
-        orderBy: orderBy,
-        filterBy: filterBy,
-        selectBy: selectBy,
-        limitBy: limitBy
-    });
-
     var eventFilters = {
         stop: function stop(e) {
             e.stopPropagation();
@@ -1084,7 +1083,7 @@
         currency: function currency(amount, symbol, fractionSize) {
             return (symbol || '\xA5') + numberFilter(amount, isFinite(fractionSize) ? /* istanbul ignore else*/fractionSize : 2);
         }
-    }, arrayFilters, eventFilters);
+    }, { filterBy: filterBy, orderBy: orderBy, selectBy: selectBy, limitBy: limitBy }, eventFilters);
 
     /* istanbul ignore next */
     function fixContains(root, el) {
