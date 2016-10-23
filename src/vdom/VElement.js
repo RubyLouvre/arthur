@@ -24,6 +24,7 @@ var specalAttrs = {
         } catch (e) { }
     },
     'for': function (dom, val) {
+        dom.setAttribute('for', val)
         dom.htmlFor = val
     }
 }
@@ -73,7 +74,8 @@ VElement.prototype = {
                 break
             case 'xmp'://IE6-8,XMP元素里面只能有文本节点,不能使用innerHTML
             case 'noscript':
-                dom.innerText = dom.textContent = template
+                dom.textContent = template
+                //IE-8 下设置noscript.innerText会报运行时错误
                 break
             case 'template':
                 dom.innerHTML = template

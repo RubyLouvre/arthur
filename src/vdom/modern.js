@@ -4,7 +4,7 @@
 import { avalon, createFragment } from '../seed/core'
 import { VText } from './VText'
 import { VComment } from './VComment'
-import { VElement } from './VElement'
+import { VElement } from './VElement.modern'
 import { VFragment } from './VFragment'
 export {
    VText, VComment,VElement,VFragment

@@ -64,10 +64,9 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-         './matchers.js',
-         './dist/avalon.test.js'
-//      'src/*.js',
-//      'test/*.js'
+        './matchers.js',
+             './beforeIt.js',
+            './dist/avalon.test.js'
     ],
 
 

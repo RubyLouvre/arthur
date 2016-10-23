@@ -1873,7 +1873,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         cssMap['float'] = 'styleFloat';
         var rnumnonpx = /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i;
         var rposition = /^(top|right|bottom|left)$/;
-        var ralpha = /alpha\([^)]*\)/i;
+        var ralpha = /alpha\([^)]+\)/i;
+        var ropactiy = /(opacity|\d(\d|\.)*)/g;
         var ie8 = msie === 8;
         var salpha = 'DXImageTransform.Microsoft.Alpha';
         var border = {
@@ -1913,21 +1914,29 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         };
         cssHooks$1['opacity:set'] = function (node, name, value) {
             var style = node.style;
-            var opacity = isFinite(value) && value <= 1 ? 'alpha(opacity=' + value * 100 + ')' : '';
+
+            var opacity = Number(value) <= 1 ? 'alpha(opacity=' + value * 100 + ')' : '';
             var filter = style.filter || '';
             style.zoom = 1;
             //不能使用以下方式设置透明度
             //node.filters.alpha.opacity = value * 100
             style.filter = (ralpha.test(filter) ? filter.replace(ralpha, opacity) : filter + ' ' + opacity).trim();
+
             if (!style.filter) {
                 style.removeAttribute('filter');
             }
         };
         cssHooks$1['opacity:get'] = function (node) {
-            //这是最快的获取IE透明值的方式，不需要动用正则了！
-            var alpha = node.filters.alpha || node.filters[salpha],
-                op = alpha && alpha.enabled ? alpha.opacity : 100;
-            return op / 100 + ''; //确保返回的是字符串
+            var match = node.style.filter.match(ropactiy) || [];
+            var ret = false;
+            for (var i = 0, el; el = match[i++];) {
+                if (el === 'opacity') {
+                    ret = true;
+                } else if (ret) {
+                    return el / 100 + '';
+                }
+            }
+            return '1'; //确保返回的是字符串
         };
     }
 
@@ -2001,18 +2010,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     var roption = /^<option(?:\s+\w+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*\s+value[\s=]/i;
-    function option(node) {
+    function getOption(node) {
         //在IE11及W3C，如果没有指定value，那么node.value默认为node.text（存在trim作），但IE9-10则是取innerHTML(没trim操作)
         //specified并不可靠，因此通过分析outerHTML判定用户有没有显示定义value
-        return roption.test(node.outerHTML) ? node.value : node.text.trim();
+        return roption.test(node.outerHTML) ? node.value : node.innerHTML.trim();
     }
 
     var valHooks = {
-        'option:get': msie ? option : function (node) {
+        'option:get': msie ? getOption : function (node) {
             return node.value;
         },
         'select:get': function selectGet(node, value) {
-            var option$$1,
+            var option,
                 options = node.options,
                 index = node.selectedIndex,
                 getter = valHooks['option:get'],
@@ -2021,13 +2030,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 max = one ? index + 1 : options.length,
                 i = index < 0 ? max : one ? index : 0;
             for (; i < max; i++) {
-                option$$1 = options[i];
+                option = options[i];
                 //IE6-9在reset后不会改变selected，需要改用i === index判定
                 //我们过滤所有disabled的option元素，但在safari5下，
                 //如果设置optgroup为disable，那么其所有孩子都disable
                 //因此当一个元素为disable，需要检测其是否显式设置了disable及其父节点的disable情况
-                if ((option$$1.selected || i === index) && !option$$1.disabled && (!option$$1.parentNode.disabled || option$$1.parentNode.tagName !== 'OPTGROUP')) {
-                    value = getter(option$$1);
+                if ((option.selected || i === index) && !option.disabled && (!option.parentNode.disabled || option.parentNode.tagName !== 'OPTGROUP')) {
+                    value = getter(option);
                     if (one) {
                         return value;
                     }
@@ -2276,7 +2285,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
     }
 
-    var stopImmediate = false;
     function dispatch(event) {
         event = new avEvent(event);
         var type = event.type;
@@ -2291,10 +2299,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             var host = event.currentTarget = handler.elem;
             j = 0;
             while (uuid = handler.uuids[j++]) {
-                if (stopImmediate) {
-                    stopImmediate = false;
+                if (event.stopImmediate) {
                     break;
                 }
+
                 var fn = avalon.eventListeners[uuid];
                 if (fn) {
                     /*     var vm = rhandleHasVm.test(uuid) ? handler.elem._ms_context_ : 0
@@ -2363,8 +2371,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
         },
         stopImmediatePropagation: function stopImmediatePropagation() {
-            stopImmediate = true;
             this.stopPropagation();
+            this.stopImmediate = true;
         },
         toString: function toString() {
             return '[object Event]'; //#1619

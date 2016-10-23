@@ -1,6 +1,6 @@
-import { avalon,_slice, eventHooks, window, document, root, getShortID } from '../../seed/core'
+import { avalon, _slice, eventHooks, window, document, root, getShortID } from '../../seed/core'
 import { canBubbleUp } from './canBubbleUp'
- /* istanbul ignore if */
+/* istanbul ignore if */
 var hackSafari = avalon.modern && document.ontouchstart
 
 //添加fn.bind, fn.unbind, bind, unbind
@@ -27,11 +27,11 @@ avalon.bind = function (elem, type, fn) {
         //如果是使用bind方法绑定的回调,其uuid格式为_12
         var uuid = getShortID(fn)
         var hook = eventHooks[type]
-         /* istanbul ignore if */
+        /* istanbul ignore if */
         if (type === 'click' && hackSafari) {
             elem.addEventListener('click', avalon.noop)
         }
-         /* istanbul ignore if */
+        /* istanbul ignore if */
         if (hook) {
             type = hook.type || type
             if (hook.fix) {
@@ -50,7 +50,7 @@ avalon.bind = function (elem, type, fn) {
             }
         }
         var keys = value.split(',')
-         /* istanbul ignore if */
+        /* istanbul ignore if */
         if (keys[0] === '') {
             keys.shift()
         }
@@ -120,7 +120,6 @@ function collectHandlers(elem, type, handlers) {
 }
 
 var rhandleHasVm = /^e/
-var stopImmediate = false
 function dispatch(event) {
     event = new avEvent(event)
     var type = event.type
@@ -132,16 +131,16 @@ function dispatch(event) {
         var host = event.currentTarget = handler.elem
         j = 0
         while ((uuid = handler.uuids[j++])) {
-            if (stopImmediate) {
-                stopImmediate = false
+            if (event.stopImmediate) {
                 break
             }
+
             var fn = avalon.eventListeners[uuid]
             if (fn) {
-           /*     var vm = rhandleHasVm.test(uuid) ? handler.elem._ms_context_ : 0
-                if (vm && vm.$hashcode === false) {
-                    return avalon.unbind(elem, type, fn)
-                }*/
+                /*     var vm = rhandleHasVm.test(uuid) ? handler.elem._ms_context_ : 0
+                     if (vm && vm.$hashcode === false) {
+                         return avalon.unbind(elem, type, fn)
+                     }*/
                 var ret = fn.call(elem, event)
 
                 if (ret === false) {
@@ -204,8 +203,8 @@ avEvent.prototype = {
         }
     },
     stopImmediatePropagation: function () {
-        stopImmediate = true;
         this.stopPropagation()
+        this.stopImmediate = true
     },
     toString: function () {
         return '[object Event]'//#1619

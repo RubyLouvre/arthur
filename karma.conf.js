@@ -16,6 +16,7 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             './matchers.js',
+             './beforeIt.js',
             './dist/avalon.test.js'
         ],
 
@@ -61,7 +62,7 @@ module.exports = function (config) {
             IE_no_addons: {
                 base: 'IE',
                 flags: ['-extoff'],
-                 'x-ua-compatible': 'IE=EmulateIE9'
+                 'x-ua-compatible': 'IE=EmulateIE6'
             }
      
         },

@@ -1,10 +1,10 @@
 import { avalon, msie } from '../../seed/core'
 import { getDuplexType } from './getDuplexType'
-import { option } from './option.compact'
-export { option, getDuplexType }
+import { getOption } from './option.compact'
+export { getOption, getDuplexType }
 
 var valHooks = {
-    'option:get': msie ? option : function (node) {
+    'option:get': msie ? getOption : function (node) {
         return node.value
     },
     'select:get': function (node, value) {

@@ -1757,7 +1757,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
     }
 
-    var stopImmediate = false;
     function dispatch(event) {
         event = new avEvent(event);
         var type = event.type;
@@ -1772,10 +1771,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             var host = event.currentTarget = handler.elem;
             j = 0;
             while (uuid = handler.uuids[j++]) {
-                if (stopImmediate) {
-                    stopImmediate = false;
+                if (event.stopImmediate) {
                     break;
                 }
+
                 var fn = avalon.eventListeners[uuid];
                 if (fn) {
                     /*     var vm = rhandleHasVm.test(uuid) ? handler.elem._ms_context_ : 0
@@ -1844,8 +1843,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
         },
         stopImmediatePropagation: function stopImmediatePropagation() {
-            stopImmediate = true;
             this.stopPropagation();
+            this.stopImmediate = true;
         },
         toString: function toString() {
             return '[object Event]'; //#1619

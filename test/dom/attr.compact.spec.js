@@ -63,10 +63,13 @@ describe('attr', function () {
 
     describe('isVML', function () {
         it('test', function () {
-            expect(!!isVML({ nodeName: 'oval' })).toBe(false)
-            if (avalon.msie && avalon.msie < 9) {
-                var oval = document.createElement("v:oval")
-                expect(isVML(oval)).toBe(true)
+            if ( avalon.msie < 9) {
+                 document.namespaces.add("v", "urn:schemas-microsoft-com:vml", "#default#VML");
+                 var oval = document.createElement("v:oval")
+                 expect(isVML(oval)).toBe(true)
+            }else{
+                 var oval = document.createElement("v:oval")
+                  expect(isVML(oval)).toBe(false)
             }
 
         })

@@ -1,5 +1,5 @@
 import { avalon } from '../../src/seed/core'
-import { option, getDuplexType } from '../../src/dom/val/compact'
+import { getOption, getDuplexType } from '../../src/dom/val/compact'
 
 describe('value', function () {
     var a, b, c, d, e, f
@@ -15,9 +15,11 @@ describe('value', function () {
     })
     it('option', function () {
         a.innerText = ' 111 '
-        expect(option(a)).toBe('111')
+        var r =  /^<option(?:\s+\w+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*\s+value[\s=]/i
+        avalon.log(a.outerHTML, a.text, a.innerHTML,  a.value,  r.test(a.outerHTML))
+        expect(getOption(a)).toBe('111')
         a.setAttribute('value', ' 222 ')
-        expect(option(a)).toBe(' 222 ')
+        expect(getOption(a)).toBe(' 222 ')
     })
     it('getDuplexType', function () {
 

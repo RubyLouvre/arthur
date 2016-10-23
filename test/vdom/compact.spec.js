@@ -1,4 +1,4 @@
-import {avalon, vdom,  VText, VComment,VElement,VFragment } from '../../src/vdom/compact'
+import { avalon, vdom, VText, VComment, VElement, VFragment } from '../../src/vdom/compact'
 describe('vdom', function () {
     describe('VElement', function () {
         it('test', function () {
@@ -19,33 +19,47 @@ describe('vdom', function () {
 
 
             }
-            var xmp = new VElement('xmp', {'for':'eee', 'class': 'a b', style: 'border: 4px' }, [
+        })
+        it('xmp', function () {
+
+            var xmp = new VElement('xmp', { 'for': 'eee', 'class': 'a b', style: 'border: 4px' }, [
                 new VText('111')
             ])
             expect(xmp.toDOM().nodeName).toBe('XMP')
-          
+
             expect(xmp.toDOM().className).toBe('a b')
             expect(xmp.toDOM().style.borderWidth).toMatch(/4/i)
+        })
+        it('noscript', function () {
             var noscript = new VElement('noscript', {}, [
                 new VText('111')
             ])
 
             expect(noscript.toDOM().nodeName).toBe('NOSCRIPT')
-            expect(noscript.toDOM().innerText).toBe('111')
-            
-             var label = new VElement('label', {'for':'ddd'}, [
+            expect(noscript.toDOM().textContent).toBe('111')
+        })
+        it('label for', function () {
+            var label = new VElement('label', { 'for': 'ddd' }, [
                 new VText('111')
             ])
             expect(label.toDOM().htmlFor).toBe('ddd')
+        })
+        it('style', function () {
             var style = new VElement('style', {}, [
                 new VText('.blue{color:blue}')
             ])
             expect(style.toDOM().nodeName).toBe('STYLE')
+        })
+        it('script', function () {
             var script = new VElement('script', {}, [
                 new VText('var a = 1')
             ])
             expect(script.toDOM().nodeName).toBe('SCRIPT')
             expect(script.toDOM().text).toBe('var a = 1')
+
+        })
+
+        it('input', function () {
 
             var input = new VElement('input', { type: 'password' }, [
 
@@ -96,10 +110,10 @@ describe('vdom', function () {
             expect(el.toDOM().nodeType).toBe(11)
             expect(el.toHTML()).toBe('')
             expect(el.toDOM().nodeType).toBe(11)
-          
+
         })
-         it('test2', function () {
-           
+        it('test2', function () {
+
             var hasChildren = new VFragment([
                 new VElement('p', {}, [
                     new VText('ooooo')
@@ -107,7 +121,7 @@ describe('vdom', function () {
             ])
             expect(hasChildren.toDOM().childNodes.length).toBe(1)
             expect(hasChildren.toHTML()).toBe('<p>ooooo</p>')
-           
+
         })
     })
 
@@ -120,7 +134,7 @@ describe('vdom', function () {
             var el2 = vdom(null, 'toDOM')
             expect(el2.nodeType).toBe(11)
 
-         
+
         })
     })
 
