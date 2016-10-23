@@ -1,6 +1,6 @@
-import { window, document, msie, inBrowser, root,modern } from './browser'
+import { win, document, msie, inBrowser, root,modern } from './browser'
 import { Cache } from './cache'
-
+export var window = win
 export function avalon(el) {
         return new avalon.init(el)
 }
@@ -140,7 +140,7 @@ export var cssHooks = {}
 
 
 export {
-  window, document, root, msie, modern, inBrowser
+   document, root, msie, modern, inBrowser
 }
 
 

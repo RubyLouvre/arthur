@@ -1,16 +1,17 @@
-export let window = typeof window === 'object' ? window :
+export let win = typeof window === 'object' ? window :
     typeof global === 'object' ? global : {}
-export let inBrowser = window.location && window.navigator
+    
+export let inBrowser = win.location && win.navigator
 /* istanbul ignore if  */
-if (!window.JSON) {
-    window.JSON = {
+if (!win.JSON) {
+    win.JSON = {
         stringify: function () {
             throw 'undefined json'
         }
     }
 }
 
-export let document = inBrowser ? window.document : {
+export let document = inBrowser ? win.document : {
     createElement: Object,
     createElementNS: Object,
     documentElement: 'xx',
