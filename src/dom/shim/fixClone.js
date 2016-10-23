@@ -1,4 +1,5 @@
 import {rcheckedType} from '../rcheckedType'
+
  /* istanbul ignore next */
 function fixElement(dest, src) {
     if (dest.nodeType !== 1) {
@@ -32,6 +33,7 @@ function getAll(context) {
             typeof context.querySelectorAll !== 'undefined' ?
             context.querySelectorAll('*') : []
 }
+
  /* istanbul ignore next */
 export function fixClone(src) {
     var target = src.cloneNode(true)

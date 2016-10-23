@@ -5,11 +5,13 @@ var transform = require('es3ify').transform;
 // used to track the cache for subsequent bundles
 var cache;
 
+var sourcemaps = require('rollup-plugin-sourcemaps')
 
 module.exports = rollup.rollup({
   // The bundle's starting point. This file will be
   // included, along with the minimum necessary code
   // from its dependencies
+  
   entry: 'src/avalon.js',
   // If you have a bundle you want to re-use (e.g., when using a watcher to rebuild as files change),
   // you can tell rollup use a previous bundle as its starting point.
@@ -17,11 +19,12 @@ module.exports = rollup.rollup({
   cache: cache,
   
   plugins: [
-
+    sourcemaps()
   ]
 }).then( function ( bundle ) {
   // Generate bundle + sourcemap
   var result = bundle.generate({
+      sourceMap: true,
       format: 'umd',
       moduleName: 'avalon'
   });
@@ -37,7 +40,8 @@ module.exports = rollup.rollup({
       presets: ['es2015-loose', 'stage-0']  })
   
   var code = transform(result.code).replace(/\}\)\(undefined,/,'})(this,')
-  fs.writeFileSync( './dist/avalon.js', code );
+    fs.writeFileSync( './dist/avalon.js', code );
+     
 
 }).catch(function(e){
    console.log('error',e)

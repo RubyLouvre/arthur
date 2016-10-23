@@ -1,6 +1,6 @@
 //这里放置存在异议的方法
 import './lang.fix'
-import { avalon, ohasOwn, inspect,window } from './core'
+import { avalon, ohasOwn, inspect, window } from './core'
 export { avalon }
 
 export var compaceQuote = (function () {
@@ -38,7 +38,7 @@ export var compaceQuote = (function () {
 try {
         avalon._quote = window.JSON.stringify
 } catch (e) {
-    /* istanbul ignore next  */
+        /* istanbul ignore next  */
         avalon._quote = compaceQuote
 }
 
@@ -100,7 +100,7 @@ for (enu in avalon({})) {
 enumerateBUG = enu !== '0' //IE6下为true, 其他为false
 
 /*判定是否是一个朴素的javascript对象（Object），不是DOM对象，不是BOM对象，不是自定义类的实例*/
-  /* istanbul ignore next */
+/* istanbul ignore next */
 export function isPlainObjectCompact(obj, key) {
         if (!obj || avalon.type(obj) !== 'object' || obj.nodeType || avalon.isWindow(obj)) {
                 return false
@@ -114,7 +114,7 @@ export function isPlainObjectCompact(obj, key) {
         } catch (e) { //IE8 9会在这里抛错
                 return false
         }
-      
+
         if (enumerateBUG) {
                 for (key in obj) {
                         return ohasOwn.call(obj, key)
@@ -137,7 +137,7 @@ avalon.isPlainObject = /\[native code\]/.test(Object.getPrototypeOf) ?
 
 
 //与jQuery.extend方法，可用于浅拷贝，深拷贝
-  /* istanbul ignore next */
+/* istanbul ignore next */
 avalon.mix = avalon.fn.mix = function () {
         var options, name, src, copy, copyIsArray, clone,
                 target = arguments[0] || {},
@@ -204,7 +204,7 @@ avalon.mix = avalon.fn.mix = function () {
 
 var rarraylike = /(Array|List|Collection|Map|Arguments)\]$/
 /*判定是否类数组，如节点集合，纯数组，arguments与拥有非负整数的length属性的纯JS对象*/
-  /* istanbul ignore next */
+/* istanbul ignore next */
 export function isArrayLike(obj) {
         if (!obj)
                 return false
