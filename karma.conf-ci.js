@@ -24,32 +24,25 @@ module.exports = function(config) {
       browserName: 'firefox',
       version: '26'
     },
-    SL_IE_7: {
-             base: 'SauceLabs',
-             browserName: 'internet explorer',
-             version: '7',
-             platform: 'Windows XP'
-
-    },
-SL_IE_6: {
-             base: 'SauceLabs',
-             browserName: 'internet explorer',
-             version: '6',
-             platform: 'Windows XP'
-
-    },
-    'SL_IE_9': {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 2008',
-      version: '9'
-    },
-    'SL_IE_10': {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 2012',
-      version: '10'
-    },
+//    SL_IE_7: {
+//             base: 'SauceLabs',
+//             browserName: 'internet explorer',
+//             version: '7',
+//             platform: 'Windows XP'
+//
+//    },
+//    'SL_IE_9': {
+//      base: 'SauceLabs',
+//      browserName: 'internet explorer',
+//      platform: 'Windows 2008',
+//      version: '9'
+//    },
+//    'SL_IE_10': {
+//      base: 'SauceLabs',
+//      browserName: 'internet explorer',
+//      platform: 'Windows 2012',
+//      version: '10'
+//    },
     'SL_IE_11': {
       base: 'SauceLabs',
       browserName: 'internet explorer',
@@ -71,15 +64,17 @@ SL_IE_6: {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/*.js',
-      'test/*.js'
+         './matchers.js',
+         './dist/avalon.test.js'
+//      'src/*.js',
+//      'test/*.js'
     ],
 
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['dots'],
+    reporters: ['dots','saucelabs'],
 
 
     // web server port

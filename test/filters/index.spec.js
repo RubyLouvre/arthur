@@ -259,7 +259,7 @@ describe('filters', function () {
 
         it('Z', function () {
             var date = new Date(2016, 7, 26)
-            expect(fn(date, 'Z')).toMatch(/\+\d+/)
+            expect(fn(date, 'Z')).toMatch(/(-|\+)\d+/)
         })
 
         it('shortName', function () {

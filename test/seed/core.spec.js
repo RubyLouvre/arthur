@@ -91,7 +91,7 @@ describe('seed/core', function () {
         expect(function () {
             avalon.error('aaa')
 
-        }).toThrowError(Error)
+        }).toThrowError(TypeError)
 
         expect(function fn2() {
             avalon.error('eee', TypeError)

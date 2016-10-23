@@ -6,7 +6,9 @@ import { VText } from './VText'
 import { VComment } from './VComment'
 import { VElement } from './VElement'
 import { VFragment } from './VFragment'
-
+export {
+   VText, VComment,VElement,VFragment
+}
 var vdom = avalon.vdom = avalon.vdomAdaptor = function (obj, method) {
     if (!obj) {//obj在ms-for循环里面可能是null
         return method === "toHTML" ? '' : createFragment()
@@ -23,10 +25,7 @@ var vdom = avalon.vdom = avalon.vdomAdaptor = function (obj, method) {
     }
 }
 
-vdom.VText = VText
-vdom.VComment = VComment
-vdom.VElement = VElement
-vdom.VFragment = VFragment
+
 export {vdom, avalon}
 
 avalon.domize = function (a) {

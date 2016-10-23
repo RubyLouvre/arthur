@@ -24,19 +24,7 @@ module.exports = function (config) {
         // list of files to exclude
         exclude: [
         ],
-        plugins: [
-
-            'karma-chrome-launcher',
-            "karma-coverage",
-           // "karma-firefox-launcher",
-          //  "karma-ie-launcher",
-            "karma-jasmine",
-
-            "karma-sourcemap-loader",
-            'karma-spec-reporter'
-
-
-        ],
+       
 
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
