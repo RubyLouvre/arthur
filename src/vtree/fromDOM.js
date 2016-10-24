@@ -6,31 +6,34 @@ export function fromDOM(dom) {
     return [from(dom)]
 }
 
-export function from(dom) {
-    var type = dom.nodeName.toLowerCase()
+export function from(node) {
+    var type = node.nodeName.toLowerCase()
     switch (type) {
         case '#text':
         case '#comment':
             return {
                 nodeName: type,
-                dom: dom,
-                nodeValue: dom.nodeValue
+                dom: node,
+                nodeValue: node.nodeValue
             }
         default:
             var vnode = {
                 nodeName: type,
                 isVoidTag: !!voidTag[type],
-                props: markProps(dom, dom.attributes)
+                props: markProps(node, node.attributes)
             }
             if (orphanTag[type]) {
-                maleOrphan(node, type, node.text || node.innerHTML)
+                makeOrphan(vnode, type, node.text || node.innerHTML)
                 if (node.childNodes.length === 1) {
                     vnode.children[0].dom = node.firstChild
                 }
-                avalon.log(node.childNodes)
             } else if (!vnode.isVoidTag) {
+                vnode.children = []
                 for (var i = 0, el; el = node.childNodes[i++];) {
-                    vnode.children.push(from(el))
+                    var child = from(el)
+                    if(/\S/.test(child.nodeValue)){
+                       vnode.children.push(child)
+                    }
                 }
             }
             return vnode

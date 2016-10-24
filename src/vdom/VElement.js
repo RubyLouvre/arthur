@@ -61,6 +61,7 @@ VElement.prototype = {
         var template = c[0] ? c[0].nodeValue : ''
         switch (this.nodeName) {
             case 'script':
+            case 'option':
                 dom.text = template
                 break
             case 'style':
@@ -82,6 +83,10 @@ VElement.prototype = {
                 break
             default:
                 if (!this.isVoidTag) {
+                    if(! this.children){
+                        console.log(this)
+                        return
+                    }
                     this.children.forEach(function (c) {
                         c && dom.appendChild(avalon.vdom(c, 'toDOM'))
                     })

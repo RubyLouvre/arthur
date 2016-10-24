@@ -16,3 +16,9 @@ import './dom/html.spec'
 import './dom/attr.compact.spec'
 import './dom/event.compact.spec'
 import './dom/css.compact.spec'
+
+import './vtree/clearString.spec'
+import './vtree/fromString.spec'
+import './vtree/fromDOM.spec'
+
+

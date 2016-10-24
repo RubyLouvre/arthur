@@ -120,7 +120,7 @@ function from(str) {
         }
         if (node.end) {
             if (node.nodeName === 'table') {
-                addTbody(node.children)
+                makeTbody(node.children)
             }
             delete node.end
         }

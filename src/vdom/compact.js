@@ -20,6 +20,8 @@ var vdom = avalon.vdom = avalon.vdomAdaptor = function (obj, method) {
             return VComment.prototype[method].call(obj)
         case '#document-fragment':
             return VFragment.prototype[method].call(obj)
+        case void(0):
+            return (new VFragment(obj))[method]()
         default:
             return VElement.prototype[method].call(obj)
     }

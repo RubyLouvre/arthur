@@ -35,7 +35,7 @@ module.exports = rollup.rollup({
                   replace(/avalon\$1/g, 'avalon')
                   
   result = babel.transform(result.code, {
-      presets: ['es2015-loose', 'stage-0']  })
+      presets: ['es2015-loose', 'stage-0'], compact: false  })
   
   var code = transform(result.code).replace(/\}\)\(undefined,/,'})(this,')
   fs.writeFileSync( './dist/avalon.test.js', code );

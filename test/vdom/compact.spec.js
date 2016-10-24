@@ -44,6 +44,14 @@ describe('vdom', function () {
             ])
             expect(label.toDOM().htmlFor).toBe('ddd')
         })
+        it('option', function () {
+            var option = new VElement('option', { 'value': 'eee' }, [
+                new VText(' xxx ')
+            ])
+            expect(option.toDOM().text).toBe('xxx')
+            expect(option.toDOM().innerText).toBe(' xxx ')
+            expect(option.toDOM().innerHTML).toBe(' xxx ')
+        })
         it('style', function () {
             var style = new VElement('style', {}, [
                 new VText('.blue{color:blue}')
