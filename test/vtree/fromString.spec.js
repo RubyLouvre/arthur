@@ -4,7 +4,7 @@ import { fromString } from '../../src/vtree/fromString'
 
 describe('fromString', function () {
 
-    it('makeTbody', function () {
+    it('makeTbody1', function () {
         var str = heredoc(function () {
             /*
              <table ms-controller="render1">
@@ -18,7 +18,8 @@ describe('fromString', function () {
         expect(f.childNodes.length).toBe(3)
         var table = f.childNodes[0]
         expect(table.getElementsByTagName('tbody').length).toBe(1)
-
+    })
+    it('makeTbody2', function(){
         var str2 = heredoc(function () {
             /*
              <table ms-controller="render1">
@@ -48,7 +49,8 @@ describe('fromString', function () {
         var f = avalon.vdom(nodes, 'toDOM')
         expect(f.childNodes.length).toBe(3)
         var table = f.childNodes[0]
-        expect(table.getElementsByTagName('tbody').length).toBe(3)
+        console.log(table.getElementsByTagName('tbody').length,'333')
+        expect(table.getElementsByTagName('tbody').length+"!!").toBe('3!!')
     })
     it('自动移除option下面的标签', function () {
         var str = heredoc(function () {

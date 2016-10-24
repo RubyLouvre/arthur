@@ -69,7 +69,7 @@ function from(str) {
             var match = str.match(ropenTag)//处理元素节点开始部分
             if (match) {
                 var nodeName = match[1].toLowerCase()
-                var isVoidTag = voidTag[nodeName] || match[3] === '\/'
+                var isVoidTag = !!voidTag[nodeName] || match[3] === '\/'
                 node = {
                     nodeName: nodeName,
                     props: {},
