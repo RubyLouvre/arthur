@@ -10,7 +10,9 @@ function fixElement(dest, src) {
         if (dest.parentNode) {
             dest.outerHTML = src.outerHTML
         }
-
+        
+         dest.innerHTML = src.innerHTML
+       
     } else if (nodeName === 'input' && rcheckedType.test(src.nodeName)) {
 
         dest.defaultChecked = dest.checked = src.checked

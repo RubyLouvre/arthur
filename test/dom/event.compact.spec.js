@@ -31,6 +31,7 @@ describe('event', function () {
         e.cancelBubble = 2
         e.stopImmediatePropagation()
         expect(e.cancelBubble).toBe(true)
+        expect(e.stopImmediate).toBe(true)
         expect(e + "").toMatch(/object\s+Event/)
         var e2 = new avEvent(e)
         expect(e2).toBe(e)

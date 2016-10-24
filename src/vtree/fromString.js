@@ -97,6 +97,7 @@ function from(str) {
                 }
             }
         }
+         /* istanbul ignore if*/
         if (!node) {
             var match = str.match(rendTag)//处理元素节点结束部分
             if (match) {

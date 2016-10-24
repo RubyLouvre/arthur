@@ -15,8 +15,7 @@ describe('value', function () {
     })
     it('option', function () {
         a.innerText = ' 111 '
-        var r =  /^<option(?:\s+\w+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*\s+value[\s=]/i
-        avalon.log(a.outerHTML, a.text, a.innerHTML,  a.value,  r.test(a.outerHTML))
+        avalon.log(a.outerHTML, a.text, a.innerHTML, a.innerText, a.value)
         expect(getOption(a)).toBe('111')
         a.setAttribute('value', ' 222 ')
         expect(getOption(a)).toBe(' 222 ')

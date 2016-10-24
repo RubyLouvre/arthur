@@ -37,9 +37,5 @@ function shimHack() {
 }
 
 if (inBrowser) {
-    try {
-        shimHack()
-    } catch (e) {
-        avalon.log(e, 'shimHack error')
-    }
+    shimHack()
 }

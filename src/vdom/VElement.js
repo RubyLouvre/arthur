@@ -82,11 +82,8 @@ VElement.prototype = {
                 dom.innerHTML = template
                 break
             default:
-                if (!this.isVoidTag) {
-                    if(! this.children){
-                        console.log(this)
-                        return
-                    }
+               /* istanbul ignore next */
+                if (!this.isVoidTag && this.children){
                     this.children.forEach(function (c) {
                         c && dom.appendChild(avalon.vdom(c, 'toDOM'))
                     })

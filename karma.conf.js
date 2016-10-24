@@ -62,7 +62,7 @@ module.exports = function (config) {
             IE_no_addons: {
                 base: 'IE',
                 flags: ['-extoff'],
-                 'x-ua-compatible': 'IE=EmulateIE6'
+                 'x-ua-compatible': 'IE=EmulateIE8'
             }
      
         },
