@@ -7,7 +7,7 @@ describe('clearString', function () {
         var a2 = dig(a)
         expect(/'/.test(a2)).toBe(false)
 
-         var b = '111+"ddd"+"eee"'
+         var b = '111+\\e"ddd"+"eee"'
          var b2 = clearString(b)
          expect(/"/.test(b2)).toBe(false)
     

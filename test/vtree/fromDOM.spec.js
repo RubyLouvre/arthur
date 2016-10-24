@@ -7,6 +7,7 @@ describe('fromDOM', function () {
     
      it('remove empty text node', function () {
             var f = document.createElement('div')
+            f.style.cssText = 'color:red;'
             var a = document.createTextNode('xxx')
             var b = document.createElement('p')
             f.appendChild(a)

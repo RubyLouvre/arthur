@@ -13,9 +13,6 @@ export function makeTbody(nodes) {
                     children: []
                 }
                 tbody.children.push(node)
-                if (node.type) {//???
-                    delete node.type
-                }
                 needAddTbody = true
                 if (start === 0)
                     start = i

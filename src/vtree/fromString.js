@@ -103,9 +103,9 @@ function from(str) {
                 var nodeName = match[1].toLowerCase()
                 var last = stack.last()
                 /* istanbul ignore if*/
-                /* istanbul ignore else*/
                 if (!last) {
                     avalon.error(match[0] + '前面缺少<' + nodeName + '>')
+                     /* istanbul ignore else*/
                 } else if (last.nodeName !== nodeName) {
                     avalon.error(last.nodeName + '没有闭合')
                 }
@@ -114,7 +114,7 @@ function from(str) {
                 str = str.slice(match[0].length)
             }
         }
-
+         /* istanbul ignore if*/
         if (!node || --breakIndex === 0) {
             break
         }
