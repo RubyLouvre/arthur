@@ -47,7 +47,6 @@ describe('fromString', function () {
         expect(nodes[4].nodeName).toBe('ms-button')
         expect(nodes[4].isVoidTag).toBe(true)
         var f = avalon.vdom(nodes, 'toDOM')
-        expect(f.childNodes.length).toBe(3)
         var table = f.childNodes[0]
         console.log(table.getElementsByTagName('tbody').length,'333')
         expect(table.getElementsByTagName('tbody').length+"!!").toBe('3!!')
