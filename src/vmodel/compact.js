@@ -1,6 +1,9 @@
-import {avalon, platform, modern} from '../seed/core'
+import { avalon, platform, modern, msie } from '../seed/core'
+import { $$skipArray } from './reserved'
+import { Watcher } from './watcher'
 import './share'
-export {avalon, platform}
+
+export { avalon, platform }
 
 //如果浏览器不支持ecma262v5的Object.defineProperties或者存在BUG，比如IE8
 //标准浏览器使用__defineGetter__, __defineSetter__实现
@@ -14,7 +17,14 @@ try {
     canHideProperty = false
 }
 
-platform.canHideProperty = canHideProperty
+var modelAccessor = {
+    get: function () {
+        return toJson(this)
+    },
+    set: avalon.noop,
+    enumerable: false,
+    configurable: true
+}
 
 export function toJson(val) {
     switch (avalon.type(val)) {
@@ -27,7 +37,7 @@ export function toJson(val) {
         case 'object':
             var obj = {}
             for (i in val) {
-                if (i === '__proxy__' || i === '__data__' || i === '__const__')
+                if ($$skipArray[i])
                     continue
                 if (val.hasOwnProperty(i)) {
                     var value = val[i]
@@ -40,12 +50,7 @@ export function toJson(val) {
     }
 }
 
-platform.toJson = toJson
-platform.toModel = function (obj) {
-    if (!modern) {
-        obj.$model = toJson(obj)
-    }
-}
+
 
 export function hideProperty(host, name, value) {
     if (canHideProperty) {
@@ -60,10 +65,10 @@ export function hideProperty(host, name, value) {
     }
 }
 
-platform.hideProperty = hideProperty
 
 
-var defineProperties = Object.defineProperties
+
+var createViewModel = Object.defineProperties
 var defineProperty
 
 var timeBucket = new Date() - 0
@@ -82,7 +87,7 @@ if (!canHideProperty) {
             }
             return obj
         }
-        defineProperties = function (obj, descs) {
+        createViewModel = function (obj, descs) {
             for (var prop in descs) {
                 if (descs.hasOwnProperty(prop)) {
                     defineProperty(obj, prop, descs[prop])
@@ -92,7 +97,7 @@ if (!canHideProperty) {
         }
     }
     /* istanbul ignore if*/
-    if (avalon.msie < 9) {
+    if (msie < 9) {
         var VBClassPool = {}
         window.execScript([// jshint ignore:line
             'Function parseVB(code)',
@@ -108,7 +113,7 @@ if (!canHideProperty) {
                 return accessor.get.call(instance)
             }
         }
-        defineProperties = function (name, accessors, properties) {
+        createViewModel = function (name, accessors, properties) {
             // jshint ignore:line
             var buffer = []
             buffer.push(
@@ -133,16 +138,16 @@ if (!canHideProperty) {
                 buffer.push(
                     //由于不知对方会传入什么,因此set, let都用上
                     '\tPublic Property Let [' + name + '](val' + timeBucket + ')', //setter
-                    '\t\tCall [__proxy__](Me,[__data__], "' + name + '", val' + timeBucket + ')',
+                    '\t\tCall [__proxy__](Me, [__data__], "' + name + '", val' + timeBucket + ')',
                     '\tEnd Property',
                     '\tPublic Property Set [' + name + '](val' + timeBucket + ')', //setter
-                    '\t\tCall [__proxy__](Me,[__data__], "' + name + '", val' + timeBucket + ')',
+                    '\t\tCall [__proxy__](Me, [__data__], "' + name + '", val' + timeBucket + ')',
                     '\tEnd Property',
                     '\tPublic Property Get [' + name + ']', //getter
                     '\tOn Error Resume Next', //必须优先使用set语句,否则它会误将数组当字符串返回
-                    '\t\tSet[' + name + '] = [__proxy__](Me,[__data__],"' + name + '")',
+                    '\t\tSet[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")',
                     '\tIf Err.Number <> 0 Then',
-                    '\t\t[' + name + '] = [__proxy__](Me,[__data__],"' + name + '")',
+                    '\t\t[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")',
                     '\tEnd If',
                     '\tOn Error Goto 0',
                     '\tEnd Property')
@@ -182,4 +187,74 @@ if (!canHideProperty) {
     }
 }
 
-platform.createViewModel = defineProperties
+
+
+function beforeCreate(core, state, keys, byUser) {
+    state.$model = platform.modelAccessor
+    avalon.mix(keys, {
+        $events: core,
+        $element: 0,
+        $accessors: state,
+    }, byUser ? {
+        $watch: function $watch(expr, callback, deep) {
+            var w = new Watcher(core.__proxy__, {
+                deep: deep,
+                user: true,
+                expr: expr
+            }, callback)
+            if (!core[expr]) {
+                core[expr] = [w]
+            } else {
+                core[expr].push(w)
+            }
+            return function () {
+                w.destory()
+                avalon.Array.remove(core[expr], w)
+                if (core[expr].length === 0) {
+                    delete core[expr]
+                }
+            }
+        },
+        $fire: function $fire(expr, a) {
+            var list = core[expr]
+            if (Array(list)) {
+                for (var i = 0, w; w = list[i++];) {
+                    w.callback.call(w.vm, a, w.value, w.expr)
+                }
+            }
+        }
+    } : {})
+}
+
+function afterCreate(core, observe, keys) {
+    for (var key in keys) {
+        //对普通监控属性或访问器属性进行赋值
+        //删除系统属性
+        if (key in $$skipArray) {
+            platform.hideProperty(observe, key, keys[key])
+            delete keys[key]
+        } else {
+            observe[key] = keys[key]
+            keys[key] = true
+        }
+    }
+    function hasOwnKey(key) {
+        return keys[key] === true
+    }
+    if (msie < 9)
+        platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
+    core.__proxy__ = observe
+}
+
+platform.hideProperty = hideProperty
+platform.createViewModel = createViewModel
+platform.beforeCreate = beforeCreate
+platform.afterCreate = afterCreate
+platform.modelAccessor = modelAccessor
+platform.toJson = toJson
+platform.toModel = function (obj) {
+    if (!modern) {
+        obj.$model = toJson(obj)
+    }
+}
+

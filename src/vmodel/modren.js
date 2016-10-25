@@ -1,57 +1,116 @@
-import {avalon, platform, modern} from '../seed/core'
+import { avalon, platform, modern } from '../seed/core'
+import { $$skipArray } from './reserved'
 import './share'
-export {platform}
+export { platform }
 
-
-platform.canHideProperty = true
 
 export function toJson(val) {
-    switch (avalon.type(val)) {
-        case 'array':
-            var array = []
-            for (var i = 0; i < val.length; i++) {
-                array[i] = toJson(val[i])
-            }
-            return array
-        case 'object':
-            var obj = {}
-            for (i in val) {
-                if (val.hasOwnProperty(i)) {
-                    var value = val[i]
-                    obj[i] = value && value.nodeType ? value : toJson(value)
-                }
-            }
-            return obj
-        default:
-            return val
-    }
+        switch (avalon.type(val)) {
+                case 'array':
+                        var array = []
+                        for (var i = 0; i < val.length; i++) {
+                                array[i] = toJson(val[i])
+                        }
+                        return array
+                case 'object':
+                        var obj = {}
+                        for (i in val) {
+                                if ($$skipArray[i]) {
+                                        continue
+                                }
+                                if (val.hasOwnProperty(i)) {
+                                        var value = val[i]
+                                        obj[i] = value && value.nodeType ? value : toJson(value)
+                                }
+                        }
+                        return obj
+                default:
+                        return val
+        }
 }
 
-platform.toJson = toJson
-platform.toModel = function () { }
 
 export function hideProperty(host, name, value) {
-    Object.defineProperty(host, name, {
-        value: value,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    })
+        Object.defineProperty(host, name, {
+                value: value,
+                writable: true,
+                enumerable: false,
+                configurable: true
+        })
 }
-
-platform.hideProperty = hideProperty
 
 var modelAccessor = {
-    get: function () {
-        return toJson(this)
-    },
-    set: avalon.noop,
-    enumerable: false,
-    configurable: true
+        get: function () {
+                return toJson(this)
+        },
+        set: avalon.noop,
+        enumerable: false,
+        configurable: true
 }
 
+
+
+function $fire(expr, a) {
+        var list = this.$events[expr]
+        if (Array(list)) {
+                for (var i = 0, w; w = list[i++];) {
+                        w.callback.call(w.vm, a, w.value, w.expr)
+                }
+        }
+}
+
+function $watch(expr, callback, deep) {
+        var w = new Watcher(this, {
+                deep: deep,
+                user: true,
+                expr: expr
+        }, callback)
+        if (!core[expr]) {
+                core[expr] = [w]
+        } else {
+                core[expr].push(w)
+        }
+        return function () {
+                w.destory()
+                avalon.Array.remove(core[expr], w)
+                if (core[expr].length === 0) {
+                        delete core[expr]
+                }
+        }
+}
+
+function beforeCreate(core, state, keys, byUser) {
+        state.$model = platform.modelAccessor
+        avalon.mix(keys, {
+                $events: core,
+                $element: 0,
+                $accessors: state,
+        }, byUser ? {
+                $watch: $watch,
+                $fire: $fire
+        } : {})
+}
+
+
+function afterCreate(core, observe, keys) {
+        for (var key in keys) {
+                //对普通监控属性或访问器属性进行赋值
+                //删除系统属性
+                if (key in $$skipArray) {
+                        platform.hideProperty(observe, key, keys[key])
+                        delete keys[key]
+                } else {
+                        observe[key] = keys[key]
+                        keys[key] = true
+                }
+        }
+        core.__proxy__ = observe
+}
+
+platform.beforeCreate = beforeCreate
+platform.afterCreate = afterCreate
 platform.modelAccessor = modelAccessor
-
-
-
+platform.hideProperty = hideProperty
+platform.toJson = toJson
+platform.toModel = function () { }
 platform.createViewModel = Object.defineProperties

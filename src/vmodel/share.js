@@ -1,5 +1,5 @@
 
-import { avalon, platform, isObject } from '../seed/core'
+import { avalon, platform, isObject, msie } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
 import { Watcher } from './watcher'
@@ -16,162 +16,115 @@ import { Watcher } from './watcher'
  * createObserver: ViewModel的适配方法，决定使用哪个工厂转换
  */
 
-var modelAccessor = {
-    get: function () {
-        return platform.toJson(this)
-    },
-    set: avalon.noop,
-    enumerable: false,
-    configurable: true
-}
+
 avalon.define = function (definition) {
-    var $id = definition.$id
-    if (!$id) {
-        avalon.warn('vm.$id must be specified')
-    }
-    if (avalon.vmodels[$id]) {
-        throw Error('error:[' + $id + '] had defined!')
-    }
-    var vm = modelFactory(definition, true)
-    return avalon.vmodels[$id] = vm
+        var $id = definition.$id
+        if (!$id) {
+                avalon.warn('vm.$id must be specified')
+        }
+        if (avalon.vmodels[$id]) {
+                throw Error('error:[' + $id + '] had defined!')
+        }
+        var vm = modelFactory(definition, true)
+        return avalon.vmodels[$id] = vm
 }
 
 export function modelFactory(definition, byUser) {
-    var core = {}
-    var state = {}
-    var hash = avalon.makeHashCode('$')
-    var keys = {
-        $id: definition.$id || hash,
-        $hashcode: hash
-    }
-    for (var key in definition) {
-        if ($$skipArray[key])
-            continue
-        var val = keys[key] = definition[key]
-        if (isObservable(key, val)) {
-            state[key] = createAccessor(key, val, core)
+        var core = {}
+        var state = {}
+        var hash = avalon.makeHashCode('$')
+        var keys = {
+                $id: definition.$id || hash,
+                $hashcode: hash
         }
-    }
-    //core, props, object, state, byUser
-    beforeCreate(core, keys, state, byUser)
-    var observe = {}
-    observe = platform.createViewModel(observe, state, keys)
-
-    afterCreate(core, keys, observe)
-    return observe
+        for (var key in definition) {
+                if ($$skipArray[key])
+                        continue
+                var val = keys[key] = definition[key]
+                if (isObservable(key, val)) {
+                        state[key] = createAccessor(key, val, core)
+                }
+        }
+        //往keys中添加系统API
+        platform.beforeCreate(core, state, keys, byUser)
+        var observe = new Observe()
+        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+        observe = platform.createViewModel(observe, state, keys)
+        platform.afterCreate(core, observe, keys)
+        return observe
 }
 
+function Observe() { }
 function listFactory(array, rewrite) {
-    if (!rewrite) {
-        rewriteArrayMethods(array)
-        platform.hideProperty(array, '$model', modelAccessor)
-        platform.hideProperty(array, '$events', { __dep__: new Depend })
-    }
-    array.forEach(function (item, i) {
-        if (isObject(item)) {
-            array[i] = createObserver(item)
+        if (!rewrite) {
+                rewriteArrayMethods(array)
+                platform.hideProperty(array, '$model', platform.modelAccessor)
+                platform.hideProperty(array, '$events', { __dep__: new Depend })
         }
-    })
-    return array
+        array.forEach(function (item, i) {
+                if (isObject(item)) {
+                        array[i] = createObserver(item)
+                }
+        })
+        return array
 }
 
-
-
-function beforeCreate(core, keys, state, byUser) {
-    state.$model = modelAccessor
-    avalon.mix(keys, {
-        $events: core,
-        $element: 0,
-        $accessors: state,
-    }, byUser ? {
-        $watch: function (expression, callback, deep) {
-            var w = new Watcher(core.observe, {
-                deep: deep,
-                expr: expression
-            }, callback);
-            return function () {
-                w.destory()
-            }
-        },
-        $fire: function () {
-
-        }
-    } : {})
-}
-
-function afterCreate(core, keys, observe) {
-    for (var key in keys) {
-        //对普通监控属性或访问器属性进行赋值
-        observe[key] = keys[key]
-        //删除系统属性
-        if (key in $$skipArray) {
-            delete keys[key]
-        } else {
-            keys[key] = true
-        }
-    }
-    console.log(keys)
-    function hasOwnKey(key) {
-        return keys[key] === true
-    }
-    platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
-    core.observe = observe
-}
 
 export function isObservable(key, val) {
-    if ($$skipArray[key])
-        return false
-    if (key.charAt(0) === '$')
-        return false
-    if (typeof val == null) {
-        avalon.warn('定义vmodel时属性值不能为null undefine')
-        return true
-    }
-    if (/error|date|function/.test(avalon.type(val))) {
-        return false
-    }
-    return !(val && val.nodeName && val.nodeType)
+        if ($$skipArray[key])
+                return false
+        if (key.charAt(0) === '$')
+                return false
+        if (typeof val == null) {
+                avalon.warn('定义vmodel时属性值不能为null undefine')
+                return true
+        }
+        if (/error|date|function/.test(avalon.type(val))) {
+                return false
+        }
+        return !(val && val.nodeName && val.nodeType)
 }
+
 function createObserver(target) {
-    if (target.$events) {
-        return target
-    }
-    var vm
-    if (Array.isArray(target)) {
-        vm = listFactory(target)
-    } else if (isObject(target)) {
-        vm = modelFactory(target)
-    }
-    if (vm)
-        vm.$events.__dep__ = new Depend()
-    return vm
+        if (target.$events) {
+                return target
+        }
+        var vm
+        if (Array.isArray(target)) {
+                vm = listFactory(target)
+        } else if (isObject(target)) {
+                vm = modelFactory(target)
+        }
+        if (vm)
+                vm.$events.__dep__ = new Depend()
+        return vm
 }
 
 function createAccessor(key, val, core) {
-    var value = val
-    var childOb = createObserver(val)
-    return {
-        get: function Getter() {
-            var ret = value
-            if (Depend.watcher) {
-                core.__dep__.collect()
-                if (childOb && childOb.$events) {
-                    childOb.$events.__dep__.collect()
-                }
-            }
-            return ret
-        },
-        set: function Setter(newValue) {
-            var oldValue = value
-            if (newValue === oldValue) {
-                return
-            }
-            core.__dep__.beforeNotify()
-            value = newValue
-            childOb = createObserver(newValue)
-            core.__dep__.notify()
-        },
-        enumerable: true,
-        configurable: true
-    }
+        var value = val
+        var childOb = createObserver(val)
+        return {
+                get: function Getter() {
+                        var ret = value
+                        if (Depend.watcher) {
+                                core.__dep__.collect()
+                                if (childOb && childOb.$events) {
+                                        childOb.$events.__dep__.collect()
+                                }
+                        }
+                        return ret
+                },
+                set: function Setter(newValue) {
+                        var oldValue = value
+                        if (newValue === oldValue) {
+                                return
+                        }
+                        core.__dep__.beforeNotify()
+                        value = newValue
+                        childOb = createObserver(newValue)
+                        core.__dep__.notify()
+                },
+                enumerable: true,
+                configurable: true
+        }
 }

@@ -30,17 +30,15 @@ function walkThrough(target, root) {
 /**
  * 用户watch回调及页面上的指令都会转换它的实例
  * @param {type} vm
- * @param {type} desc
+ * @param {type} options
  * @param {type} callback
- * @param {type} context
  * @returns {Watcher}
  */
 
-export function Watcher(vm, desc, callback, context) {
+export function Watcher(vm, options, callback) {
     this.vm = vm
     avalon.mix(this, desc)
     this.callback = callback
-    this.context = context || this
     // 依赖 id 缓存
     this.depIds = []
     this.newDepIds = []
@@ -57,6 +55,7 @@ export function Watcher(vm, desc, callback, context) {
     // 缓存表达式旧值
     this.oldVal = null
     // 表达式初始值 & 提取依赖
+    if(!this.user)
     this.value = this.get()
 }
 
@@ -66,15 +65,16 @@ var wp = Watcher.prototype
  * @return  {Object}
  */
 wp.getScope = function () {
-    return this.context.scope || this.vm
+    return  this.vm
 }
 
 wp.getValue = function () {
     var scope = this.getScope()
+    console.log(this, scope)
     try {
         return this.getter.call(scope, scope)
     } catch (e) {
-        avalon.log(this.getter + 'exec error')
+        avalon.log(this.getter + ' exec error')
     }
 }
 
@@ -152,7 +152,7 @@ wp.update = function (args, guid) {
     var callback = this.callback
     if (callback && (oldVal !== newVal)) {
         var fromDeep = this.deep && this.shallowIds.indexOf(guid) < 0
-        callback.call(this.context, newVal, oldVal, fromDeep, args)
+        callback.call(this.vm, newVal, oldVal, fromDeep, args)
     }
 }
 
