@@ -20,7 +20,7 @@ export function toJson(val) {
                                 }
                                 if (val.hasOwnProperty(i)) {
                                         var value = val[i]
-                                        obj[i] = value && value.nodeType ? value : toJson(value)
+                                        obj[i] = value && value.$events ? toJson(value): value
                                 }
                         }
                         return obj
@@ -93,14 +93,17 @@ function beforeCreate(core, state, keys, byUser) {
 
 
 function afterCreate(core, observe, keys) {
+        var $accessors = keys.$accessors
         for (var key in keys) {
                 //对普通监控属性或访问器属性进行赋值
                 //删除系统属性
                 if (key in $$skipArray) {
-                        platform.hideProperty(observe, key, keys[key])
+                        hideProperty(observe, key, keys[key])
                         delete keys[key]
                 } else {
-                        observe[key] = keys[key]
+                        if(!(key in $accessors)){
+                          observe[key] = keys[key]
+                        }
                         keys[key] = true
                 }
         }

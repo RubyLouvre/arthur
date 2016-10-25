@@ -1,8 +1,9 @@
 
-import { avalon, platform, isObject, msie } from '../seed/core'
+import { avalon, platform, isObject, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
 import { Watcher } from './watcher'
+import { rewriteArrayMethods } from './List'
 
 
 /**
@@ -58,7 +59,9 @@ function Observe() { }
 function listFactory(array, rewrite) {
         if (!rewrite) {
                 rewriteArrayMethods(array)
-                platform.hideProperty(array, '$model', platform.modelAccessor)
+                if(modern){
+                   Object.defineProperty(array, '$model', platform.modelAccessor)
+                }
                 platform.hideProperty(array, '$events', { __dep__: new Depend })
         }
         array.forEach(function (item, i) {
@@ -79,7 +82,7 @@ export function isObservable(key, val) {
                 avalon.warn('定义vmodel时属性值不能为null undefine')
                 return true
         }
-        if (/error|date|function/.test(avalon.type(val))) {
+        if (/error|date|function|regexp/.test(avalon.type(val))) {
                 return false
         }
         return !(val && val.nodeName && val.nodeType)
@@ -112,6 +115,8 @@ function createAccessor(key, val, core) {
                                         childOb.$events.__dep__.collect()
                                 }
                         }
+                        if(childOb)
+                            return childOb
                         return ret
                 },
                 set: function Setter(newValue) {

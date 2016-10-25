@@ -4,3 +4,5 @@ import './filters/index'
 import './dom/modern'
 import './vtree/fromString'
 import './vtree/fromDOM'
+import './vmodel/modern'
+
