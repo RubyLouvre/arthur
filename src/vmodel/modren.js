@@ -1,14 +1,11 @@
 import {avalon, platform, modern} from '../seed/core'
-import {$$skipArray} from './skipArray'
-import './methods.common'
+import './share'
 export {platform}
 
 
-warlords.$$skipArray = $$skipArray
-
 warlords.canHideProperty = true
 
-function toJson(val) {
+export function toJson(val) {
     switch (avalon.type(val)) {
         case 'array':
             var array = []

@@ -19,7 +19,7 @@ export function shadowCopy(destination, source) {
 }
 export var rword = /[^, ]+/g
 export var rnowhite = /\S+/g //存在非空字符
-
+export var platform = {} //用于放置平台差异的方法与属性
 export var isArray = function (target) {
         return avalon.type(target) === 'array'
 }

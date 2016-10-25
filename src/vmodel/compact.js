@@ -1,9 +1,7 @@
 import {avalon, platform, modern} from '../seed/core'
-import {$$skipArray} from './skipArray'
-import './methods.common'
+import './share'
 export {platform}
 
-platform.$$skipArray = $$skipArray
 //如果浏览器不支持ecma262v5的Object.defineProperties或者存在BUG，比如IE8
 //标准浏览器使用__defineGetter__, __defineSetter__实现
 var canHideProperty = true
@@ -18,7 +16,7 @@ try {
 
 platform.canHideProperty = canHideProperty
 
-function toJson(val) {
+export function toJson(val) {
     switch (avalon.type(val)) {
         case 'array':
             var array = []
