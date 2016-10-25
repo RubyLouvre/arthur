@@ -31,7 +31,9 @@ avalon.define = function (definition) {
 }
 
 export function modelFactory(definition, byUser) {
-        var core = {}
+        var core = {
+                __dep__: new Depend
+        }
         var state = {}
         var hash = avalon.makeHashCode('$')
         var keys = {

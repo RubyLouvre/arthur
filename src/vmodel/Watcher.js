@@ -55,22 +55,15 @@ export function Watcher(vm, options, callback) {
     // 缓存表达式旧值
     this.oldVal = null
     // 表达式初始值 & 提取依赖
-    if(!this.user)
+   // if(!this.user)
       this.value = this.get()
 }
 
 var wp = Watcher.prototype
-/**
- * 获取取值域
- * @return  {Object}
- */
-wp.getScope = function () {
-    return  this.vm
-}
+
 
 wp.getValue = function () {
-    var scope = this.getScope()
-    console.log(this, scope)
+    var scope = this.vm
     try {
         return this.getter.call(scope, scope)
     } catch (e) {
@@ -79,7 +72,7 @@ wp.getValue = function () {
 }
 
 wp.setValue = function (value) {
-    var scope = this.getScope()
+    var scope = this.vm
     if (this.setter) {
         this.setter.call(scope, scope, value)
     }
@@ -135,9 +128,9 @@ wp.afterGet = function () {
         return this.newDepIds.indexOf(depend.guid) < 0
     })
     // 重设依赖缓存
-    this.depIds =  avalon.mix(true, {}, this.newDepIds)
+    this.depIds =  this.newDepIds.slice(0)
     this.newDepIds.length = 0
-    this.depends =  avalon.mix(true, {}, this.newDepends)
+    this.depends =  this.newDepends.slice(0)
     this.newDepends.length = 0
 }
 

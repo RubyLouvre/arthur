@@ -207,6 +207,7 @@ function beforeCreate(core, state, keys, byUser) {
             } else {
                 core[expr].push(w)
             }
+           
             return function () {
                 w.destory()
                 avalon.Array.remove(core[expr], w)

@@ -1,5 +1,6 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
+import { Watcher } from './watcher'
 import './share'
 export { platform }
 
@@ -60,6 +61,7 @@ function $fire(expr, a) {
 }
 
 function $watch(expr, callback, deep) {
+        var core = this.$events
         var w = new Watcher(this, {
                 deep: deep,
                 user: true,
