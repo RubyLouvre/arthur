@@ -30,7 +30,7 @@ export function toJson(val) {
 platform.toJson = toJson
 platform.toModel = function () { }
 
-function hideProperty(host, name, value) {
+export function hideProperty(host, name, value) {
     Object.defineProperty(host, name, {
         value: value,
         writable: true,

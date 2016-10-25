@@ -48,9 +48,9 @@ describe('vdom', function () {
             var option = new VElement('option', { 'value': 'eee' }, [
                 new VText(' xxx ')
             ])
-            expect(option.toDOM().text).isMatch(/xxx/)
-            expect(option.toDOM().innerText).isMatch(/xxx/)
-            expect(option.toDOM().innerHTML).isMatch(/xxx/)
+            expect(option.toDOM().text).toMatch(/xxx/)
+            expect(option.toDOM().innerText).toMatch(/xxx/)
+            expect(option.toDOM().innerHTML).toMatch(/xxx/)
         })
         it('style', function () {
             var style = new VElement('style', {}, [

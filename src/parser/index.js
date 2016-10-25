@@ -1,5 +1,5 @@
 import { avalon, msie } from '../seed/core'
-import { clearString, stringPool, fill, rfill } from '../vtree/clearString'
+import { clearString, stringPool, fill, rfill,dig } from '../vtree/clearString'
 
 var keyMap = avalon.oneObject("break,case,catch,continue,debugger,default,delete,do,else,false," +
     "finally,for,function,if,in,instanceof,new,null,return,switch,this," +
@@ -38,7 +38,7 @@ export function createGetter(expr) {
     try {
         return new Function('__vmodel__', 'return ' + body + ';')
     } catch (e) {
-        avalon.log('parse getter: ', expr, body, ' error')
+        avalon.log('parse getter: [', expr, body, ']error')
         return avalon.noop
     }
 }

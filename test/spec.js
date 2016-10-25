@@ -21,4 +21,6 @@ import './vtree/clearString.spec'
 import './vtree/fromString.spec'
 import './vtree/fromDOM.spec'
 
+import './vmodel/compact.spec'
+
 

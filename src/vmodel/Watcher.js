@@ -1,4 +1,5 @@
 import { avalon } from '../seed/core'
+import { Depend } from './depend'
 import { createGetter,createSetter } from "../parser/index"
 /** 
  * 遍历对象/数组每一个可枚举属性

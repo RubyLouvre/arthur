@@ -47,7 +47,7 @@ platform.toModel = function (obj) {
     }
 }
 
-function hideProperty(host, name, value) {
+export function hideProperty(host, name, value) {
     if (canHideProperty) {
         Object.defineProperty(host, name, {
             value: value,

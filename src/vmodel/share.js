@@ -1,5 +1,5 @@
 
-import { avalon, platform,isObject } from '../seed/core'
+import { avalon, platform, isObject } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
 import { Watcher } from './watcher'
@@ -36,34 +36,36 @@ avalon.define = function (definition) {
     return avalon.vmodels[$id] = vm
 }
 
-export function modelFactory(object, byUser) {
+export function modelFactory(definition, byUser) {
     var core = {}
     var state = {}
-    var props = {}
-    for (var key in object) {
-        var val = object[key]
+    var hash = avalon.makeHashCode('$')
+    var keys = {
+        $id: definition.$id || hash,
+        $hashcode: hash
+    }
+    for (var key in definition) {
+        if ($$skipArray[key])
+            continue
+        var val = keys[key] = definition[key]
         if (isObservable(key, val)) {
             state[key] = createAccessor(key, val, core)
-        } else {
-            props[key] = val
         }
     }
     //core, props, object, state, byUser
-    beforeCreate(core, props, object, state, byUser)
+    beforeCreate(core, keys, state, byUser)
     var observe = {}
-    observe = platform.createViewModel(observe, state, props)
-    for (var i in props) {
-        observe[i] = props[i]
-    }
-    afterCreate(core, observe)
+    observe = platform.createViewModel(observe, state, keys)
+
+    afterCreate(core, keys, observe)
     return observe
 }
 
 function listFactory(array, rewrite) {
     if (!rewrite) {
         rewriteArrayMethods(array)
-        hideProperty(array, '$model', modelAccessor)
-        hideProperty(array, '$events', { __dep__: new Depend })
+        platform.hideProperty(array, '$model', modelAccessor)
+        platform.hideProperty(array, '$events', { __dep__: new Depend })
     }
     array.forEach(function (item, i) {
         if (isObject(item)) {
@@ -73,6 +75,48 @@ function listFactory(array, rewrite) {
     return array
 }
 
+
+
+function beforeCreate(core, keys, state, byUser) {
+    state.$model = modelAccessor
+    avalon.mix(keys, {
+        $events: core,
+        $element: 0,
+        $accessors: state,
+    }, byUser ? {
+        $watch: function (expression, callback, deep) {
+            var w = new Watcher(core.observe, {
+                deep: deep,
+                expr: expression
+            }, callback);
+            return function () {
+                w.destory()
+            }
+        },
+        $fire: function () {
+
+        }
+    } : {})
+}
+
+function afterCreate(core, keys, observe) {
+    for (var key in keys) {
+        //对普通监控属性或访问器属性进行赋值
+        observe[key] = keys[key]
+        //删除系统属性
+        if (key in $$skipArray) {
+            delete keys[key]
+        } else {
+            keys[key] = true
+        }
+    }
+    console.log(keys)
+    function hasOwnKey(key) {
+        return keys[key] === true
+    }
+    platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
+    core.observe = observe
+}
 
 export function isObservable(key, val) {
     if ($$skipArray[key])
@@ -88,35 +132,6 @@ export function isObservable(key, val) {
     }
     return !(val && val.nodeName && val.nodeType)
 }
-
-function beforeCreate(core, props, object, state, byUser) {
-    var hash = avalon.makeHashCode('$')
-    state.$model = modelAccessor
-    avalon.mix(props, {
-        $id: object.$id || hash,
-        $events: core,
-        $hashcode: hash,
-        $accessor: state,
-    }, byUser ? {
-        $watch: function (expression, callback, deep) {
-            var w = new Watcher(core.observe, {
-                'deep': deep,
-                'expression': expression
-            }, callback);
-            return function () {
-                w.destory()
-            }
-        },
-        $fire: function () {
-
-        }
-    } : {})
-}
-
-function afterCreate(core, observe) {
-    core.observe = observe
-}
-
 function createObserver(target) {
     if (target.$events) {
         return target
