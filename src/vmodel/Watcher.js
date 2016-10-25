@@ -35,7 +35,7 @@ function walkThrough(target, root) {
  * @returns {Watcher}
  */
 
-function Watcher(vm, desc, callback, context) {
+export function Watcher(vm, desc, callback, context) {
     this.vm = vm
     avalon.mix(this, desc)
     this.callback = callback

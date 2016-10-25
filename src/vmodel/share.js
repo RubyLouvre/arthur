@@ -1,7 +1,7 @@
 
-import { avalon, platform, modern } from '../seed/core'
+import { avalon, platform } from '../seed/core'
 import { $$skipArray } from './reserved'
-import { Depend } from './eepend'
+import { Depend } from './depend'
 import { Watcher } from './watcher'
 
 
@@ -86,20 +86,20 @@ function beforeCreate(core, props, object, state, byUser) {
         $events: core,
         $hashcode: hash,
         $accessor: state,
+    }, byUser ? {
         $watch: function (expression, callback, deep) {
             var w = new Watcher(core.observe, {
                 'deep': deep,
                 'expression': expression
             }, callback);
-            return function(){
+            return function () {
                 w.destory()
             }
         },
-        $fire: function(){
+        $fire: function () {
 
         }
-
-    })
+    } : {})
 }
 
 function afterCreate(core, observe) {

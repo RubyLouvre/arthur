@@ -3,7 +3,7 @@ var guid = 0
 /**
  * 依赖收集类 用于联结 VM 与 Watcher
  */
-function Depend() {
+export function Depend() {
     this.watchers = []
     this.guid = guid++
 }
