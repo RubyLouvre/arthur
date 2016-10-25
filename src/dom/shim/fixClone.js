@@ -17,7 +17,6 @@ function fixElement(dest, src) {
         if (dest.parentNode) {
             dest.outerHTML = src.outerHTML
         }
-        //    http://www.myexception.cn/web/665613.html   
     } else if (nodeName === 'input' && rcheckedType.test(src.nodeName)) {
 
         dest.defaultChecked = dest.checked = src.checked
@@ -44,6 +43,8 @@ function getAll(context) {
  /* istanbul ignore next */
 export function fixClone(src) {
     var target = src.cloneNode(true)
+    //http://www.myexception.cn/web/665613.html
+    target.expando = null
     var t = getAll(target)
     var s = getAll(src)
     for(var i = 0; i < s.length; i++){

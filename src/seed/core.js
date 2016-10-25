@@ -20,6 +20,10 @@ export function shadowCopy(destination, source) {
 export var rword = /[^, ]+/g
 export var rnowhite = /\S+/g //存在非空字符
 
+export var isArray = function (target) {
+        return avalon.type(target) === 'array'
+}
+
 export function oneObject(array, val) {
         if (typeof array === 'string') {
                 array = array.match(rword) || []

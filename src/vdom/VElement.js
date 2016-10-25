@@ -66,8 +66,15 @@ VElement.prototype = {
                dom.type = props.type || ''
                break
             case 'option':
-                dom.innerText = dom.textContent =  dom.text = template
-                dom.innerHTML = template
+                dom.text = template
+                //https://github.com/facebook/react/blob/0.13-stable/src/browser/ui/dom/setInnerHTML.js#L66-L81
+                dom.innerHTML = '\uFEFF' +template
+                var textNode = node.firstChild;
+                if (textNode.data.length === 1) {
+                  node.removeChild(textNode);
+                } else {
+                  textNode.deleteData(0, 1);
+                }
                 break
             case 'style':
                 /* istanbul ignore if*/
