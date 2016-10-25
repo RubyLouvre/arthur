@@ -1,4 +1,4 @@
-import  './seed/core'
+import './seed/core'
 import './seed/lang.compact'
 import './filters/index'
 import './dom/compact'

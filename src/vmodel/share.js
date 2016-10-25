@@ -1,5 +1,5 @@
 
-import { avalon, platform } from '../seed/core'
+import { avalon, platform,isObject } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
 import { Watcher } from './watcher'
@@ -24,7 +24,17 @@ var modelAccessor = {
     enumerable: false,
     configurable: true
 }
-
+avalon.define = function (definition) {
+    var $id = definition.$id
+    if (!$id) {
+        avalon.warn('vm.$id must be specified')
+    }
+    if (avalon.vmodels[$id]) {
+        throw Error('error:[' + $id + '] had defined!')
+    }
+    var vm = modelFactory(definition, true)
+    return avalon.vmodels[$id] = vm
+}
 
 export function modelFactory(object, byUser) {
     var core = {}
@@ -38,7 +48,8 @@ export function modelFactory(object, byUser) {
             props[key] = val
         }
     }
-    beforeCreate(props, object, state, core, byUser)
+    //core, props, object, state, byUser
+    beforeCreate(core, props, object, state, byUser)
     var observe = {}
     observe = platform.createViewModel(observe, state, props)
     for (var i in props) {
@@ -110,7 +121,8 @@ function createObserver(target) {
     if (target.$events) {
         return target
     }
-    if (isArray(target)) {
+    var vm
+    if (Array.isArray(target)) {
         vm = listFactory(target)
     } else if (isObject(target)) {
         vm = modelFactory(target)

@@ -3,7 +3,7 @@ import './share'
 export {platform}
 
 
-warlords.canHideProperty = true
+platform.canHideProperty = true
 
 export function toJson(val) {
     switch (avalon.type(val)) {
@@ -27,8 +27,8 @@ export function toJson(val) {
     }
 }
 
-warlords.toJson = toJson
-warlords.toModel = function () { }
+platform.toJson = toJson
+platform.toModel = function () { }
 
 function hideProperty(host, name, value) {
     Object.defineProperty(host, name, {
@@ -39,7 +39,7 @@ function hideProperty(host, name, value) {
     })
 }
 
-warlords.hideProperty = hideProperty
+platform.hideProperty = hideProperty
 
 var modelAccessor = {
     get: function () {
@@ -50,8 +50,8 @@ var modelAccessor = {
     configurable: true
 }
 
-warlords.modelAccessor = modelAccessor
+platform.modelAccessor = modelAccessor
 
 
 
-warlords.createViewModel = Object.defineProperties
+platform.createViewModel = Object.defineProperties

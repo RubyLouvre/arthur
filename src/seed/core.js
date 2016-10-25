@@ -256,7 +256,8 @@ shadowCopy(avalon, {
         inspect,
         ohasOwn,
         rword,
-        scopes: {},
+      
+        vmodels: {},
 
         eventHooks,
         eventListeners,
