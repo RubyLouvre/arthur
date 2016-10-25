@@ -5,6 +5,7 @@
  */
 
 export function getOption(node) {
+    console.log(node.outerHTML, '=====s')
       if(node.hasAttribute && node.hasAttribute('value')){
           return node.getAttribute('value')
       }

@@ -61,8 +61,13 @@ VElement.prototype = {
         var template = c[0] ? c[0].nodeValue : ''
         switch (this.nodeName) {
             case 'script':
+               dom.type = 'noexec'
+               dom.text = template
+               dom.type = props.type || ''
+               break
             case 'option':
-                dom.text = template
+                dom.innerText = dom.textContent =  dom.text = template
+                dom.innerHTML = template
                 break
             case 'style':
                 /* istanbul ignore if*/

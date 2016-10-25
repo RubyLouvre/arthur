@@ -6,13 +6,18 @@ function fixElement(dest, src) {
         return
     }
     var nodeName = dest.nodeName.toLowerCase()
-    if (nodeName === 'object') {
+
+     if ( nodeName === "script" ) {
+         if( dest.text !== src.text){
+             dest.type = "noexec"
+             dest.text = src.text;
+             dest.type = src.type || ""
+        }
+     }else if (nodeName === 'object') {
         if (dest.parentNode) {
             dest.outerHTML = src.outerHTML
         }
-        
-         dest.innerHTML = src.innerHTML
-       
+        //    http://www.myexception.cn/web/665613.html   
     } else if (nodeName === 'input' && rcheckedType.test(src.nodeName)) {
 
         dest.defaultChecked = dest.checked = src.checked
