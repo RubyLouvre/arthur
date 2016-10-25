@@ -1,4 +1,5 @@
-
+import { avalon } from '../seed/core'
+import { createGetter,createSetter } from "../parser/index"
 /** 
  * 遍历对象/数组每一个可枚举属性
  * @param  {Object|Array}  target  [遍历值/对象或数组]
@@ -89,7 +90,7 @@ wp.get = function () {
     // 深层依赖获取
     if (this.deep) {
         // 先缓存浅依赖的 ids
-        this.shallowIds = copy(this.newDepIds)
+        this.shallowIds = avalon.mix(true, {}, this.newDepIds)
         walkThrough(value, true)
     }
 
@@ -133,14 +134,15 @@ wp.afterGet = function () {
         return this.newDepIds.indexOf(depend.guid) < 0
     })
     // 重设依赖缓存
-    this.depIds = copy(this.newDepIds)
+    this.depIds =  avalon.mix(true, {}, this.newDepIds)
     this.newDepIds.length = 0
-    this.depends = copy(this.newDepends)
+    this.depends =  avalon.mix(true, {}, this.newDepends)
     this.newDepends.length = 0
 }
 
 wp.beforeUpdate = function () {
-    this.oldVal = copy(this.value)
+    
+    this.oldVal = avalon.mix(true, {}, this.value)
 }
 
 wp.update = function (args, guid) {
