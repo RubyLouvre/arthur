@@ -37,7 +37,7 @@ function walkThrough(target, root) {
 
 export function Watcher(vm, options, callback) {
     this.vm = vm
-    avalon.mix(this, desc)
+    avalon.mix(this, options)
     this.callback = callback
     // 依赖 id 缓存
     this.depIds = []
@@ -46,7 +46,7 @@ export function Watcher(vm, options, callback) {
     // 依赖实例缓存
     this.depends = []
     this.newDepends = []
-    var expr = desc.expr
+    var expr = this.expr
     var preSetFunc = typeof expr === 'function'
     // 缓存取值函数
     this.getter = preSetFunc ? expr : createGetter(expr)
@@ -56,7 +56,7 @@ export function Watcher(vm, options, callback) {
     this.oldVal = null
     // 表达式初始值 & 提取依赖
     if(!this.user)
-    this.value = this.get()
+      this.value = this.get()
 }
 
 var wp = Watcher.prototype
