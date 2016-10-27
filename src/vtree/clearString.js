@@ -37,10 +37,10 @@ function readString(str) {
                 s = i
             }
         } else {
-            if (c === '\\') {
-                i += 1
-                continue
-            }
+          //  if (c === '\\') {
+          //      i += 1
+          //      continue
+          //  }
             if (c === end) {
                 ret.push(str.slice(s, i + 1))
                 end = false

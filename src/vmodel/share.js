@@ -135,3 +135,4 @@ function createAccessor(key, val, core) {
                 configurable: true
         }
 }
+platform.listFactory = listFactory

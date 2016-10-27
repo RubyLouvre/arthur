@@ -15,8 +15,9 @@ var __array__ = {
     ensure: function (el) {
         if (!this.contains(el)) { //只有不存在才push
             this.push(el)
+            return true
         }
-        return this
+        return false
     },
     pushArray: function (arr) {
         return this.push.apply(this, arr)
@@ -53,8 +54,7 @@ var __array__ = {
             _splice.call(this, 0, this.length)
         }
         platform.toModel(this)
-        core.__dep__.notify()
-        this.notify()
+        this.$events.__dep__.notify()
     }
 
 
