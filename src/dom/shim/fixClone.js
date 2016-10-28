@@ -14,13 +14,16 @@ function fixElement(dest, src) {
              dest.type = src.type || ""
         }
      }else if (nodeName === 'object') {
-        if (dest.parentNode) {
-            dest.outerHTML = src.outerHTML
+        var params = src.childNodes
+        if (dest.childNodes.length !== params.length) {
+            avalon.clearHTML(dest)
+            for(var i = 0, el ; el = params[i++]; ) {
+                dest.appendChild(el.cloneNode(true))
+            }
         }
     } else if (nodeName === 'input' && rcheckedType.test(src.nodeName)) {
 
         dest.defaultChecked = dest.checked = src.checked
-
         if (dest.value !== src.value) {
             dest.value = src.value
         }

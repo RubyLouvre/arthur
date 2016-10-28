@@ -7,7 +7,7 @@ import { compactParseJSON } from './parseJSON.compact'
 var rsvg = /^\[object SVG\w*Element\]$/
 var ramp = /&amp;/g
 
-export function updateAttr(node, vnode) {
+export var updateAttr = function updateAttr(node, vnode) {
     /* istanbul ignore if*/
     if (!node || node.nodeType !== 1) {
         return
@@ -18,6 +18,8 @@ export function updateAttr(node, vnode) {
         var val = attrs[attrName]
         // 处理路径属性
         /* istanbul ignore if*/
+        console.log(val, attrName)
+        try{
         if (attrName === 'href' || attrName === 'src') {
             if ( msie < 8) {
                 val = String(val).replace(ramp, '&') //处理IE67自动转义的问题
@@ -52,6 +54,10 @@ export function updateAttr(node, vnode) {
             } else {
                 node.setAttribute(attrName, val)
             }
+        }
+        }catch(e){
+            console.log(e.message,attrName, val,'11')
+        throw e
         }
     }
 }

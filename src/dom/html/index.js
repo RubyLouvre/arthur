@@ -23,7 +23,8 @@ avalon.parseHTML = function (html) {
     }
     var vnodes = avalon.lexer(html)
     for (var i = 0, el; el = vnodes[i++]; ) {
-        fragment.appendChild(avalon.vdom(el, 'toDOM'))
+        var child = avalon.vdom(el, 'toDOM')
+        fragment.appendChild(child)
     }
     if (html.length < 1024) {
         htmlCache.put(html, fragment)
@@ -32,9 +33,9 @@ avalon.parseHTML = function (html) {
 }
 
 avalon.innerHTML = function (node, html) {
-
-    var parsed = this.parseHTML(html)
-    this.clearHTML(node).appendChild(parsed)
+    var parsed = avalon.parseHTML(html)
+    this.clearHTML(node)
+    node.appendChild(parsed)
 }
 
 //https://github.com/karloespiritu/escapehtmlent/blob/master/index.js
@@ -50,7 +51,6 @@ avalon.unescapeHTML = function (html) {
 
 
 avalon.clearHTML = function (node) {
-    node.textContent = ''
     /* istanbul ignore next */
     while (node.lastChild) {
         node.removeChild(node.lastChild)

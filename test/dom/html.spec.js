@@ -62,14 +62,18 @@ describe('html', function () {
             expect(a.nodeType).toBe(11)
             var b = avalon.parseHTML('111')
             expect(b.nodeType).toBe(3)
+        })
+        it("parseHTL2", function(){
             var c = avalon.parseHTML('<div>222</div><div>222</div>')
             expect(c.nodeType).toBe(11)
             expect(c.childNodes.length).toBe(2)
+        })
+        it('parseHTML3', function(){
             var div = document.createElement('div')
             div.innerHTML = "<p>ddd</p><b>333</b>"
             avalon.innerHTML(div, '<div>222</div><div>222</div>')
             expect(div.getElementsByTagName('div').length).toBe(2)
-        });
+        })
 
     })
 
