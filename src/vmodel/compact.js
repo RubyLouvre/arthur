@@ -17,6 +17,7 @@ try {
     canHideProperty = false
 }
 
+
 var modelAccessor = {
     get: function () {
         return toJson(this)
@@ -50,8 +51,7 @@ export function toJson(val) {
     }
 }
 
-
-
+/* istanbul ignore next */
 export function hideProperty(host, name, value) {
     if (canHideProperty) {
         Object.defineProperty(host, name, {
@@ -61,6 +61,7 @@ export function hideProperty(host, name, value) {
             configurable: true
         })
     } else {
+        /* istanbul ignore next */
         host[name] = value
     }
 }
@@ -209,7 +210,7 @@ function beforeCreate(core, state, keys, byUser) {
             }
            
             return function () {
-                w.destory()
+                w.destroy()
                 avalon.Array.remove(core[expr], w)
                 if (core[expr].length === 0) {
                     delete core[expr]
@@ -227,7 +228,7 @@ function beforeCreate(core, state, keys, byUser) {
     } : {})
 }
 
-function afterCreate(core, observe, keys) {
+export function afterCreate(core, observe, keys) {
     var $accessors = keys.$accessors
     for (var key in keys) {
         //对普通监控属性或访问器属性进行赋值
@@ -246,7 +247,7 @@ function afterCreate(core, observe, keys) {
     function hasOwnKey(key) {
         return keys[key] === true
     }
-    if (msie < 9)
+    if (avalon.msie < 9)
         platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
     core.__proxy__ = observe
 }
@@ -258,7 +259,7 @@ platform.afterCreate = afterCreate
 platform.modelAccessor = modelAccessor
 platform.toJson = toJson
 platform.toModel = function (obj) {
-    if (!modern) {
+    if (avalon.msie < 9) {
         obj.$model = toJson(obj)
     }
 }

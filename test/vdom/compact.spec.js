@@ -49,8 +49,14 @@ describe('vdom', function () {
                 new VText(' xxx ')
             ])
             expect(option.toDOM().text).toMatch(/xxx/)
-            expect(option.toDOM().innerText).toMatch(/xxx/)
-            expect(option.toDOM().innerHTML).toMatch(/xxx/)
+            expect(option.toDOM().innerText).toMatch(' xxx ')
+            expect(option.toDOM().innerHTML).toMatch(' xxx ')
+            var option2 = new VElement('option', { 'value': 'eee' }, [
+                new VText('')
+            ])
+            expect(option2.toDOM().text).toBe('')
+            expect(option2.toDOM().innerText).toBe('')
+            expect(option2.toDOM().innerHTML).toBe('')
         })
         it('style', function () {
             var style = new VElement('style', {}, [
@@ -141,7 +147,12 @@ describe('vdom', function () {
             expect(el).toBe('')
             var el2 = vdom(null, 'toDOM')
             expect(el2.nodeType).toBe(11)
-
+            var f = {
+                nodeName: '#document-fragment',
+                children: []
+            }
+            var el = vdom(f, 'toHTML')
+            expect(el).toBe('')
 
         })
     })

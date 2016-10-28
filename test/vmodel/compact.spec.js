@@ -1,4 +1,4 @@
-import { avalon } from
+import { avalon, afterCreate, platform } from
     '../../src/vmodel/compact'
 
 describe('vmodel', function () {
@@ -8,8 +8,11 @@ describe('vmodel', function () {
             aaa: 1
         })
         var called = false
-        vm.$watch('aaa', function (a) {
+        var unwatch = vm.$watch('aaa', function (a) {
             called = a
+        })
+        var unwatch2 = vm.$watch('aaa', function (a) {
+
         })
         expect(vm.$id).toBe("aaa")
         expect(vm.$model).toEqual({
@@ -19,8 +22,12 @@ describe('vmodel', function () {
         expect(vm.$fire).toA('function')
         expect(vm.$watch).toA('function')
         expect(vm.$events).toA('object')
+        expect(vm.$events.aaa.length).toBe(2)
         vm.$fire('aaa', '56')
         expect(called).toBe('56')
+        unwatch()
+        unwatch2()
+        expect(vm.$events.aaa).toA('undefined')
         vm.$hashcode = false
         delete avalon.vmodels.aaa
     })
@@ -87,10 +94,62 @@ describe('vmodel', function () {
         vm.array.splice(0, 0, 4, 5, 6)
         vm.array.clear()
         expect(vm.array.length).toEqual(0)
-        a = vm.array.removeAt(0)
+        a = vm.array.removeAt(8)
         expect(a).toEqual([])
         vm.array.unshift(8, 9, 10)
         vm.array.remove(10)
         expect(vm.array.$model).toEqual([8, 9])
+        try {
+            vm.array.set(100, 4)
+        } catch (e) {
+            expect(e).toInstanceOf(Error)
+        }
+        var arr = vm.array.removeAt('aaa')
+        expect(arr).toEqual([])
     })
+
+    it('afterCreate', function () {
+        var oldIE = avalon.msie
+        avalon.msie = 6
+        var core = {}
+        var keys = {
+            $accessors: {
+                a: {
+                    get: function () { },
+                    set: function () { },
+                    enumerable: true,
+                    configurable: true
+                }
+            },
+            $id: 'test',
+            aaa: 111,
+            bbb: 111
+        }
+        var observer = {}
+        afterCreate(core, observer, keys)
+        expect(core.__proxy__).toBe(observer)
+        expect(keys).toEqual({
+            aaa: true,
+            bbb: true
+        })
+        expect(observer.hasOwnProperty).toMatch(/hasOwnKey/)
+        expect(observer.hasOwnProperty('aaa')).toBe(true)
+        expect(observer.hasOwnProperty('ccc')).toBe(false)
+        var testA = {
+            $id: 'aaa',
+            arr: [1, 2, 3],
+            obj: {
+                a: 1,
+                b: 2
+            },
+            c: 88
+        }
+        platform.toModel(testA)
+        expect(testA.$model).toA('object')
+        expect(testA.$model.$id).toA('undefined')
+        avalon.msie = oldIE
+
+    })
+
+
 })

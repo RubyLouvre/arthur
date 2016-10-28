@@ -114,7 +114,7 @@ export function isPlainObjectCompact(obj, key) {
         } catch (e) { //IE8 9会在这里抛错
                 return false
         }
-
+       /* istanbul ignore if */
         if (enumerateBUG) {
                 for (key in obj) {
                         return ohasOwn.call(obj, key)
@@ -212,7 +212,7 @@ export function isArrayLike(obj) {
         if (n === (n >>> 0)) { //检测length属性是否为非负整数
                 var type = inspect.call(obj).slice(8, - 1)
                 if (rarraylike.test(type))
-                        return false
+                        return true
                 if (type === 'Array')
                         return true
                 try {

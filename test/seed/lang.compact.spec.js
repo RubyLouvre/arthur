@@ -214,7 +214,7 @@ describe('seed/lang', function () {
             1: 11,
             length: 2
         })).toBeTruthy()
-
+        expect(isArrayLike(document.childNodes)).toBeTruthy()
         expect(isArrayLike(arguments)).toBeTruthy()
         expect(!isArrayLike(null)).toBeTruthy()
         expect(!isArrayLike(undefined)).toBeTruthy()
