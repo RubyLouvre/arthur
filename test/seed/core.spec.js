@@ -8,6 +8,7 @@ describe('seed/core', function () {
         var a = {}
         expect(avalon(a)[0]).toBe(a)
         expect(avalon(a).element).toBe(a)
+        console.log(avalon.msie, '当前游览器是')
     })
     it('config', function () {
 

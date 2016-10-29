@@ -16,7 +16,7 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             './matchers.js',
-             './beforeIt.js',
+            './beforeIt.js',
             './dist/avalon.test.js'
         ],
 
@@ -56,15 +56,19 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Chrome','IE_no_addons'],
+        browsers: ['IE', 'IE10'],
 
         customLaunchers: {
-            IE_no_addons: {
+            IE7: {
                 base: 'IE',
-                 flags: ['-extoff'],
-                 'x-ua-compatible': 'IE=EmulateIE8'
+                flags: ['-extoff'],
+                'x-ua-compatible': 'IE=EmulateIE7'
+            },
+            IE10: {
+                base: 'IE',
+                flags: ['-extoff'],
+                'x-ua-compatible': 'IE=EmulateIE10'
             }
-     
         },
         coverageReporter: {
             dir: 'coverage/',

@@ -62,6 +62,7 @@ function listFactory(array, rewrite) {
         if (!rewrite) {
                 rewriteArrayMethods(array)
                 if(modern){
+                        console.log('eeeeeeeeeeeee')
                    Object.defineProperty(array, '$model', platform.modelAccessor)
                 }
                 platform.hideProperty(array, '$events', { __dep__: new Depend })

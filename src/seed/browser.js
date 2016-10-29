@@ -28,7 +28,7 @@ let versions = {
     undefinedobject: NaN //Mobile Safari 8.0.0 (iOS 8.4.0) 
 }
 /* istanbul ignore next  */
-export var msie = inBrowser.documentMode ||
+export var msie =  document.documentMode ||
     versions[typeof document.all + typeof XMLHttpRequest]
 
 export var modern = msie !== msie
