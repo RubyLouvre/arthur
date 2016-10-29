@@ -19,15 +19,9 @@ export function updateAttrs(node, vnode) {
         // 处理路径属性
         /* istanbul ignore if*/
         try {
-            if (attrName === 'href' || attrName === 'src') {
-                if (msie < 8) {
-                    val = String(val).replace(ramp, '&') //处理IE67自动转义的问题
-                }
-                node[attrName] = val
-                //处理HTML5 data-*属性
-            } else if (attrName.indexOf('data-') === 0) {
+            //处理HTML5 data-*属性 SVG
+            if (attrName.indexOf('data-') === 0 || rsvg.test(node)) {
                 node.setAttribute(attrName, val)
-
             } else {
                 var propName = propMap[attrName] || attrName
                 /* istanbul ignore if */
@@ -44,12 +38,16 @@ export function updateAttrs(node, vnode) {
                 }
                 //SVG只能使用setAttribute(xxx, yyy), VML只能使用node.xxx = yyy ,
                 //HTML的固有属性必须node.xxx = yyy
-                var isInnate = rsvg.test(node) ? false :
-                    (!avalon.modern && isVML(node)) ? true :
+                var isInnate = (!avalon.modern && isVML(node)) ? true :
                         isInnateProps(node.nodeName, attrName)
-            
+
                 /* istanbul ignore next */
                 if (isInnate) {
+                    if (attrName === 'href' || attrName === 'src') {
+                        if (msie < 8) {
+                            val = String(val).replace(ramp, '&') //处理IE67自动转义的问题
+                        }
+                    }
                     node[propName] = val + ''
                 } else {
                     node.setAttribute(attrName, val)

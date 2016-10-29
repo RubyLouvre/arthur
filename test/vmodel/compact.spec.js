@@ -32,6 +32,7 @@ describe('vmodel', function () {
         delete avalon.vmodels.aaa
     })
     it('hasSubObject', function () {
+      
         var vm = avalon.define({
             $id: "bbb",
             a: 2,
@@ -60,6 +61,7 @@ describe('vmodel', function () {
     })
 
     it('list', function () {
+      
         var vm = avalon.define({
             $id: 'ccc',
             array: [1]
@@ -109,6 +111,7 @@ describe('vmodel', function () {
     })
 
     it('afterCreate', function () {
+     
         var oldIE = avalon.msie
         avalon.msie = 6
         var core = {}

@@ -12,7 +12,7 @@ export function updateAttr(node, vnode) {
     for (var attrName in attrs) {
         var val = attrs[attrName]
         /* istanbul ignore if*/
-        if (attrName.indexOf('data-') === 0) {
+        if (attrName.indexOf('data-') === 0 || rsvg.test(node)) {
             node.setAttribute(attrName, val)
         } else {
             var propName = propMap[attrName] || attrName
@@ -29,7 +29,7 @@ export function updateAttr(node, vnode) {
 
             //SVG只能使用setAttribute(xxx, yyy), VML只能使用node.xxx = yyy ,
             //HTML的固有属性必须node.xxx = yyy
-            var isInnate = rsvg.test(node) ? false : attrName in node.cloneNode(false)
+            var isInnate = attrName in node.cloneNode(false)
             if (isInnate) {
                 node[propName] = val + ''
             } else {

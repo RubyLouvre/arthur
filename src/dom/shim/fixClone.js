@@ -47,7 +47,7 @@ function getAll(context) {
 export function fixClone(src) {
     var target = src.cloneNode(true)
     //http://www.myexception.cn/web/665613.html
-    target.expando = null
+   // target.expando = null
     var t = getAll(target)
     var s = getAll(src)
     for(var i = 0; i < s.length; i++){

@@ -56,7 +56,8 @@ avalon.bind = function (elem, type, fn) {
         }
         if (keys.indexOf(key) === -1) {
             keys.push(key)
-            elem.setAttribute('avalon-events', keys.join(','))
+            setEventId(elem, keys.join(','))
+
             //将令牌放进avalon-events属性中
         }
 
@@ -65,6 +66,9 @@ avalon.bind = function (elem, type, fn) {
         avalon._nativeBind(elem, type, fn)
     }
     return fn //兼容之前的版本
+}
+function setEventId(node, value) {
+    node.setAttribute('avalon-events', value)
 }
 /* istanbul ignore next */
 avalon.unbind = function (elem, type, fn) {
@@ -79,14 +83,14 @@ avalon.unbind = function (elem, type, fn) {
                 value = value.split(',').filter(function (str) {
                     return str.indexOf(type + ':') === -1
                 }).join(',')
-                elem.setAttribute('avalon-events', value)
+                setEventId(elem, value)
                 break
             default:
                 var search = type + ':' + fn.uuid
                 value = value.split(',').filter(function (str) {
                     return str !== search
                 }).join(',')
-                elem.setAttribute('avalon-events', value)
+                setEventId(elem, value)
                 delete avalon.eventListeners[fn.uuid]
                 break
         }
@@ -158,11 +162,12 @@ var focusBlur = {
 }
 
 function delegateEvent(type) {
+
     var value = root.getAttribute('delegate-events') || ''
     if (value.indexOf(type) === -1) {
         var arr = value.match(avalon.rword) || []
         arr.push(type)
-        root.setAttribute('delegate-events', arr.join(','))
+        setEventId(root, arr.join(','))
         avalon._nativeBind(root, type, dispatch, !!focusBlur[type])
     }
 }

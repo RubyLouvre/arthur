@@ -24,7 +24,7 @@ if (typeof jasmine !== 'undefined') {
             }
             return {
               pass: true
-          }
+            }
           }
         }
       },
@@ -32,14 +32,14 @@ if (typeof jasmine !== 'undefined') {
         return {
           compare: function (actual, expected) {
             var pass = actual instanceof expected
-            
-              if (!pass) {
-                return {
-                  message: 'toInstanceOf expected ['+ expected +'], but is not',
-                  pass: false
-                }
+
+            if (!pass) {
+              return {
+                message: 'toInstanceOf expected [' + expected + '], but is not',
+                pass: false
               }
-          
+            }
+
             return {
               pass: true
             }
@@ -50,14 +50,14 @@ if (typeof jasmine !== 'undefined') {
         return {
           compare: function (actual, expected) {
             var ohas = Object.prototype.hasOwnProperty
-            var pass = ohas.call(actual,expected)
-              if (!pass) {
-                return {
-                  message: 'toHaveProperty expected has ['+ expected +'] property, but is not',
-                  pass: false
-                }
+            var pass = ohas.call(actual, expected)
+            if (!pass) {
+              return {
+                message: 'toHaveProperty expected has [' + expected + '] property, but is not',
+                pass: false
               }
-          
+            }
+
             return {
               pass: true
             }
@@ -67,10 +67,14 @@ if (typeof jasmine !== 'undefined') {
       toA: function () {
         return {
           compare: function (actual, expected) {
-            var toS = Object.prototype.toString
-            var type = toS.call(actual).slice(8, -1).toLowerCase()
-            if(/error$/.test(type)){
-                type = 'error' //IE对错误类型存在差异,因此统一为Error
+            if (actual == null) {
+              var type = actual + ''
+            } else {
+              var toS = Object.prototype.toString
+              type = toS.call(actual).slice(8, -1).toLowerCase()
+            }
+            if (/error$/.test(type)) {
+              type = 'error' //IE对错误类型存在差异,因此统一为Error
             }
 
             if (type !== expected) {

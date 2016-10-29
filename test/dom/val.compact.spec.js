@@ -15,7 +15,6 @@ describe('value', function () {
     })
     it('option', function () {
         a.innerText = ' 111 '
-        avalon.log(a.outerHTML, a.text, a.innerHTML, a.innerText, a.value)
         expect(getOption(a)).toBe('111')
         a.setAttribute('value', ' 222 ')
         expect(getOption(a)).toBe(' 222 ')

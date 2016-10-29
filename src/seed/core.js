@@ -158,6 +158,29 @@ export function createFragment() {
 var rentities = /&[a-z0-9#]{2,10};/
 var temp = document.createElement('div')
 shadowCopy(avalon, {
+        Array: {
+                merge: function (target, other) {
+                        //合并两个数组 avalon2新增
+                        target.push.apply(target, other)
+                },
+                ensure: function (target, item) {
+                        //只有当前数组不存在此元素时只添加它
+                        if (target.indexOf(item) === - 1) {
+                                return target.push(item)
+                        }
+                },
+                removeAt: function (target, index) {
+                        //移除数组中指定位置的元素，返回布尔表示成功与否
+                        return !!target.splice(index, 1).length
+                },
+                remove: function (target, item) {
+                        //移除数组中第一个匹配传参的那个元素，返回布尔表示成功与否
+                        var index = target.indexOf(item)
+                        if (~index)
+                                return avalon.Array.removeAt(target, index)
+                        return false
+                }
+        },
         evaluatorPool: new Cache(888),
         parsers: {
                 number: function (a) {
@@ -181,29 +204,7 @@ shadowCopy(avalon, {
         }
 })
 
-avalon.Array = {
-        merge: function (target, other) {
-                //合并两个数组 avalon2新增
-                target.push.apply(target, other)
-        },
-        ensure: function (target, item) {
-                //只有当前数组不存在此元素时只添加它
-                if (target.indexOf(item) === - 1) {
-                        return target.push(item)
-                }
-        },
-        removeAt: function (target, index) {
-                //移除数组中指定位置的元素，返回布尔表示成功与否
-                return !!target.splice(index, 1).length
-        },
-        remove: function (target, item) {
-                //移除数组中第一个匹配传参的那个元素，返回布尔表示成功与否
-                var index = target.indexOf(item)
-                if (~index)
-                        return avalon.Array.removeAt(target, index)
-                return false
-        }
-}
+
 
 //============== config ============
 export function config(settings) {
@@ -256,7 +257,7 @@ shadowCopy(avalon, {
         inspect,
         ohasOwn,
         rword,
-      
+
         vmodels: {},
 
         eventHooks,

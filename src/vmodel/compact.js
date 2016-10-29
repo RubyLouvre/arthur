@@ -208,7 +208,7 @@ function beforeCreate(core, state, keys, byUser) {
             } else {
                 core[expr].push(w)
             }
-           
+
             return function () {
                 w.destroy()
                 avalon.Array.remove(core[expr], w)
@@ -219,7 +219,7 @@ function beforeCreate(core, state, keys, byUser) {
         },
         $fire: function $fire(expr, a) {
             var list = core[expr]
-            if (Array(list)) {
+            if (Array.isArray(list)) {
                 for (var i = 0, w; w = list[i++];) {
                     w.callback.call(w.vm, a, w.value, w.expr)
                 }
@@ -237,10 +237,10 @@ export function afterCreate(core, observe, keys) {
             hideProperty(observe, key, keys[key])
             delete keys[key]
         } else {
-            if(!(key in $accessors)){
+            if (!(key in $accessors)) {
                 observe[key] = keys[key]
             }
-            
+
             keys[key] = true
         }
     }
