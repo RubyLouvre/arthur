@@ -91,7 +91,6 @@ module.exports = function (config) {
         concurrency: Infinity,
 
 
-
         // webpack: require('./webpack.config.js'),
 
         webpackServer: {

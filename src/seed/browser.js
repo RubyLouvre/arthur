@@ -31,5 +31,5 @@ let versions = {
 export var msie =  document.documentMode ||
     versions[typeof document.all + typeof XMLHttpRequest]
 
-export var modern = msie !== msie
+export var modern = /NaN/.test(msie) || msie > 8 
 
