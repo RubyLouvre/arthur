@@ -1,6 +1,6 @@
 import { avalon } from '../seed/core'
 import { Depend } from './depend'
-import { createGetter,createSetter } from "../parser/index"
+import { createGetter, createSetter } from "../parser/index"
 /** 
  * 遍历对象/数组每一个可枚举属性
  * @param  {Object|Array}  target  [遍历值/对象或数组]
@@ -53,10 +53,10 @@ export function Watcher(vm, options, callback) {
     // 缓存设值函数（双向数据绑定）
     this.setter = this.type === 'duplex' ? createSetter(expr) : null
     // 缓存表达式旧值
-    this.oldVal = null
+    this.oldValue = null
     // 表达式初始值 & 提取依赖
-   // if(!this.user)
-      this.value = this.get()
+    // if(!this.user)
+    this.value = this.get()
 }
 
 var wp = Watcher.prototype
@@ -128,19 +128,19 @@ wp.afterGet = function () {
         return this.newDepIds.indexOf(depend.guid) < 0
     })
     // 重设依赖缓存
-    this.depIds =  this.newDepIds.slice(0)
+    this.depIds = this.newDepIds.slice(0)
     this.newDepIds.length = 0
-    this.depends =  this.newDepends.slice(0)
+    this.depends = this.newDepends.slice(0)
     this.newDepends.length = 0
 }
 
 wp.beforeUpdate = function () {
-    
-    this.oldVal = avalon.mix(true, {}, this.value)
+    var v = this.value
+    this.oldValue = v && v.$events ? v.$model : v
 }
 
 wp.update = function (args, guid) {
-    var oldVal = this.oldVal
+    var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
     if (callback && (oldVal !== newVal)) {

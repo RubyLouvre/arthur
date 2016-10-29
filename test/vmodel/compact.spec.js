@@ -1,6 +1,9 @@
 import { avalon, afterCreate, platform } from
     '../../src/vmodel/compact'
-
+import { Depend } from
+    '../../src/vmodel/depend'
+import { Watcher } from
+    '../../src/vmodel/watcher'
 describe('vmodel', function () {
     it('vmodel', function () {
         var vm = avalon.define({
@@ -32,7 +35,7 @@ describe('vmodel', function () {
         delete avalon.vmodels.aaa
     })
     it('hasSubObject', function () {
-      
+
         var vm = avalon.define({
             $id: "bbb",
             a: 2,
@@ -50,6 +53,7 @@ describe('vmodel', function () {
             },
             arr: [1, 2, 3]
         })
+        vm.a = 3
         expect(vm.aaa.$events).toA('object')
         expect(vm.aaa.$fire).toA('undefined')
         expect(vm.aaa.$watch).toA('undefined')
@@ -61,7 +65,7 @@ describe('vmodel', function () {
     })
 
     it('list', function () {
-      
+
         var vm = avalon.define({
             $id: 'ccc',
             array: [1]
@@ -111,7 +115,7 @@ describe('vmodel', function () {
     })
 
     it('afterCreate', function () {
-     
+
         var oldIE = avalon.msie
         avalon.msie = 6
         var core = {}
@@ -155,4 +159,45 @@ describe('vmodel', function () {
     })
 
 
+})
+
+describe('depend', function () {
+    it('test', function () {
+        var d = new Depend
+        var a = 1
+        var b = 1
+        d.watchers.push({
+            update: function () {
+                a = 2
+            },
+            beforeUpdate: function () {
+                b = 2
+            }
+        })
+        d.beforeNotify()
+        expect(b).toBe(2)
+        d.notify()
+        expect(a).toBe(2)
+    })
+})
+
+describe('watcher', function () {
+    it('test', function () {
+        var vm = avalon.define({
+            $id: 'watcher',
+            aaa: 11
+        })
+        var args = []
+        var d = new Watcher(vm, {
+            expr: '@aaa',
+            deep: false
+        }, function (a, b) {
+            args = [a, b]
+        })
+        expect(d.depIds.length).toBe(1)
+        expect(d.depends.length).toBe(1)
+        expect(d.value).toBe(11)
+        vm.aaa = 333
+        expect(args).toEqual([333, 11])
+    })
 })

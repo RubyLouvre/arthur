@@ -48,9 +48,15 @@ describe('vdom', function () {
             var option = new VElement('option', { 'value': 'eee' }, [
                 new VText(' xxx ')
             ])
-            expect(option.toDOM().text).toMatch(/xxx/)
-            expect(option.toDOM().innerText).toMatch(' xxx ')
-            expect(option.toDOM().innerHTML).toMatch(' xxx ')
+            expect(option.toDOM().text).toMatch('xxx')
+            var dom = option.toDOM()
+            if(avalon.modern ){
+              
+                avalon.log(dom.textContent, dom.innerText, dom.innerHTML,dom.text)
+                expect(dom.textContent).toMatch(' xxx ')
+            }
+            expect(dom.innerText).toMatch(/xx/)
+            expect(dom.innerHTML).toBe(' xxx ')
             var option2 = new VElement('option', { 'value': 'eee' }, [
                 new VText('')
             ])

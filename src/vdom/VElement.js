@@ -70,7 +70,6 @@ VElement.prototype = {
                 //https://github.com/facebook/react/blob/0.13-stable/src/browser/ui/dom/setInnerHTML.js#L66-L81
                 dom.innerHTML = '\uFEFF' +template
                 var textNode = dom.firstChild
-                console.log('000000000000000000000')
                 if (textNode.data.length === 1) {
                   dom.removeChild(textNode)
                 } else {
