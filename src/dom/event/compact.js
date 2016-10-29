@@ -31,7 +31,8 @@ avalon.fireDom = function (elem, type, opts) {
         elem.dispatchEvent(hackEvent)
     } else if (root.contains(elem)) {//IE6-8触发事件必须保证在DOM树中,否则报'SCRIPT16389: 未指明的错误'
         hackEvent = document.createEventObject()
-        avalon.shadowCopy(hackEvent, opts)
+        if (opts)
+            avalon.shadowCopy(hackEvent, opts)
         elem.fireEvent('on' + type, hackEvent)
     }
 }
@@ -42,7 +43,7 @@ avEvent.prototype.fixEvent = function () {
     var event = this
     if (event.which == null && event.type.indexOf('key') === 0) {
         event.which = event.charCode != null ? event.charCode : event.keyCode
-    } 
+    }
     if (rmouseEvent.test(event.type) && !('pageX' in event)) {
         var DOC = event.target.ownerDocument || document
         var box = DOC.compatMode === 'BackCompat' ? DOC.body : DOC.documentElement

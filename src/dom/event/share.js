@@ -1,4 +1,4 @@
-import { avalon, _slice, eventHooks, window, document, root, getShortID } from '../../seed/core'
+import { avalon, _slice, eventHooks, modern, window, document, root, getShortID } from '../../seed/core'
 import { canBubbleUp } from './canBubbleUp'
 /* istanbul ignore if */
 var hackSafari = avalon.modern && document.ontouchstart
@@ -169,8 +169,11 @@ function delegateEvent(type) {
 
 var rconstant = /^[A-Z_]+$/
 export function avEvent(event) {
-    if (event.originalEvent) {
-        return event
+    try {
+        if (event.originalEvent) {
+            return event
+        }
+    } catch (e) {
     }
     for (var i in event) {
         if (!rconstant.test(i) && typeof event[i] !== 'function') {
@@ -191,14 +194,14 @@ avEvent.prototype = {
     preventDefault: function () {
         var e = this.originalEvent || {}
         e.returnValue = this.returnValue = false
-        if (e.preventDefault) {
+        if (modern && e.preventDefault) {
             e.preventDefault()
         }
     },
     stopPropagation: function () {
         var e = this.originalEvent || {}
         e.cancelBubble = this.cancelBubble = true
-        if (e.stopPropagation) {
+        if (modern && e.stopPropagation) {
             e.stopPropagation()
         }
     },

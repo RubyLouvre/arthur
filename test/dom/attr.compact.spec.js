@@ -1,6 +1,6 @@
 import { avalon } from
     '../../src/seed/core'
-import { updateAttr } from
+import { updateAttrs } from
     '../../src/dom/attr/compact'
 import { compactParseJSON } from
     '../../src/dom/attr/parseJSON.compact'
@@ -9,31 +9,95 @@ import { isVML } from
     '../../src/dom/attr/isVML'
 
 describe('attr', function () {
-    describe('updateAttr', function () {
-        it('test', function () {
-            var vnode = {
-                dynamic: {},
-                'ms-attr': {
-                    src: 'https://github.com/ecomfe/zrender',
-                    href: 'https://github.com/ecomfe/zrender',
-                    'data-title': "aaa",
-                    'for': 'bbb',
-                    'aaa': false,
-                    'class': 'eee'
-                }
+    describe('batchUpdateAttrs', function () {
+        var vnode = {
+            dynamic: {},
+            'ms-attr': {
+                src: 'https://github.com/ecomfe/zrender',
+                href: 'https://github.com/ecomfe/zrender',
+                'data-title': "aaa",
+                'for': 'bbb',
+                'aaa': false,
+                'class': 'eee',
+                readonly: true
             }
-           var option = document.createElement('label')
-            option.setAttribute('aaa', '111')
-            console.log('---------------'+updateAttr)
-         /*    updateAttr(option, vnode)
-            expect(option.src).toBe('https://github.com/ecomfe/zrender')
-            expect(option.href).toBe('https://github.com/ecomfe/zrender')
-            expect(option.getAttribute('data-title')).toBe('aaa')
-            expect(option.getAttribute('aaa')).toBe(null)
-            expect(option.getAttribute('for')).toBe('bbb')
+        }
+        it('为label添加各种属性', function () {
+
+            var label = document.createElement('label')
+            label.getAttribute('aaa', '111')
+            updateAttrs(label, vnode)
+            if (avalon.modern) {
+                expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('aaa')).toBe(null)
+                expect(label.getAttribute('data-title')).toBe('aaa')
+                expect(label.getAttribute('for')).toBe('bbb')
+            }
+
+            expect(label.className).toBe('eee')
+            avalon(label).attr("title", '222')
+            expect(avalon(label).attr('title')).toBe('222')
+        })
+        it('为option添加各种属性', function () {
+            var option = document.createElement('option')
+            option.getAttribute('aaa', '111')
+            updateAttrs(option, vnode)
+            if (avalon.modern) {
+                expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('aaa')).toBe(null)
+                expect(label.getAttribute('data-title')).toBe('aaa')
+                expect(label.getAttribute('for')).toBe('bbb')
+            }
             expect(option.className).toBe('eee')
             avalon(option).attr("title", '222')
-            expect(avalon(option).attr('title')).toBe('222')*/
+            expect(avalon(option).attr('title')).toBe('222')
+        })
+        it('为input添加各种属性', function () {
+            var option = document.createElement('input')
+            option.getAttribute('aaa', '111')
+            updateAttrs(option, vnode)
+            if (avalon.modern) {
+                expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('aaa')).toBe(null)
+                expect(label.getAttribute('data-title')).toBe('aaa')
+                expect(label.getAttribute('for')).toBe('bbb')
+            }
+            expect(option.className).toBe('eee')
+            avalon(option).attr("title", '222')
+            expect(avalon(option).attr('title')).toBe('222')
+        })
+        it('为textarea添加各种属性', function () {
+            var option = document.createElement('textarea')
+            option.getAttribute('aaa', '111')
+            updateAttrs(option, vnode)
+            if (avalon.modern) {
+                expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('aaa')).toBe(null)
+                expect(label.getAttribute('data-title')).toBe('aaa')
+                expect(label.getAttribute('for')).toBe('bbb')
+            }
+            expect(option.className).toBe('eee')
+            avalon(option).attr("title", '222')
+            expect(avalon(option).attr('title')).toBe('222')
+        })
+        it('为span添加各种属性', function () {
+            var option = document.createElement('span')
+            option.getAttribute('aaa', '111')
+            updateAttrs(option, vnode)
+            if (avalon.modern) {
+                expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
+                expect(label.getAttribute('aaa')).toBe(null)
+                expect(label.getAttribute('data-title')).toBe('aaa')
+                expect(label.getAttribute('for')).toBe('bbb')
+            }
+            expect(option.className).toBe('eee')
+            avalon(option).attr("title", '222')
+            expect(avalon(option).attr('title')).toBe('222')
         })
     })
 
@@ -64,13 +128,13 @@ describe('attr', function () {
 
     describe('isVML', function () {
         it('test', function () {
-            if ( avalon.msie < 9) {
-                 document.namespaces.add("v", "urn:schemas-microsoft-com:vml", "#default#VML");
-                 var oval = document.createElement("v:oval")
-                 expect(isVML(oval)).toBe(true)
-            }else{
-                 var oval = document.createElement("v:oval")
-                  expect(isVML(oval)).toBe(false)
+            if (avalon.msie < 9) {
+                document.namespaces.add("v", "urn:schemas-microsoft-com:vml", "#default#VML");
+                var oval = document.createElement("v:oval")
+                expect(isVML(oval)).toBe(true)
+            } else {
+                var oval = document.createElement("v:oval")
+                expect(isVML(oval)).toBe(false)
             }
 
         })
