@@ -1,12 +1,14 @@
-import { avalon, createFragment, config, inBrowser, delayCompileNodes} from '../seed/core'
+import { avalon, createFragment, config, inBrowser, delayCompileNodes } from '../seed/core'
 import { fromDOM } from '../vtree/fromDOM'
 import { VFragment } from '../vdom/VFragment'
 import { Watcher } from '../vmodel/watcher'
+
+import { orphanTag } from '../vtree/orphanTag'
+import { parseAttributes } from '../parser/parseAttributes'
+import { parseInterpolate } from '../parser/parseInterpolate'
+
 import '../directives/controller'
 import '../directives/important'
-import { orphanTag } from '../vtree/orphanTag'
-
-export var eventMap = avalon.oneObject('animationend,blur,change,input,click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit')
 
 function startWith(long, short) {
     return long.indexOf(short) === 0
@@ -181,88 +183,24 @@ cp.parseBindings = function (tuple) {
     var node = tuple[0]
     var scope = tuple[1]
     var dirs = tuple[2]
+    var bindings = []
+    var d = avalon.directives
     if ('nodeValue' in dirs) {
-        this.parseText(node, dirs, scope)
+        bindings = parseInterpolate(dirs)
     } else if (!('ms-skip' in dirs)) {
-        var uniq = {}, bindings = []
-        var directives = avalon.directives
-        for (var name in dirs) {
-            var value = dirs[name]
-            var arr = name.split('-')
-            // ms-click
-            if (eventMap[arr[1]]) {
-                arr.splice(1, 0, 'on')
-            }
-            //ms-on-click
-            if (arr[1] === 'on') {
-                arr[3] = parseFloat(arr[2]) || 0
-            }
-
-            var type = arr[1]
-            if (directives[type]) {
-
-                var binding = {
-                    type: type,
-                    param: arr[2],
-                    name: arr.join('-'),
-                    expr: value,
-                    priority: directives[type].priority || type.charCodeAt(0) * 100
-                }
-                if (type === 'on') {
-                    binding.priority += arr[3]
-                }
-                if (!uniq[binding.name]) {
-                    uniq[binding.name] = value
-                    bindings.push(binding)
-                    if (type === 'for') {
-                        binding.begin = tuple[3]
-                        bindings = [binding]
-                        break
-                    }
-                }
-
-            }
-
-        }
-
-        bindings.forEach(function (binding) {
-            this.parse(node, binding, scope)
-        }, this)
+        bindings = parseAttributes(dirs, tuple)
     }
-}
-
-cp.parse = function (node, binding, scope) {
-    var dir = avalon.directives[binding.type]
-    if (dir) {
+    for (var i = 0, binding; binding = bindings[i++];) {
+        var dir = d[binding.type]
         if (dir.parse) {
             dir.parse(binding)
         }
         this.directives.push(new DirectiveWatcher(node, binding, scope))
     }
+
+
 }
 
-cp.parseText = function (node, dir, scope) {
-    var rlineSp = /\n\r?/g
-    var text = dir.nodeValue.trim().replace(rlineSp, '')
-    var pieces = text.split(/\{\{(.+?)\}\}/g)
-    var tokens = []
-    pieces.forEach(function (piece) {
-        var segment = '{{' + piece + '}}'
-        if (text.indexOf(segment) > -1) {
-            tokens.push('(' + piece + ')')
-            text = text.replace(segment, '')
-        } else if (piece) {
-            tokens.push(avalon.quote(piece))
-            text = text.replace(piece, '')
-        }
-    })
-    var binding = {
-        expr: tokens.join('+'),
-        name: 'nodeValue',
-        type: 'nodeValue'
-    }
-    this.directives.push(new DirectiveWatcher(node, binding, scope))
-}
 
 cp.destroy = function () {
     this.directives.forEach(function (directive) {
