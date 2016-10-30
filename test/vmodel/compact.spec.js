@@ -54,6 +54,8 @@ describe('vmodel', function () {
             arr: [1, 2, 3]
         })
         vm.a = 3
+        var d = vm.aaa
+        vm.a = 3
         expect(vm.aaa.$events).toA('object')
         expect(vm.aaa.$fire).toA('undefined')
         expect(vm.aaa.$watch).toA('undefined')
@@ -199,5 +201,6 @@ describe('watcher', function () {
         expect(d.value).toBe(11)
         vm.aaa = 333
         expect(args).toEqual([333, 11])
+        delete avalon.vmodels.watcher
     })
 })
