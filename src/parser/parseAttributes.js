@@ -8,6 +8,11 @@ export function parseAttributes(dirs, tuple ) {
         var value = dirs[name]
         var arr = name.split('-')
         // ms-click
+        if(name in node.props){
+           var attrName = name
+        }else{
+            attrName = ':'+name.slice(3)
+        }
         if (eventMap[arr[1]]) {
             arr.splice(1, 0, 'on')
         }
@@ -22,6 +27,7 @@ export function parseAttributes(dirs, tuple ) {
             var binding = {
                 type: type,
                 param: arr[2],
+                attrName: attrName,
                 name: arr.join('-'),
                 expr: value,
                 priority: directives[type].priority || type.charCodeAt(0) * 100

@@ -143,12 +143,14 @@ wp.update = function (args, guid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
-    if (callback && (oldVal !== newVal)) {
-        var fromDeep = this.deep && this.shallowIds.indexOf(guid) < 0
-        callback.call(this.vm, newVal, oldVal, fromDeep, args)
+    if (callback && this.eq(newVal, oldVal)) {
+        //  var fromDeep = this.deep && this.shallowIds.indexOf(guid) < 0
+        callback.call(this.vm, newVal, oldVal)
     }
 }
-
+wp.eq = function (a, b) {
+    return a !== b
+}
 wp.destroy = function () {
     this.value = null
     this.removeDepends()

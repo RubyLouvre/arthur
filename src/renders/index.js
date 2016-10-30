@@ -221,17 +221,18 @@ function DirectiveWatcher(node, binding, scope) {
     if (inBrowser) {
         var dom = avalon.vdom(node, 'toDOM')
         if (dom.nodeType === 1) {
-            dom.removeAttribute('ms-' + type)
-            dom.removeAttribute(':' + type)
+            dom.removeAttribute(binding.attrName)
         }
         node.dom = dom
     }
     var callback = directive.update ? function (value) {
         console.log(dom, value)
-        directive.update.call(this, dom, value)
+        directive.update.call(this, node, value)
     } : avalon.noop
     var watcher = new Watcher(scope, binding, callback)
-
+    if(directive.eq){
+       watcher.eq = directive.eq 
+    }
     watcher.node = node
     watcher._destory = directive.destory
     if (directive.init)
@@ -243,6 +244,6 @@ function DirectiveWatcher(node, binding, scope) {
 
 avalon.directive('nodeValue', {
     update: function (node, value) {
-        node.nodeValue = value
+        node.dom.nodeValue = value
     }
 })
