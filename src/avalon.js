@@ -5,3 +5,6 @@ import './dom/compact'
 import './vtree/fromString'
 import './vtree/fromDOM'
 import './vmodel/compact'
+
+import './renders/index'
+
