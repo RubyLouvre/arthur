@@ -1,5 +1,7 @@
 import { win, document, msie, inBrowser, root, modern } from './browser'
 import { Cache } from './cache'
+import { directive, directives, delayCompileNodes } from './directive'
+
 export var window = win
 export function avalon(el) {
         return new avalon.init(el)
@@ -52,7 +54,9 @@ export function log() {
         }
 }
 export {
-        Cache
+        Cache, directive, directives, delayCompileNodes,
+        document, root, msie, modern, inBrowser
+
 }
 export function warn() {
         if (hasConsole && avalon.config.debug) {
@@ -141,11 +145,6 @@ export var eventHooks = {}
 export var eventListeners = {}
 export var validators = {}
 export var cssHooks = {}
-
-
-export {
-        document, root, msie, modern, inBrowser
-}
 
 
 window.avalon = avalon
@@ -259,6 +258,9 @@ shadowCopy(avalon, {
         rword,
 
         vmodels: {},
+        
+        directives,
+        directive,
 
         eventHooks,
         eventListeners,

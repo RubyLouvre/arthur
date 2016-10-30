@@ -9,7 +9,6 @@ if (!modern) {
     delete canBubbleUp.change
     delete canBubbleUp.select
 }
-console.log(modern, '!!!!!!!!!!!!!!!')
 /* istanbul ignore next */
 avalon._nativeBind = modern ? function (el, type, fn, capture) {
     el.addEventListener(type, fn, capture)

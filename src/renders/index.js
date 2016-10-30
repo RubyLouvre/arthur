@@ -1,6 +1,16 @@
-import { avalon, createFragment, config } from '../seed/core'
+import { avalon, createFragment, config, inBrowser, delayCompileNodes} from '../seed/core'
 import { fromDOM } from '../vtree/fromDOM'
 import { VFragment } from '../vdom/VFragment'
+import { Watcher } from '../vmodel/watcher'
+import '../directives/controller'
+import '../directives/important'
+import { orphanTag } from '../vtree/orphanTag'
+
+export var eventMap = avalon.oneObject('animationend,blur,change,input,click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit')
+
+function startWith(long, short) {
+    return long.indexOf(short) === 0
+}
 
 function emptyNode(a) {
     var f = createFragment()
@@ -9,15 +19,16 @@ function emptyNode(a) {
     }
     return f
 }
+
 avalon.scan = function (node, vm) {
     return new Render(node, vm)
 }
-function delayCompileNodes() { }
 
 function Render(node, vm) {
     this.node = node
     this.vm = vm
     this.queue = []
+    this.callbacks = []
     this.directives = []
     this.init()
 }
@@ -25,34 +36,52 @@ function Render(node, vm) {
 var cp = Render.prototype
 cp.init = function () {
     var vnodes = fromDOM(this.node) //转换虚拟DOM
-    emptyNode(this.node) //移除里面的所有孩子
-    this.getBindings(vnodes[0], true)
+    var elems = avalon.slice(this.node.getElementsByTagName('*'))
+    for (var i = 0, elem; elem = elems[i++];) {
+        if (elem.parentNode) {
+            elem.parentNode.removeChild(elem)
+        }
+    }
+    this.vnodes = vnodes
+    this.getBindings(vnodes[0], true, this.vm)
 }
 
-cp.getBindings = function (element, root) {
-
+cp.getBindings = function (element, root, scope) {
     var childNodes = element.children
-    var scope = this.vm
     var dirs = this.getRawBindings(element, childNodes)
+    if (/^\w/.test(element.nodeName)) {
+        var ctrlValue = dirs['ms-important'] || dirs['ms-controller']
+
+        if (ctrlValue) {
+            var ctrlName = dirs['ms-important'] == ctrlValue ? 'important' : 'controller'
+            var ctrl = avalon.directives[ctrlName]
+            scope = ctrl.getScope(ctrlValue, scope)
+            delete dirs['ms-' + ctrlName]
+            this.callbacks.push({
+                scope: scope,
+                node: element,
+                callback: ctrl.callback
+            })
+        }
+
+    }
     if (dirs) {
         this.queue.push([element, scope, dirs])
     }
-    if (!/style|textarea|xmp|script|template/i.test(element.nodeName)
+    if (!orphanTag[element.nodeName]
         && childNodes
         && childNodes.length
         && !delayCompileNodes(dirs || {})
     ) {
         for (var i = 0; i < childNodes.length; i++) {
-            this.getBindings(childNodes[i], false)
+            this.getBindings(childNodes[i], false, scope)
         }
     }
     if (root) {
         this.compileBindings()
     }
 }
-function startWith(long, short) {
-    return long.indexOf(short) === 0
-}
+
 
 cp.getRawBindings = function (node, childNodes) {
     switch (node.nodeName) {
@@ -101,7 +130,7 @@ cp.getRawBindings = function (node, childNodes) {
             var attrs = node.props
             var dirs = {}, has = false
             for (var name in attrs) {
-                var value = attrs[i]
+                var value = attrs[name]
                 if (name.charAt(0) === ':') {
                     name = name.replace(rcolon, 'ms-')
                 }
@@ -119,11 +148,29 @@ cp.getRawBindings = function (node, childNodes) {
             return has ? dirs : false
     }
 }
+function createDOMTree(parent, children) {
+    children.forEach(function (vnode) {
+        var node = avalon.vdom(vnode, 'toDOM')
+        if (node.nodeType === 1 && vnode.children && vnode.children.length) {
+            createDOMTree(node, vnode.children)
+        }
+        if (!avalon.contains(parent, node)) {
+            parent.appendChild(node)
+        }
+    })
+}
+
 cp.compileBindings = function () {
     this.queue.forEach(function (tuple) {
         this.parseBindings(tuple)
     }, this)
-    //  this.node.appendChild(this.fragment)
+    var root = this.vnodes[0]
+    createDOMTree(root.dom, root.children)
+
+    this.callbacks.forEach(function (el) {
+        el.callback()
+    })
+
 }
 
 /**
@@ -141,17 +188,16 @@ cp.parseBindings = function (tuple) {
         var directives = avalon.directives
         for (var name in dirs) {
             var value = dirs[name]
-            var rbinding = /^(\:|ms\-)\w+/
-            var match = name.match(rbinding)
-            var arr = name.replace(match[1], '').split('-')
+            var arr = name.split('-')
+            // ms-click
+            if (eventMap[arr[1]]) {
+                arr.splice(1, 0, 'on')
+            }
+            //ms-on-click
+            if (arr[1] === 'on') {
+                arr[3] = parseFloat(arr[2]) || 0
+            }
 
-            if (eventMap[arr[0]]) {
-                arr.unshift('on')
-            }
-            if (arr[0] === 'on') {
-                arr[2] = parseFloat(arr[2]) || 0
-            }
-            arr.unshift('ms')
             var type = arr[1]
             if (directives[type]) {
 
@@ -215,7 +261,6 @@ cp.parseText = function (node, dir, scope) {
         name: 'nodeValue',
         type: 'nodeValue'
     }
-
     this.directives.push(new DirectiveWatcher(node, binding, scope))
 }
 
@@ -227,3 +272,39 @@ cp.destroy = function () {
         delete this[i]
     }
 }
+
+/**
+ * 一个watcher装饰器
+ * @returns {watcher}
+ */
+function DirectiveWatcher(node, binding, scope) {
+    var type = binding.type
+    var directive = avalon.directives[type]
+    if (inBrowser) {
+        var dom = avalon.vdom(node, 'toDOM')
+        if (dom.nodeType === 1) {
+            dom.removeAttribute('ms-' + type)
+            dom.removeAttribute(':' + type)
+        }
+        node.dom = dom
+    }
+    var callback = directive.update ? function (value) {
+        console.log(dom, value)
+        directive.update.call(this, dom, value)
+    } : avalon.noop
+    var watcher = new Watcher(scope, binding, callback)
+
+    watcher.node = node
+    watcher._destory = directive.destory
+    if (directive.init)
+        directive.init(watcher)
+    delete watcher.value
+    watcher.update()
+    return watcher
+}
+
+avalon.directive('nodeValue', {
+    update: function (node, value) {
+        node.nodeValue = value
+    }
+})

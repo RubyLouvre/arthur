@@ -19,6 +19,7 @@ export function from(node) {
         default:
             var vnode = {
                 nodeName: type,
+                dom: node,
                 isVoidTag: !!voidTag[type],
                 props: markProps(node, node.attributes)
             }
