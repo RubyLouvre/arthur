@@ -25,3 +25,4 @@ import './vmodel/compact.spec'
 
 
 import './directives/expr.spec'
+import './directives/css.spec'

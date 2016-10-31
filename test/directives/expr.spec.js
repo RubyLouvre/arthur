@@ -7,16 +7,18 @@ describe('expr', function () {
         var div = document.createElement('div')
         div.innerHTML = heredoc(function () {
             /*
-            <div ms-controller="text1">{{@aaa}}+{{@bbb}}</div>
+            <div ms-controller="text1">{{@aa_bb}}+{{@bbb}}</div>
             */
         })
         var vm = avalon.define({
             $id: 'text1',
-            aaa: 111,
+            aa_bb: 111,
             bbb: 222
         })
         avalon.scan(div)
         expect(div.innerHTML).toBe('<div>111+222</div>')
+        vm.aa_bb = '司徒正美'
+        expect(div.innerHTML).toBe('<div>司徒正美+222</div>')
         delete avalon.vmodels.text1
     })
 
@@ -37,7 +39,7 @@ describe('expr', function () {
         delete avalon.vmodels.text2
     })
 
-     it('存在多个过滤器', function () {
+    it('存在多个过滤器', function () {
         var div = document.createElement('div')
         div.innerHTML = heredoc(function () {
             /*
@@ -51,6 +53,6 @@ describe('expr', function () {
         })
         avalon.scan(div)
         expect(div.innerHTML).toBe('<div>AE4D...+2016-10-31</div>')
-        delete avalon.vmodels.text2
+        delete avalon.vmodels.text3
     })
 })

@@ -63,7 +63,7 @@ export function addScope(expr, type) {
     input = addScopeForLocal(input)              //在本地变量前添加__vmodel__
 
     var filters = input.split(rpipeline)         //根据管道符切割表达式
-    var body = filters.shift()
+    var body = filters.shift().replace(rfill, fill)
 
     if (filters.length) {
         filters = filters.map(function (filter) {
@@ -73,16 +73,17 @@ export function addScope(expr, type) {
                     bracketArgs += ',' + b        //还原字符串,正则,短路运算符
                 }
                 return ''
-            }).replace(rfill, fill)
+            })//.replace(rfill, fill)
             var arg = '[' + avalon.quote(filter.trim()) + bracketArgs + ']'
             return arg
 
         })
         filters = 'avalon.composeFilters(' + filters + ')(__value__)'
+        filters = filters.replace(rfill, fill)
     } else {
         filters = ''
     }
-    return exprCache.put(cacheKey, [body.replace(rfill, fill), filters])
+    return exprCache.put(cacheKey, [body, filters])
 }
 
 export function createGetter(expr, type) {

@@ -22,7 +22,7 @@ var cssDir = avalon.directive('css', {
                     if (newValue[i] !== oldValue[i]) {
                         hasChange = true
                     }
-                    patch[i] = a[i]
+                    patch[i] = newValue[i]
                 }
                 for (var i in oldValue) {
                     if (!(i in patch)) {
@@ -37,14 +37,9 @@ var cssDir = avalon.directive('css', {
                 var props = this.node.props
                 avalon.mix(props.style || (props.style = {}), this.value)
                 return true
-                //  if(name === 'ms-effect'){
-                //      src[name] = a
-                //  }
-                //  update(src, this.update)
             }
         }
         return false
-        //  delete copy[name]//释放内存
     },
     update: function (vdom, change) {
         var dom = vdom.dom

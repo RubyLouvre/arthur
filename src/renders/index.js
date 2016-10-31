@@ -229,13 +229,14 @@ function DirectiveWatcher(node, binding, scope) {
     } : avalon.noop
     var watcher = new Watcher(scope, binding, callback)
     if(directive.diff){
-       watcher.eq = directive.eq 
+       watcher.diff = directive.diff 
     }
     watcher.node = node
     watcher._destory = directive.destory
     if (directive.init)
         directive.init(watcher)
     delete watcher.value
+
     watcher.update()
     return watcher
 }

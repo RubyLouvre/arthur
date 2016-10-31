@@ -49,9 +49,9 @@ export function Watcher(vm, options, callback) {
     var expr = this.expr
     var preSetFunc = typeof expr === 'function'
     // 缓存取值函数
-    this.getter = preSetFunc ? expr : createGetter(expr)
+    this.getter = preSetFunc ? expr : createGetter(expr, this.type)
     // 缓存设值函数（双向数据绑定）
-    this.setter = this.type === 'duplex' ? createSetter(expr) : null
+    this.setter = this.type === 'duplex' ? createSetter(expr, this.type) : null
     // 缓存表达式旧值
     this.oldValue = null
     // 表达式初始值 & 提取依赖
@@ -145,7 +145,7 @@ wp.update = function (args, guid) {
     var callback = this.callback
     if (callback && this.diff( newVal, oldVal)) {
         // directive.update.call(this, node, value)
-        callback.call(this.vm, newVal, oldVal, this.node)
+        callback.call(this.vm, this.value, oldVal, this.node)
     }
 }
 wp.diff = function (a, b) {

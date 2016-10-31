@@ -7,19 +7,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="dist/avalon.js"></script>
         <script>
-            var vm = avalon.define({
-                $id: 'test',
-                aaa: "111",
-                aa: {ddd:1},
-                selected: '1',
-                color: "red",
-                arr: [{value:'1', text:'aaa'},{value:'2', text:'bbb'}]
-                
-            })
+            var  vm = avalon.define({
+            $id: 'css5',
+            aa: {
+                background: 'red'
+            },
+            bb: {
+                width: 200,
+                height: 200
+            }
+        })
           
             </script>
     </head>
-    <body ms-controller="test">
-        <div ms-css="{color: @color}">{{@aaa}}</div>
+    <body >
+        <div ms-controller='css5' ms-css='[@aa,@bb]'>测试样式</div>
     </body>
 </html>
