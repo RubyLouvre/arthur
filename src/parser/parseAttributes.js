@@ -4,6 +4,7 @@ export var eventMap = avalon.oneObject('animationend,blur,change,input,click,dbl
 export function parseAttributes(dirs, tuple ) {
     var uniq = {}, bindings = []
     var directives = avalon.directives
+    var node = tuple[0]
     for (var name in dirs) {
         var value = dirs[name]
         var arr = name.split('-')

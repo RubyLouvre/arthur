@@ -11,13 +11,15 @@
                 $id: 'test',
                 aaa: "111",
                 aa: {ddd:1},
-                arr: [1,2,3]
+                selected: '1',
+                color: "red",
+                arr: [{value:'1', text:'aaa'},{value:'2', text:'bbb'}]
                 
             })
           
             </script>
     </head>
     <body ms-controller="test">
-        <div>{{@aaa}}</div>
+        <div ms-css="{color: @color}">{{@aaa}}</div>
     </body>
 </html>

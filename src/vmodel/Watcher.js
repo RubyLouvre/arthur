@@ -143,12 +143,12 @@ wp.update = function (args, guid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
-    if (callback && this.eq(newVal, oldVal)) {
-        //  var fromDeep = this.deep && this.shallowIds.indexOf(guid) < 0
-        callback.call(this.vm, newVal, oldVal)
+    if (callback && this.diff( newVal, oldVal)) {
+        // directive.update.call(this, node, value)
+        callback.call(this.vm, newVal, oldVal, this.node)
     }
 }
-wp.eq = function (a, b) {
+wp.diff = function (a, b) {
     return a !== b
 }
 wp.destroy = function () {

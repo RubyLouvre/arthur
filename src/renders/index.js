@@ -7,8 +7,7 @@ import { orphanTag } from '../vtree/orphanTag'
 import { parseAttributes } from '../parser/parseAttributes'
 import { parseInterpolate } from '../parser/parseInterpolate'
 
-import '../directives/controller'
-import '../directives/important'
+import '../directives/compact'
 
 function startWith(long, short) {
     return long.indexOf(short) === 0
@@ -230,7 +229,7 @@ function DirectiveWatcher(node, binding, scope) {
         directive.update.call(this, node, value)
     } : avalon.noop
     var watcher = new Watcher(scope, binding, callback)
-    if(directive.eq){
+    if(directive.diff){
        watcher.eq = directive.eq 
     }
     watcher.node = node
@@ -242,8 +241,3 @@ function DirectiveWatcher(node, binding, scope) {
     return watcher
 }
 
-avalon.directive('nodeValue', {
-    update: function (node, value) {
-        node.dom.nodeValue = value
-    }
-})
