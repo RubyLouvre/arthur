@@ -11,6 +11,7 @@ var cssDir = avalon.directive('css', {
                     el && avalon.shadowCopy(b, el)
                 })
                 newValue = b
+                avalon.warn(this.type,'指令的值不建议使用数组形式了！')
             }
             var hasChange = false
             if (!oldValue) {//如果一开始为空
@@ -34,8 +35,8 @@ var cssDir = avalon.directive('css', {
             }
 
             if (hasChange) {
-                var props = this.node.props
-                avalon.mix(props.style || (props.style = {}), this.value)
+             //   var props = this.node.props
+             //   avalon.mix(props.style || (props.style = {}), this.value)
                 return true
             }
         }

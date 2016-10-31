@@ -2,13 +2,7 @@ import { avalon, window, document } from '../../seed/core'
 import { propMap } from './propMap'
 
 var rsvg = /^\[object SVG\w*Element\]$/
-export function updateAttr(node, vnode) {
-    /* istanbul ignore if*/
-    if (!node || node.nodeType !== 1) {
-        return
-    }
-    vnode.dynamic['ms-attr'] = 1
-    var attrs = vnode['ms-attr']
+export function updateAttr(node, attrs) {
     for (var attrName in attrs) {
         var val = attrs[attrName]
         /* istanbul ignore if*/
