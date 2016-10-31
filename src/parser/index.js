@@ -14,7 +14,8 @@ export var skipMap = avalon.mix({
     Date: 1,
     $event: 1,
     window: 1,
-    __vmodel__: 1
+    __vmodel__: 1,
+    avalon:1
 }, keyMap)
 
 var rvmKey = /(^|[^\w\u00c0-\uFFFF_])(@|##)(?=[$\w])/g
@@ -46,9 +47,8 @@ export function addScope(expr, type) {
     if (cache) {
         return cache.slice(0)
     }
- 
-    stringPool.map = {}
 
+    stringPool.map = {}                         
 
     var input = expr.replace(rregexp, dig)       //移除所有正则
     input = clearString(input)                   //移除所有字符串
@@ -78,7 +78,7 @@ export function addScope(expr, type) {
             return arg
 
         })
-        filters = '__value__ = avalon.composeFilters(' + filters + ')(__value__)'
+        filters = 'avalon.composeFilters(' + filters + ')(__value__)'
     } else {
         filters = ''
     }
@@ -86,8 +86,12 @@ export function addScope(expr, type) {
 }
 
 export function createGetter(expr, type) {
-    var body = addScope(expr, type)[0]
-    console.log(body, '====body===')
+    var arr = addScope(expr, type), body
+    if(!arr[1]){
+        body = arr[0]
+    }else{
+        body = arr[1].replace(/__value__\)$/, arr[0]+')')
+    }
     try {
         return new Function('__vmodel__', 'return ' + body + ';')
     } catch (e) {

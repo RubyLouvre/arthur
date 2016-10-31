@@ -24,3 +24,4 @@ import './vtree/fromDOM.spec'
 import './vmodel/compact.spec'
 
 
+import './directives/expr.spec'

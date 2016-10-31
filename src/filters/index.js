@@ -6,10 +6,28 @@ import {
 import { numberFilter } from "./number"
 import { sanitizeFilter } from "./sanitize"
 import { dateFilter } from "./date"
-import {filterBy,orderBy,selectBy,limitBy} from "./array"
+import { filterBy, orderBy, selectBy, limitBy } from "./array"
 import { eventFilters } from "./event"
-import { escapeFilter } from  "./escape"
+import { escapeFilter } from "./escape"
 var filters = avalon.filters = {}
+
+avalon.composeFilters = function () {
+    var args = arguments
+    return function (value) {
+        for (var i = 0, arr; arr = args[i++];) {
+            var name = arr[0]
+            var filter = avalon.filters[name]
+            if (typeof filter === 'function') {
+                arr[0] = value
+                try {
+                    value = filter.apply(0, arr)
+                } catch (e) {
+                }
+            }
+        }
+        return value
+    }
+}
 
 avalon.escapeHtml = escapeFilter
 
@@ -44,7 +62,7 @@ avalon.mix(filters, {
             numberFilter(amount,
                 isFinite(fractionSize) ? /* istanbul ignore else*/ fractionSize : 2)
     }
-}, {filterBy,orderBy,selectBy,limitBy}, eventFilters)
+}, { filterBy, orderBy, selectBy, limitBy }, eventFilters)
 
 export { avalon }
 

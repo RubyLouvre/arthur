@@ -47,7 +47,6 @@ describe('event', function () {
             var div = document.createElement('div')
             document.body.appendChild(div)
             var changed = false
-            console.log(avalon.modern,avalon.msie,'avalon.modern')
             avalon(div).bind('click', function () {
                 changed = true
                 return false

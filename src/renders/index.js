@@ -4,8 +4,8 @@ import { VFragment } from '../vdom/VFragment'
 import { Watcher } from '../vmodel/watcher'
 
 import { orphanTag } from '../vtree/orphanTag'
-import { parseAttributes } from '../parser/parseAttributes'
-import { parseInterpolate } from '../parser/parseInterpolate'
+import { parseAttributes } from '../parser/attributes'
+import { parseInterpolate } from '../parser/interpolate'
 
 import '../directives/compact'
 
@@ -225,7 +225,6 @@ function DirectiveWatcher(node, binding, scope) {
         node.dom = dom
     }
     var callback = directive.update ? function (value) {
-        console.log(dom, value)
         directive.update.call(this, node, value)
     } : avalon.noop
     var watcher = new Watcher(scope, binding, callback)
