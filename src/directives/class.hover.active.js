@@ -26,10 +26,10 @@ function classNames() {
 
 
 avalon.directive('class', {
-    diff: function (newValue, oldValue, name) {
-        var type = this
+    diff: function (newValue, oldValue) {
+        var type = this.type
         var vdom = this.node
-        var classEvent = this.classEvent || {}
+        var classEvent = vdom.classEvent || {}
         if (type === 'hover') {//在移出移入时切换类名
             classEvent.mouseenter = activateClass
             classEvent.mouseleave = abandonClass
@@ -39,7 +39,7 @@ avalon.directive('class', {
             classEvent.mouseup = abandonClass
             classEvent.mouseleave = abandonClass
         }
-        this.classEvent = classEvent
+        vdom.classEvent = classEvent
 
         var className = classNames(newValue)
 
@@ -54,7 +54,8 @@ avalon.directive('class', {
         var dom = vdom.dom
         if (!dom || dom.nodeType !== 1)
             return
-        var change = 'change-' + this.type
+        var dirType = this.type
+        var change = 'change-' + dirType
         var classEvent = vdom.classEvent
         if (classEvent) {
             for (var i in classEvent) {
@@ -68,19 +69,19 @@ avalon.directive('class', {
         }
         var names = ['class', 'hover', 'active']
         names.forEach(function (type) {
-            var name = 'change-' + type
-            var value = vdom[name]
-            if (value === void 0)
+           
+            if (dirType !== type )
                 return
 
             if (type === 'class') {
-                dom && setClass(dom, vdom)
+                dom && setClass(dom, className)
             } else {
                 var oldClass = dom.getAttribute(change)
-                if (change) {
-                    avalon(dom).removeClass(change)
+                if (oldClass) {
+                    avalon(dom).removeClass(oldClass)
                 }
-                dom.setAttribute(name, value)
+                var name = 'change-' + type
+                dom.setAttribute(name, className)
             }
         })
     }
@@ -110,12 +111,11 @@ function abandonClass(e) {
     }
 }
 
-function setClass(dom, vdom) {
-    var old = dom.getAttribute('old-change-class')
-    var neo = vdom['ms-class']
+function setClass(dom, neo) {
+    var old = dom.getAttribute('change-class')
     if (old !== neo) {
         avalon(dom).removeClass(old).addClass(neo)
-        dom.setAttribute('old-change-class', neo)
+        dom.setAttribute('change-class', neo)
     }
 
 }
