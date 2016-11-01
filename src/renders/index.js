@@ -1,11 +1,21 @@
-import { avalon, createFragment, config, delayCompileNodes } from '../seed/core'
-import { fromDOM } from '../vtree/fromDOM'
-import { VFragment } from '../vdom/VFragment'
-import { DirectiveDecorator } from './decorator'
+import { avalon, createFragment, config, delayCompileNodes } from
+    '../seed/core'
+import { fromDOM } from
+    '../vtree/fromDOM'
+import { fromString } from
+    '../vtree/fromString'
+    
+import { VFragment } from
+    '../vdom/VFragment'
+import { DirectiveDecorator } from
+    './decorator'
 
-import { orphanTag } from '../vtree/orphanTag'
-import { parseAttributes } from '../parser/attributes'
-import { parseInterpolate } from '../parser/interpolate'
+import { orphanTag } from
+    '../vtree/orphanTag'
+import { parseAttributes } from
+    '../parser/attributes'
+import { parseInterpolate } from
+    '../parser/interpolate'
 
 import '../directives/compact'
 
@@ -19,7 +29,7 @@ avalon.scan = function (node, vm) {
 }
 
 function Render(node, vm) {
-    this.node = node
+    this.root = node
     this.vm = vm
     this.queue = []
     this.callbacks = []
@@ -40,11 +50,17 @@ function clearChild(elem) {
 var cp = Render.prototype
 
 cp.init = function () {
-    var vnodes = fromDOM(this.node) //转换虚拟DOM
+    var vnodes
+    if (this.root && this.root.nodeType > 0) {
+        vnodes = fromDOM(this.root) //转换虚拟DOM
+        clearChild(this.root)
+    } else if (typeof this.root === 'string') {
+        vnodes = fromString(this.root) //转换虚拟DOM
+    }
 
-    clearChild(this.node)
+    this.root = vnodes[0]
     this.vnodes = vnodes
-    this.getBindings(vnodes[0], true, this.vm)
+    this.getBindings(this.root, true, this.vm)
 }
 
 cp.getBindings = function (element, root, scope) {
@@ -55,12 +71,12 @@ cp.getBindings = function (element, root, scope) {
 
         if (ctrlValue) {
             var ctrlName = dirs['ms-important'] == ctrlValue ? 'important' : 'controller'
-            var prefix = 'ms-'+ ctrlName in element.props ? 'ms-': ':'
+            var prefix = 'ms-' + ctrlName in element.props ? 'ms-' : ':'
             var ctrl = avalon.directives[ctrlName]
             scope = ctrl.getScope(ctrlValue, scope)
             delete dirs['ms-' + ctrlName]
             this.callbacks.push({
-                attrName: prefix+ ctrlName,
+                attrName: prefix + ctrlName,
                 scope: scope,
                 node: element,
                 callback: ctrl.callback
@@ -135,7 +151,7 @@ cp.getRawBindings = function (node, childNodes) {
             for (var name in attrs) {
                 var value = attrs[name]
                 if (name.charAt(0) === ':') {
-                    name = 'ms-'+ name.slice(1)
+                    name = 'ms-' + name.slice(1)
                 }
                 if (startWith(name, 'ms-')) {
                     dirs[name] = value
@@ -164,12 +180,13 @@ function createDOMTree(parent, children) {
 }
 
 cp.compileBindings = function () {
-   
+
     this.queue.forEach(function (tuple) {
         this.parseBindings(tuple)
     }, this)
-    var root = this.vnodes[0]
-    createDOMTree(root.dom, root.children)
+    var root = this.root
+    var rootDom = avalon.vdom(root, 'toDOM')
+    createDOMTree(rootDom, root.children)
 
     this.callbacks.forEach(function (el) {
         el.callback()
@@ -178,9 +195,9 @@ cp.compileBindings = function () {
 }
 
 /**
-    * 将收集到的绑定属性进行深加工,最后转换为watcher
-    * @param   {Array}  tuple  [node, scope, dirs]
-    */
+ * 将收集到的绑定属性进行深加工,最后转换为watcher
+ * @param   {Array}  tuple  [node, scope, dirs]
+ */
 cp.parseBindings = function (tuple) {
     var node = tuple[0]
     var scope = tuple[1]

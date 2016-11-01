@@ -60,8 +60,8 @@ function Observe() { }
 function listFactory(array, rewrite) {
         if (!rewrite) {
                 rewriteArrayMethods(array)
-                if(modern){
-                   Object.defineProperty(array, '$model', platform.modelAccessor)
+                if (modern) {
+                        Object.defineProperty(array, '$model', platform.modelAccessor)
                 }
                 platform.hideProperty(array, '$events', { __dep__: new Depend })
         }
@@ -116,8 +116,8 @@ function createAccessor(key, val, core) {
                                         childOb.$events.__dep__.collect()
                                 }
                         }
-                        if(childOb)
-                            return childOb
+                        if (childOb)
+                                return childOb
                         return ret
                 },
                 set: function Setter(newValue) {

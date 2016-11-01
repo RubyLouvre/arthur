@@ -9,3 +9,4 @@ import './css'
 import './expr'
 
 import './attr.compact'
+import './html'
