@@ -3,7 +3,7 @@ import { avalon } from '../seed/core'
 import { cssDiff } from './css'
 import { updateAttrs } from '../dom/attr/compact'
 
-var cssDir = avalon.directive('css', {
+avalon.directive('attr', {
     diff: cssDiff,
     update: function (vdom, change) {
         var dom = vdom.dom
@@ -13,4 +13,3 @@ var cssDir = avalon.directive('css', {
     }
 })
 
-export var cssDiff = cssDir.diff

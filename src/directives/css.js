@@ -35,8 +35,6 @@ var cssDir = avalon.directive('css', {
             }
 
             if (hasChange) {
-             //   var props = this.node.props
-             //   avalon.mix(props.style || (props.style = {}), this.value)
                 return true
             }
         }
@@ -46,8 +44,6 @@ var cssDir = avalon.directive('css', {
         var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
             var wrap = avalon(dom)
-            //  vdom.dynamic['ms-css'] = 1
-            //  var change = vdom['ms-css']
             for (var name in change) {
                 wrap.css(name, change[name])
             }

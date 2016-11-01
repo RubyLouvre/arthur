@@ -132,7 +132,7 @@ describe('css', function () {
         var el = avalon(div.children[0])
         expect(el.width()).toBe(200)
         expect(el.height()).toBe(200)
-       // expect(vm.aa).to.not.have.property('width')
+        expect(vm.aa.$model.width).toBe(void 0)
         expect(el.css('backgroundColor')).toMatch(/red|rgb\(255,\s*0,\s*0\)/)
         setTimeout(function () {
             vm.aa = {}

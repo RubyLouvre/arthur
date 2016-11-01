@@ -1,9 +1,11 @@
 import './important'
 import './controller'
 
-import './attr.compact'
 import './skip'
 import './visible'
+import './text'
 
 import './css'
 import './expr'
+
+import './attr.compact'

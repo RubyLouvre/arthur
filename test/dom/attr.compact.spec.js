@@ -10,9 +10,7 @@ import { isVML } from
 
 describe('attr', function () {
     describe('batchUpdateAttrs', function () {
-        var vnode = {
-            dynamic: {},
-            'ms-attr': {
+        var props = {
                 src: 'https://github.com/ecomfe/zrender',
                 href: 'https://github.com/ecomfe/zrender',
                 'data-title': "aaa",
@@ -21,12 +19,12 @@ describe('attr', function () {
                 'class': 'eee',
                 readonly: true
             }
-        }
+        
         it('为label添加各种属性', function () {
 
             var label = document.createElement('label')
             label.getAttribute('aaa', '111')
-            updateAttrs(label, vnode)
+            updateAttrs(label, props)
             if (avalon.modern) {
                 expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
                 expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
@@ -42,7 +40,7 @@ describe('attr', function () {
         it('为option添加各种属性', function () {
             var option = document.createElement('option')
             option.getAttribute('aaa', '111')
-            updateAttrs(option, vnode)
+            updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
                 expect(option.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
@@ -57,7 +55,7 @@ describe('attr', function () {
         it('为input添加各种属性', function () {
             var option = document.createElement('input')
             option.getAttribute('aaa', '111')
-            updateAttrs(option, vnode)
+            updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
                 expect(option.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
@@ -72,7 +70,7 @@ describe('attr', function () {
         it('为textarea添加各种属性', function () {
             var option = document.createElement('textarea')
             option.getAttribute('aaa', '111')
-            updateAttrs(option, vnode)
+            updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
                 expect(option.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
@@ -87,7 +85,7 @@ describe('attr', function () {
         it('为span添加各种属性', function () {
             var option = document.createElement('span')
             option.getAttribute('aaa', '111')
-            updateAttrs(option, vnode)
+            updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
                 expect(option.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')

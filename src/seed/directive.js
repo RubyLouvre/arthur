@@ -4,10 +4,14 @@ var delayCompile = {}
 export var directives = {}
 
 export function directive(name, opts) {
+    if( directives[name]){
+        avalon.warn(name, 'directive have defined! ')
+    }
     directives[name] = opts
     if (opts.delay) {
         delayCompile[name] = 1
     }
+    return opts
 }
 
 export function delayCompileNodes(dirs) {

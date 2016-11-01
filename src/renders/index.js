@@ -1,7 +1,7 @@
-import { avalon, createFragment, config, inBrowser, delayCompileNodes } from '../seed/core'
+import { avalon, createFragment, config, delayCompileNodes } from '../seed/core'
 import { fromDOM } from '../vtree/fromDOM'
 import { VFragment } from '../vdom/VFragment'
-import { Watcher } from '../vmodel/watcher'
+import { DirectiveDecorator } from './decorator'
 
 import { orphanTag } from '../vtree/orphanTag'
 import { parseAttributes } from '../parser/attributes'
@@ -13,13 +13,6 @@ function startWith(long, short) {
     return long.indexOf(short) === 0
 }
 
-function emptyNode(a) {
-    var f = createFragment()
-    while (a.firstChild) {
-        f.appendChild(a.firstChild)
-    }
-    return f
-}
 
 avalon.scan = function (node, vm) {
     return new Render(node, vm)
@@ -34,15 +27,22 @@ function Render(node, vm) {
     this.init()
 }
 
+function clearChild(elem) {
+    var firstChild
+    while (firstChild = elem.firstChild) {
+        if (firstChild.nodeType === 1) {
+            clearChild(firstChild)
+        }
+        elem.removeChild(firstChild)
+    }
+}
+
 var cp = Render.prototype
+
 cp.init = function () {
     var vnodes = fromDOM(this.node) //转换虚拟DOM
-    var elems = avalon.slice(this.node.getElementsByTagName('*'))
-    for (var i = 0, elem; elem = elems[i++];) {
-        if (elem.parentNode) {
-            elem.parentNode.removeChild(elem)
-        }
-    }
+
+    clearChild(this.node)
     this.vnodes = vnodes
     this.getBindings(vnodes[0], true, this.vm)
 }
@@ -55,10 +55,12 @@ cp.getBindings = function (element, root, scope) {
 
         if (ctrlValue) {
             var ctrlName = dirs['ms-important'] == ctrlValue ? 'important' : 'controller'
+            var prefix = 'ms-'+ ctrlName in element.props ? 'ms-': ':'
             var ctrl = avalon.directives[ctrlName]
             scope = ctrl.getScope(ctrlValue, scope)
             delete dirs['ms-' + ctrlName]
             this.callbacks.push({
+                attrName: prefix+ ctrlName,
                 scope: scope,
                 node: element,
                 callback: ctrl.callback
@@ -150,18 +152,19 @@ cp.getRawBindings = function (node, childNodes) {
     }
 }
 function createDOMTree(parent, children) {
-    children.forEach(function (vnode) {
-        var node = avalon.vdom(vnode, 'toDOM')
-        if (node.nodeType === 1 && vnode.children && vnode.children.length) {
-            createDOMTree(node, vnode.children)
+    children.forEach(function (vdom) {
+        var dom = avalon.vdom(vdom, 'toDOM')
+        if (dom.nodeType === 1 && vdom.children && vdom.children.length) {
+            createDOMTree(dom, vdom.children)
         }
-        if (!avalon.contains(parent, node)) {
-            parent.appendChild(node)
+        if (!avalon.contains(parent, dom)) {
+            parent.appendChild(dom)
         }
     })
 }
 
 cp.compileBindings = function () {
+   
     this.queue.forEach(function (tuple) {
         this.parseBindings(tuple)
     }, this)
@@ -194,7 +197,7 @@ cp.parseBindings = function (tuple) {
         if (dir.parse) {
             dir.parse(binding)
         }
-        this.directives.push(new DirectiveWatcher(node, binding, scope))
+        this.directives.push(new DirectiveDecorator(node, binding, scope))
     }
 
 
@@ -210,34 +213,4 @@ cp.destroy = function () {
     }
 }
 
-/**
- * 一个watcher装饰器
- * @returns {watcher}
- */
-function DirectiveWatcher(node, binding, scope) {
-    var type = binding.type
-    var directive = avalon.directives[type]
-    if (inBrowser) {
-        var dom = avalon.vdom(node, 'toDOM')
-        if (dom.nodeType === 1) {
-            dom.removeAttribute(binding.attrName)
-        }
-        node.dom = dom
-    }
-    var callback = directive.update ? function (value) {
-        directive.update.call(this, node, value)
-    } : avalon.noop
-    var watcher = new Watcher(scope, binding, callback)
-    if(directive.diff){
-       watcher.diff = directive.diff 
-    }
-    watcher.node = node
-    watcher._destory = directive.destory
-    if (directive.init)
-        directive.init(watcher)
-    delete watcher.value
-
-    watcher.update()
-    return watcher
-}
 
