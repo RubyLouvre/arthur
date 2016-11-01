@@ -10,3 +10,4 @@ import './expr'
 
 import './attr.compact'
 import './html'
+import './if'

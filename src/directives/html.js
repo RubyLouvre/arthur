@@ -1,3 +1,5 @@
+  import { avalon } from '../seed/core'
+
   avalon.directive('html', {
         update: function (node, value) {
             this.boss && this.boss.destroy()

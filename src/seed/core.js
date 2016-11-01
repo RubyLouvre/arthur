@@ -241,7 +241,9 @@ var plugins = {
                 config.rexpr = new RegExp(o + '([\\s\\S]*)' + c)
         }
 }
-
+export function createAnchor(nodeValue){
+    return document.createComment(nodeValue)
+}
 config.plugins = plugins
 config({
         interpolate: ['{{', '}}'],

@@ -17,7 +17,7 @@ export function DirectiveDecorator(node, binding, scope) {
         node.dom = dom
     }
     var callback = decorator.update ? function (value) {
-        decorator.update.call(this, node, value)
+        decorator.update.call(directive, node, value)
     } : avalon.noop
     var directive = new Directive(scope, binding, callback)
     if (decorator.diff) {
