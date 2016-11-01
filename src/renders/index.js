@@ -24,13 +24,14 @@ function startWith(long, short) {
 }
 
 
-avalon.scan = function (node, vm) {
-    return new Render(node, vm)
+avalon.scan = function (node, vm, beforeReady) {
+    return new Render(node, vm, beforeReady||avalon.noop)
 }
 
-function Render(node, vm) {
+function Render(node, vm, beforeReady) {
     this.root = node
     this.vm = vm
+    this.beforeReady = beforeReady
     this.queue = []
     this.callbacks = []
     this.directives = []
@@ -184,6 +185,8 @@ cp.compileBindings = function () {
     this.queue.forEach(function (tuple) {
         this.parseBindings(tuple)
     }, this)
+  
+    this.beforeReady()
     var root = this.root
     var rootDom = avalon.vdom(root, 'toDOM')
     createDOMTree(rootDom, root.children)

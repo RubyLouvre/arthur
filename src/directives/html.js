@@ -2,13 +2,13 @@
         update: function (node, value) {
             this.boss && this.boss.destroy()
            
-            var segement =  this.boss = avalon.scan('<div>'+value+'</div>', this.vm)
-            node.children = segement.root.children
-            var dom = node.dom
-            avalon.clearHTML(dom)
-
-            dom.appendChild( avalon.vdom( node.children, 'toDOM'))
-          
+            this.boss = avalon.scan('<div>'+value+'</div>', this.vm, function(){
+                var oldRoot = this.root
+                node.children = oldRoot.children
+                this.root = node
+                avalon.clearHTML(node.dom)
+            })
+       
       
         },
         delay: true
