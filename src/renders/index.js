@@ -4,7 +4,7 @@ import { fromDOM } from
     '../vtree/fromDOM'
 import { fromString } from
     '../vtree/fromString'
-    
+
 import { VFragment } from
     '../vdom/VFragment'
 import { DirectiveDecorator } from
@@ -25,7 +25,7 @@ function startWith(long, short) {
 
 
 avalon.scan = function (node, vm, beforeReady) {
-    return new Render(node, vm, beforeReady||avalon.noop)
+    return new Render(node, vm, beforeReady || avalon.noop)
 }
 
 function Render(node, vm, beforeReady) {
@@ -64,7 +64,7 @@ cp.init = function () {
     this.getBindings(this.root, true, this.vm)
 }
 
-cp.getBindings = function (element, root, scope) {
+cp.getBindings = function (element, isRoot, scope) {
     var childNodes = element.children
     var dirs = this.getRawBindings(element, childNodes)
     if (/^\w/.test(element.nodeName)) {
@@ -97,7 +97,7 @@ cp.getBindings = function (element, root, scope) {
             this.getBindings(childNodes[i], false, scope)
         }
     }
-    if (root) {
+    if (isRoot) {
         this.compileBindings()
     }
 }
@@ -185,7 +185,7 @@ cp.compileBindings = function () {
     this.queue.forEach(function (tuple) {
         this.parseBindings(tuple)
     }, this)
-  
+
     this.beforeReady()
     var root = this.root
     var rootDom = avalon.vdom(root, 'toDOM')
@@ -217,10 +217,17 @@ cp.parseBindings = function (tuple) {
         if (dir.parse) {
             dir.parse(binding)
         }
-        this.directives.push(new DirectiveDecorator(node, binding, scope))
+        var directive = new DirectiveDecorator(node, binding, scope)
+        this.directives.push(directive)
+        if (dir.ready) {
+            this.callbacks.push({
+                callback: function () {
+                    delete directive.oldValue
+                    directive.update()
+                }
+            })
+        }
     }
-
-
 }
 
 

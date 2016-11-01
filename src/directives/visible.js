@@ -21,12 +21,13 @@ avalon.parseDisplay = parseDisplay
 
 avalon.directive('visible', {
     diff: function (newValue, oldValue) {
-        var c = !!newValue
-        if (oldValue == void 0 || c !== oldValue) {
-            this.value = c
+        var n = !!newValue
+        if (oldValue === void 0 || n !== oldValue) {
+            this.value = n
             return true
         }
     },
+    ready: true,
     update: function (vdom, show) {
         var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
@@ -47,7 +48,9 @@ avalon.directive('visible', {
                     avalon.contains(dom.ownerDocument, dom)) {
                     value = parseDisplay(dom)
                 }
+
             } else {
+
                 if (display !== none) {
                     value = none
                     vdom.displayValue = display
@@ -56,6 +59,12 @@ avalon.directive('visible', {
             var cb = function () {
                 if (value !== void 0) {
                     dom.style.display = value
+                }
+            }
+            avalon.applyEffect = function (node, vnode, opts) {
+                var cb = opts.cb
+                if (cb) {
+                    cb(node)
                 }
             }
             avalon.applyEffect(dom, vdom, {
