@@ -135,7 +135,7 @@ cp.getRawBindings = function (node, childNodes) {
             for (var name in attrs) {
                 var value = attrs[name]
                 if (name.charAt(0) === ':') {
-                    name = name.replace(rcolon, 'ms-')
+                    name = 'ms-'+ name.slice(1)
                 }
                 if (startWith(name, 'ms-')) {
                     dirs[name] = value

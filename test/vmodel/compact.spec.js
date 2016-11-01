@@ -2,8 +2,8 @@ import { avalon, afterCreate, platform } from
     '../../src/vmodel/compact'
 import { Depend } from
     '../../src/vmodel/depend'
-import { Watcher } from
-    '../../src/vmodel/watcher'
+import { Directive } from
+    '../../src/renders/Directive'
 describe('vmodel', function () {
     it('vmodel', function () {
         var vm = avalon.define({
@@ -181,14 +181,14 @@ describe('depend', function () {
     })
 })
 
-describe('watcher', function () {
+describe('Directive', function () {
     it('test', function () {
         var vm = avalon.define({
             $id: 'watcher',
             aaa: 11
         })
         var args = []
-        var d = new Watcher(vm, {
+        var d = new Directive(vm, {
             expr: '@aaa',
             deep: false
         }, function (a, b) {
