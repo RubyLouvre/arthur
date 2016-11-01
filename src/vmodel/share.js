@@ -2,7 +2,6 @@
 import { avalon, platform, isObject, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
-import { Watcher } from './watcher'
 import { rewriteArrayMethods } from './List'
 
 

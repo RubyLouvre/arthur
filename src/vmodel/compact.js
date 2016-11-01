@@ -1,6 +1,6 @@
 import { avalon, platform, modern, msie } from '../seed/core'
 import { $$skipArray } from './reserved'
-import { Watcher } from './watcher'
+import { Directive } from '../renders/Directive'
 import './share'
 
 export { avalon, platform }
@@ -198,7 +198,7 @@ function beforeCreate(core, state, keys, byUser) {
         $accessors: state,
     }, byUser ? {
         $watch: function $watch(expr, callback, deep) {
-            var w = new Watcher(core.__proxy__, {
+            var w = new Directive(core.__proxy__, {
                 deep: deep,
                 user: true,
                 expr: expr

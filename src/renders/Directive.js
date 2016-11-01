@@ -1,5 +1,5 @@
 import { avalon } from '../seed/core'
-import { Depend } from './depend'
+import { Depend } from '../vmodel/depend'
 import { createGetter, createSetter } from "../parser/index"
 /** 
  * 遍历对象/数组每一个可枚举属性
@@ -35,7 +35,7 @@ function walkThrough(target, root) {
  * @returns {Watcher}
  */
 
-export function Watcher(vm, options, callback) {
+export  function Directive(vm, options, callback) {
     this.vm = vm
     avalon.mix(this, options)
     this.callback = callback
@@ -59,10 +59,9 @@ export function Watcher(vm, options, callback) {
     this.value = this.get()
 }
 
-var wp = Watcher.prototype
+var dp = Directive.prototype
 
-
-wp.getValue = function () {
+dp.getValue = function () {
     var scope = this.vm
     try {
         return this.getter.call(scope, scope)
@@ -71,13 +70,13 @@ wp.getValue = function () {
     }
 }
 
-wp.setValue = function (value) {
+dp.setValue = function (value) {
     var scope = this.vm
     if (this.setter) {
         this.setter.call(scope, scope, value)
     }
 }
-wp.get = function () {
+dp.get = function () {
     var value
     this.beforeGet()
     value = this.getValue()
@@ -92,11 +91,11 @@ wp.get = function () {
     return value
 }
 
-wp.beforeGet = function () {
+dp.beforeGet = function () {
     Depend.watcher = this
 }
 
-wp.addDepend = function (depend) {
+dp.addDepend = function (depend) {
     var guid = depend.guid
     var newIds = this.newDepIds
     if (newIds.indexOf(guid) < 0) {
@@ -108,7 +107,7 @@ wp.addDepend = function (depend) {
     }
 }
 
-wp.removeDepends = function (filter) {
+dp.removeDepends = function (filter) {
     var self = this
     this.depends.forEach(function (depend) {
         if (filter) {
@@ -121,7 +120,7 @@ wp.removeDepends = function (filter) {
     })
 }
 
-wp.afterGet = function () {
+dp.afterGet = function () {
     Depend.watcher = null
     // 清除无用的依赖
     this.removeDepends(function (depend) {
@@ -134,12 +133,12 @@ wp.afterGet = function () {
     this.newDepends.length = 0
 }
 
-wp.beforeUpdate = function () {
+dp.beforeUpdate = function () {
     var v = this.value
     this.oldValue = v && v.$events ? v.$model : v
 }
 
-wp.update = function (args, guid) {
+dp.update = function (args, guid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
@@ -148,10 +147,10 @@ wp.update = function (args, guid) {
         callback.call(this.vm, this.value, oldVal, this.node)
     }
 }
-wp.diff = function (a, b) {
+dp.diff = function (a, b) {
     return a !== b
 }
-wp.destroy = function () {
+dp.destroy = function () {
     this.value = null
     this.removeDepends()
     if (this._destroy) {

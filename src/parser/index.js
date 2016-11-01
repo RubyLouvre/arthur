@@ -106,11 +106,8 @@ export function createGetter(expr, type) {
  * @param  {String}  expr
  */
 export function createSetter(expr, type) {
-    var body = addScope(expr, type)
-    if (!startWith(body, '__vmodel__.')) {
-        body = ' __vmodel__.' + body
-    }
-    body = 'try{ ' + body + ' = __value__}catch(e){}'
+    var arr = addScope(expr, type)
+    var body = 'try{ ' + arr[0] + ' = __value__}catch(e){}'
     try {
         return new Function('__vmodel__', '__value__', body + ';')
     } catch (e) {

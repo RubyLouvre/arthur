@@ -1,6 +1,6 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
-import { Watcher } from './watcher'
+import { Directive } from '../renders/Directive'
 import './share'
 export { platform }
 
@@ -62,7 +62,7 @@ function $fire(expr, a) {
 
 function $watch(expr, callback, deep) {
         var core = this.$events
-        var w = new Watcher(this, {
+        var w = new Directive(this, {
                 deep: deep,
                 user: true,
                 expr: expr
