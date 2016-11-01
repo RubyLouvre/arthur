@@ -35,7 +35,7 @@ function walkThrough(target, root) {
  * @returns {Watcher}
  */
 
-export  function Directive(vm, options, callback) {
+export function Directive(vm, options, callback) {
     this.vm = vm
     avalon.mix(this, options)
     this.callback = callback
@@ -47,11 +47,15 @@ export  function Directive(vm, options, callback) {
     this.depends = []
     this.newDepends = []
     var expr = this.expr
-    var preSetFunc = typeof expr === 'function'
+
     // 缓存取值函数
-    this.getter = preSetFunc ? expr : createGetter(expr, this.type)
+    if (typeof this.getter !== 'function') {
+        this.getter = createGetter(expr, this.type)
+    }
     // 缓存设值函数（双向数据绑定）
-    this.setter = this.type === 'duplex' ? createSetter(expr, this.type) : null
+    if (this.type === 'duplex') {
+        this.setter = createSetter(expr, this.type)
+    }
     // 缓存表达式旧值
     this.oldValue = null
     // 表达式初始值 & 提取依赖
@@ -142,7 +146,7 @@ dp.update = function (args, guid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
-    if (callback && this.diff( newVal, oldVal)) {
+    if (callback && this.diff(newVal, oldVal)) {
         // directive.update.call(this, node, value)
         callback.call(this.vm, this.value, oldVal, this.node)
     }

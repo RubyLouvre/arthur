@@ -10,6 +10,9 @@
             var  vm = avalon.define({
             $id: 'css5',
             a: true,
+            fn: function(){
+                console.log('888888')
+            },
             aa: {
                 background: 'red'
             },
@@ -22,6 +25,6 @@
             </script>
     </head>
     <body >
-        <div ms-controller='css5' ms-if="@a">测试样式</div>
+        <div ms-controller='css5' ms-click="@fn">测试样式</div>
     </body>
 </html>

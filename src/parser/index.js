@@ -63,7 +63,7 @@ export function addScope(expr, type) {
     input = addScopeForLocal(input)              //在本地变量前添加__vmodel__
 
     var filters = input.split(rpipeline)         //根据管道符切割表达式
-    var body = filters.shift().replace(rfill, fill)
+    var body = filters.shift().replace(rfill, fill).trim()
 
     if (filters.length) {
         filters = filters.map(function (filter) {
