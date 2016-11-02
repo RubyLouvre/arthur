@@ -1,6 +1,8 @@
 import { avalon, createAnchor, createFragment, isObject, ap } from '../seed/core'
 
 import { observeItemObject } from '../vmodel/share'
+import { makeHandle } from './on'
+import { addScope } from '../parser/index'
 
 
 var rforAs = /\s+as\s+([$\w]+)/
@@ -42,13 +44,18 @@ avalon.directive('for', {
             watcher[name] = f[name]
             delete f[name]
         })
+        var cb = watcher.forCb
+        if (typeof cb === 'string' && cb) {
+            var arr = addScope(cb, 'for')
+            var body = makeHandle(arr[0])
+            watcher.forCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
+        }
 
         f.children.push({
             nodeName: '#comment',
             nodeValue: watcher.signature
         })
-        watcher.fragment = '<div>' + f.fragment +
-            '<!--' + watcher.signature + '--></div>'
+        watcher.fragment = ['<div>', f.fragment, '<!--', watcher.signature, '--></div>'].join('')
         watcher.node = watcher.begin
         watcher.cache = {}
     },
@@ -73,10 +80,15 @@ avalon.directive('for', {
             diffList(this)
             updateList(this)
         }
+
         if (this.forCb) {
-            this.forCb()
+            this.forCb.call(this.vm, {
+                type: 'rendered',
+                target: this.begin.dom,
+                signature: this.signature
+            })
         }
-        this.updating = false
+        delete this.updating
     }
 })
 
@@ -96,6 +108,7 @@ function createFragments(watcher, obj) {
             fragments.push(new Fragment(k, value, i++))
             ids.push(k)
         })
+        watcher.isArray = array
         if (watcher.fragments) {
             watcher.preFragments = watcher.fragments
             watcher.fragments = fragments
@@ -138,7 +151,7 @@ function diffList(watcher) {
             delete fragment._destory
             fragment.oldIndex = fragment.index
             fragment.index = index // 相当于 c.index
-            fragment.vm[watcher.keyName] = index
+            fragment.vm[watcher.keyName] = watcher.isArray ? index : fragment.key
             saveInCache(newCache, fragment)
         } else {
             //如果找不到就进行模糊搜索
@@ -154,7 +167,7 @@ function diffList(watcher) {
             var val = fragment.val = c.val
             var index = fragment.index = c.index
             fragment.vm[watcher.valName] = val
-            fragment.vm[watcher.keyName] = index
+            fragment.vm[watcher.keyName] = watcher.isArray ? index : fragment.key
             delete fragment._destory
         } else {
             fragment = FragmentDecorator(c, watcher, c.index)
@@ -199,8 +212,8 @@ function Fragment(key, val, index) {
     this.nodeName = '#document-fragment'
     this.key = key
     this.val = val
-    this.index = index,
-        this.children = []
+    this.index = index
+    this.children = []
 }
 Fragment.prototype = {
     destory: function () {
@@ -231,7 +244,7 @@ function FragmentDecorator(fragment, watcher, index) {
     fragment.vm = observeItemObject(watcher.vm, {
         data: new function () {
             var data = {}
-            data[watcher.keyName] = fragment.index
+            data[watcher.keyName] = watcher.isArray ? index : fragment.key
             data[watcher.valName] = fragment.val
             if (watcher.asName) {
                 data[watcher.asName] = []
@@ -247,8 +260,6 @@ function FragmentDecorator(fragment, watcher, index) {
         ap.push.apply(fragment.children, oldRoot.children)
         this.root = fragment
     })
-
-    fragment.split = fragment.dom.lastChild
     return fragment
 }
 // 新位置: 旧位置

@@ -2,7 +2,15 @@ import { avalon, inBrowser } from '../seed/core'
 
 import { addScope } from '../parser/index'
 var rhandleName = /^__vmodel__\.[$\w\.]+$/
-
+export function makeHandle(body) {
+    if (rhandleName.test(body)) {
+        body = body + '($event)'
+    }
+    body = body.replace(/__vmodel__\.([^(]+)\(([^)]*)\)/, function (a, b, c) {
+        return '__vmodel__.' + b + '.call(__vmodel__' + (/\S/.test(c) ? ',' + c : '') + ')'
+    })
+    return body
+}
 avalon.directive('on', {
     parse: function (watcher) {
         watcher.getter = avalon.noop
@@ -20,12 +28,8 @@ avalon.directive('on', {
         if (!fn) {
             var arr = addScope(watcher.expr)
             var body = arr[0], filters = arr[1]
-            if (rhandleName.test(body)) {
-                body = body + '($event)'
-            }
-            body = body.replace(/__vmodel__\.([^(]+)\(([^)]*)\)/, function (a, b, c) {
-                return '__vmodel__.' + b + '.call(__vmodel__' + (/\S/.test(c) ? ',' + c : '') + ')'
-            })
+            body = makeHandle(body)
+            
             if (filters) {
                 filters = filters.replace(/__value__/g, '$event')
                 filters.push('if($event.$return){\n\treturn;\n}')

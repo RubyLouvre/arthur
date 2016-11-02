@@ -246,7 +246,7 @@ cp.getForBinding = function(node, scope, childNodes) {
 cp.getForBindingByElement = function(node, scope, childNodes, value) {
     var si = childNodes.indexOf(node) //原来带ms-for的元素节点
 
-    var start = {
+    var begin = {
         nodeName: '#comment',
         nodeValue: 'ms-for:' + value,
         forCb: node.props['data-for-rendered']
@@ -257,9 +257,9 @@ cp.getForBindingByElement = function(node, scope, childNodes, value) {
     }
 
 
-    childNodes.splice(si, 1, start, node, end)
+    childNodes.splice(si, 1, begin, node, end)
 
-    this.getForBinding(start, scope, childNodes)
+    this.getForBinding(begin, scope, childNodes)
 
 }
 var rhasChildren = /1/
