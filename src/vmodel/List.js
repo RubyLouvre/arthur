@@ -88,11 +88,11 @@ __method__.forEach(function (method) {
                 inserts = args.slice(2)
                 break
         }
-        if (inserts && inserts) {
+        if (inserts && inserts.length) {
             inserts = platform.listFactory(inserts, true)
         }
         platform.toModel(this)
-        core.__dep__.notify()
+        core.__dep__.notify(method)
         return result
     }
 })

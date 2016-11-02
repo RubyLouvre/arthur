@@ -24,7 +24,7 @@ function startWith(long, short) {
 }
 
 
-avalon.scan = function (node, vm, beforeReady) {
+avalon.scan = function(node, vm, beforeReady) {
     return new Render(node, vm, beforeReady || avalon.noop)
 }
 
@@ -42,7 +42,7 @@ function Render(node, vm, beforeReady) {
 
 var cp = Render.prototype
 
-cp.init = function () {
+cp.init = function() {
     var vnodes
     if (this.root && this.root.nodeType > 0) {
         vnodes = fromDOM(this.root) //转换虚拟DOM
@@ -56,7 +56,7 @@ cp.init = function () {
     this.getBindings(this.root, true, this.vm, [])
 }
 
-cp.getBindings = function (element, isRoot, scope, children) {
+cp.getBindings = function(element, isRoot, scope, children) {
     var childNodes = element.children
     var dirs = this.getRawBindings(element, scope, children)
     if (/^\w/.test(element.nodeName)) {
@@ -95,7 +95,7 @@ cp.getBindings = function (element, isRoot, scope, children) {
 }
 
 
-cp.getRawBindings = function (node, scope, childNodes) {
+cp.getRawBindings = function(node, scope, childNodes) {
     switch (node.nodeName) {
         case '#text':
             if (config.rexpr.test(node.nodeValue)) {
@@ -144,9 +144,9 @@ cp.getRawBindings = function (node, scope, childNodes) {
     }
 }
 
-cp.compileBindings = function () {
+cp.compileBindings = function() {
 
-    this.queue.forEach(function (tuple) {
+    this.queue.forEach(function(tuple) {
         this.parseBindings(tuple)
     }, this)
 
@@ -155,7 +155,7 @@ cp.compileBindings = function () {
     var rootDom = avalon.vdom(root, 'toDOM')
     createDOMTree(rootDom, root.children)
 
-    this.callbacks.forEach(function (el) {
+    this.callbacks.forEach(function(el) {
         el.callback()
     })
 
@@ -165,7 +165,7 @@ cp.compileBindings = function () {
  * 将收集到的绑定属性进行深加工,最后转换为watcher
  * @param   {Array}  tuple  [node, scope, dirs]
  */
-cp.parseBindings = function (tuple) {
+cp.parseBindings = function(tuple) {
     var node = tuple[0]
     var scope = tuple[1]
     var dirs = tuple[2]
@@ -185,7 +185,7 @@ cp.parseBindings = function (tuple) {
         this.directives.push(directive)
         if (dir.ready) {
             this.callbacks.push({
-                callback: function () {
+                callback: function() {
                     delete directive.oldValue
                     directive.update()
                 }
@@ -195,8 +195,8 @@ cp.parseBindings = function (tuple) {
 }
 
 
-cp.destroy = function () {
-    this.directives.forEach(function (directive) {
+cp.destroy = function() {
+    this.directives.forEach(function(directive) {
         directive.destroy()
     })
     for (var i in this) {
@@ -204,7 +204,7 @@ cp.destroy = function () {
     }
 }
 
-cp.getForBinding = function (node, scope, childNodes) {
+cp.getForBinding = function(node, scope, childNodes) {
     var nodes = []
     var deep = 1
     var begin = node, end
@@ -243,9 +243,9 @@ cp.getForBinding = function (node, scope, childNodes) {
         f, scope, { 'ms-for': expr }
     ])
 }
-cp.getForBindingByElement = function (node, scope, childNodes, value) {
+cp.getForBindingByElement = function(node, scope, childNodes, value) {
     var si = childNodes.indexOf(node) //原来带ms-for的元素节点
-  
+
     var start = {
         nodeName: '#comment',
         nodeValue: 'ms-for:' + value,
@@ -255,22 +255,17 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
         nodeName: '#comment',
         nodeValue: 'ms-for-end:'
     }
-   
 
-    childNodes.splice(si, 1,  start, node, end)
-  
+
+    childNodes.splice(si, 1, start, node, end)
+
     this.getForBinding(start, scope, childNodes)
 
 }
 var rhasChildren = /1/
 function createDOMTree(parent, children) {
-    children.forEach(function (vdom) {
-       
-        if(vdom.nodeName === '#document-fragment'){
-           var dom = createFragment()
-        }else{
-           dom = avalon.vdom(vdom, 'toDOM')
-        }
+    children.forEach(function(vdom) {
+        var dom = avalon.vdom(vdom, 'toDOM')
         if (rhasChildren.test(dom.nodeType) && vdom.children && vdom.children.length) {
             createDOMTree(dom, vdom.children)
         }

@@ -7,6 +7,8 @@ export function VComment(text) {
 VComment.prototype = {
     constructor: VComment,
     toDOM: function () {
+        if (this.dom)
+            return this.dom
         return this.dom = document.createComment(this.nodeValue)
     },
     toHTML: function () {

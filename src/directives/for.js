@@ -57,7 +57,6 @@ avalon.directive('for', {
         if (this.oldTrackIds === void 0)
             return true
 
-
         if (this.oldTrackIds !== traceIds) {
             this.oldTrackIds = traceIds
             return true
@@ -65,7 +64,9 @@ avalon.directive('for', {
 
     },
     update: function (node, value) {
-
+        if (this.updating)
+            return
+        this.updating = true
         if (!this.preFragments) {
             mountList(this)
         } else {
@@ -75,6 +76,7 @@ avalon.directive('for', {
         if (this.forCb) {
             this.forCb()
         }
+        this.updating = false
     }
 })
 
@@ -108,6 +110,7 @@ function createFragments(watcher, obj) {
 
 
 function mountList(watcher) {
+
     var args = watcher.fragments.map(function (fragment, index) {
         FragmentDecorator(fragment, watcher, index)
         saveInCache(watcher.cache, fragment)
@@ -119,10 +122,12 @@ function mountList(watcher) {
 }
 
 function diffList(watcher) {
+
     var cache = watcher.cache
     var newCache = {}
     var fuzzy = []
     var list = watcher.preFragments
+    var oldLen = list.length
     list.forEach(function (el) {
         el._destory = true
     })
@@ -155,6 +160,7 @@ function diffList(watcher) {
             fragment = FragmentDecorator(c, watcher, c.index)
             list.push(fragment)
         }
+
         saveInCache(newCache, fragment)
     })
 
@@ -162,13 +168,18 @@ function diffList(watcher) {
     list.sort(function (a, b) {
         return a.index - b.index
     })
+    var ch = watcher.parentChildren
+    var i = ch.indexOf(watcher.begin)
+    list.splice.apply(ch, [i + 1, oldLen].concat(list))
+
     watcher.cache = newCache
 }
 function updateList(watcher) {
 
-    var before = watcher.node
+    var before = watcher.begin.dom
     var parent = before.parentNode
     var list = watcher.fragments
+    var end = watcher.end.dom
     for (var i = 0, item; item = list[i]; i++) {
         if (item._destory) {
             list.splice(i, 1)
@@ -176,11 +187,9 @@ function updateList(watcher) {
             item.destory()
             continue
         }
-        if (item.ordexIndex !== item.index) {
-            if (item.dom && !item.dom.childNodes.length) {
-                item.move()
-            }
-            parent.insertBefore(item.dom, before.nextSibling)
+        if (item.oldIndex !== item.index) {
+            var f = item.move()
+            parent.insertBefore(f, before.nextSibling)
         }
         before = item.split
     }
@@ -202,21 +211,9 @@ Fragment.prototype = {
         }
     },
     move: function () {
-        var pre = this.split
-        var f = this.dom
-        var list = [pre]
-        var w = this.watcher
-        var a = 99999
-        do {
-            pre = pre.previousSibling
-            if (!pre || pre === w.node || pre.nodeValue === w.signature) {
-                break
-            }
-            list.unshift(pre)
-
-        } while (--a)
-        list.forEach(function (el) {
-            f.appendChild(el)
+        var f = createFragment()
+        this.children.forEach(function (el) {
+            f.appendChild(avalon.vdom(el, 'toDOM'))
         })
         return f
     }
@@ -252,7 +249,6 @@ function FragmentDecorator(fragment, watcher, index) {
     })
 
     fragment.split = fragment.dom.lastChild
-
     return fragment
 }
 // 新位置: 旧位置
