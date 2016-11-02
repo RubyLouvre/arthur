@@ -1,4 +1,4 @@
-import { avalon, createAnchor, createFragment, isObject } from '../seed/core'
+import { avalon, createAnchor, createFragment, isObject, ap } from '../seed/core'
 
 import { observeItemObject } from '../vmodel/share'
 
@@ -43,15 +43,12 @@ avalon.directive('for', {
             delete f[name]
         })
 
-
-
         f.children.push({
             nodeName: '#comment',
             nodeValue: watcher.signature
         })
         watcher.fragment = '<div>' + f.fragment +
             '<!--' + watcher.signature + '--></div>'
-        console.log(watcher.fragment)
         watcher.node = watcher.begin
         watcher.cache = {}
     },
@@ -193,7 +190,8 @@ function Fragment(key, val, index) {
     this.nodeName = '#document-fragment'
     this.key = key
     this.val = val
-    this.index = index
+    this.index = index,
+        this.children = []
 }
 Fragment.prototype = {
     destory: function () {
@@ -246,23 +244,16 @@ function FragmentDecorator(fragment, watcher, index) {
     })
 
     fragment.index = index
-    delete fragment.dom
-    fragment.children = []
-    fragment.boss = avalon.scan(watcher.fragment, fragment.vm, function () {
-        //   var oldRoot = this.root
-        //  fragment.children = oldRoot.children
-        //    this.root = fragment
-    })
-     console.log(fragment.boss.root)
-    console.log(fragment.boss.root.dom)
-    return {
-        nodeType: 2,
-        dom: fragment.boss.root.dom
-    }
-  //  fragment.split = fragment.dom.lastChild
 
-   // console.log(avalon.slice(fragment.dom.childNodes))
-   // return fragment
+    fragment.boss = avalon.scan(watcher.fragment, fragment.vm, function () {
+        var oldRoot = this.root
+        ap.push.apply(fragment.children, oldRoot.children)
+        this.root = fragment
+    })
+
+    fragment.split = fragment.dom.lastChild
+
+    return fragment
 }
 // 新位置: 旧位置
 function isInCache(cache, id) {

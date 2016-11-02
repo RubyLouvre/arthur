@@ -257,20 +257,23 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
     }
    
 
-   childNodes.splice(si, 1,  start, node, end)
-//console.log(childNodes)
+    childNodes.splice(si, 1,  start, node, end)
   
     this.getForBinding(start, scope, childNodes)
 
 }
-
+var rhasChildren = /1/
 function createDOMTree(parent, children) {
     children.forEach(function (vdom) {
-        var dom = avalon.vdom(vdom, 'toDOM')
-        if (/1/.test(dom.nodeType) && vdom.children && vdom.children.length) {
+       
+        if(vdom.nodeName === '#document-fragment'){
+           var dom = createFragment()
+        }else{
+           dom = avalon.vdom(vdom, 'toDOM')
+        }
+        if (rhasChildren.test(dom.nodeType) && vdom.children && vdom.children.length) {
             createDOMTree(dom, vdom.children)
         }
-      
         if (!avalon.contains(parent, dom)) {
             parent.appendChild(dom)
         }

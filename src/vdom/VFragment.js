@@ -14,10 +14,9 @@ VFragment.prototype = {
         var c = this.children || []
 
         //IE6-11 docment-fragment都没有children属性 
-        if (!(this.vm && this.destory)) {
-            for (var i = 0, el; el = c[i++];) {
-                f.appendChild(avalon.vdom(el, 'toDOM'))
-            }
+        for (var i = 0, el; el = c[i++];) {
+            var dom = avalon.vdom(el, 'toDOM')
+            f.appendChild(dom)
         }
         this.split = f.lastChild
         return this.dom = f
