@@ -114,36 +114,7 @@ cp.getRawBindings = function (node, childNodes) {
             break
         case "#comment":
             if (startWith(node.nodeValue, 'ms-for:')) {
-                var nodes = []
-                var deep = 1
-                var begin = node
-                var expr = node.nodeValue.replace('ms-for:', '')
-                node.nodeValue = 'msfor:' + expr
-
-                var i = childNodes.indexOf(node) + 1
-                var start = i
-                while (node = childNodes[i++]) {
-                    nodes.push(node)
-
-                    if (node.nodeName === '#comment') {
-                        if (startWith(node.nodeValue, 'ms-for:')) {
-                            deep++
-                        } else if (startWith(node.nodeValue, 'ms-for-end:')) {
-                            deep--
-                            if (deep === 0) {
-                                node.nodeValue = 'msfor-end:'
-                                nodes.pop()
-                            }
-                        }
-                    }
-
-                }
-                var f = new VFragment(nodes)
-
-                childNodes.splice(start, nodes.length)
-                this.queue.push([
-                    f, this.vm, { 'ms-for': expr }, begin
-                ])
+                handleCommentFor.call(this, node, childNodes)
             }
             break
         default:
@@ -151,14 +122,25 @@ cp.getRawBindings = function (node, childNodes) {
             var dirs = {}, has = false
             for (var name in attrs) {
                 var value = attrs[name]
+                var oldName = name
                 if (name.charAt(0) === ':') {
+                    
                     name = 'ms-' + name.slice(1)
                 }
                 if (startWith(name, 'ms-')) {
                     dirs[name] = value
                     has = true
                 }
+                if (name === 'ms-for') {
+                    delete dirs[name]
+                    delete attrs[oldName]
+                    if (node.dom) {
+                        node.dom.removeAttribute(oldName)
+                    }
+                    handleElementFor.call(this, node, childNodes)
+                }
             }
+
             if (attrs['is']) {
                 if (!dirs['ms-widget']) {
                     dirs['ms-widget'] = '{}'
@@ -240,4 +222,56 @@ cp.destroy = function () {
     }
 }
 
+function handleCommentFor(node, childNodes) {
+    var nodes = []
+    var deep = 1
+    var begin = node
+    var expr = node.nodeValue.replace('ms-for:', '')
+    node.nodeValue = 'msfor:' + expr
 
+    var i = childNodes.indexOf(node) + 1
+    var start = i
+    while (node = childNodes[i++]) {
+        nodes.push(node)
+
+        if (node.nodeName === '#comment') {
+            if (startWith(node.nodeValue, 'ms-for:')) {
+                deep++
+            } else if (startWith(node.nodeValue, 'ms-for-end:')) {
+                deep--
+                if (deep === 0) {
+                    node.nodeValue = 'msfor-end:'
+                    nodes.pop()
+                }
+            }
+        }
+
+    }
+    var f = new VFragment(nodes)
+
+    childNodes.splice(start, nodes.length)
+    this.queue.push([
+        f, this.vm, { 'ms-for': expr }, begin
+    ])
+}
+function handleElementFor(node, childNodes) {
+    var si = childNodes.indexOf(node)
+    childNodes.splice(si, 0, {
+        nodeName: '#comment',
+        nodeValue: 'ms-for-end:'
+    })
+    var start = {
+        nodeName: '#comment',
+        nodeValue: 'ms-for:' + value
+    }
+    var forCb = node.props['data-for-rendered']
+    if (forCb) {
+        start.forCb = forCb
+    }
+    if (si === 0) {
+        childNodes.unshift(start)
+    } else {
+        childNodes.splice(si - 1, 0, onloadstart)
+    }
+    handleCommentFor.call(this, start, childNodes)
+}

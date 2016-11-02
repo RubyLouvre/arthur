@@ -34,25 +34,11 @@ avalon.directive('for', {
     },
     init: function (watcher) {
         var node = watcher.node
-        if (node.nodeType === 11) {
-            watcher.fragment = node
-            var begin = watcher.begin
-            delete watcher.begin
-        } else {
-            begin = createAnchor('msfor:' + watcher.origExpr)
-            var end = createAnchor('msfor-end:')
-            var p = node.parentNode
-            p.insertBefore(begin, node)
-            p.replaceChild(end, node)
-            var f = createFragment()
-            f.appendChild(node)
-            watcher.fragment = f
-            var cb = node.getAttribute('data-for-rendered')
-            if (cb) {
-                watcher.forCb = createGetter(cb)
-            }
 
-        }
+        watcher.fragment = node
+        var begin = watcher.begin
+        delete watcher.begin
+
         watcher.node = begin
         watcher.end = watcher.node.nextSibling
 
