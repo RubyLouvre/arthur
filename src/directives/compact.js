@@ -12,4 +12,6 @@ import './attr.compact'
 import './html'
 import './if'
 import './on'
+import './for'
+
 import './class.hover.active'

@@ -38,15 +38,7 @@ function Render(node, vm, beforeReady) {
     this.init()
 }
 
-function clearChild(elem) {
-    var firstChild
-    while (firstChild = elem.firstChild) {
-        if (firstChild.nodeType === 1) {
-            clearChild(firstChild)
-        }
-        elem.removeChild(firstChild)
-    }
-}
+
 
 var cp = Render.prototype
 
@@ -66,7 +58,7 @@ cp.init = function () {
 
 cp.getBindings = function (element, isRoot, scope, children) {
     var childNodes = element.children
-    var dirs = this.getRawBindings(element, children)
+    var dirs = this.getRawBindings(element, scope, children)
     if (/^\w/.test(element.nodeName)) {
         var ctrlValue = dirs['ms-important'] || dirs['ms-controller']
 
@@ -103,7 +95,7 @@ cp.getBindings = function (element, isRoot, scope, children) {
 }
 
 
-cp.getRawBindings = function (node, childNodes) {
+cp.getRawBindings = function (node, scope, childNodes) {
     switch (node.nodeName) {
         case '#text':
             if (config.rexpr.test(node.nodeValue)) {
@@ -114,7 +106,7 @@ cp.getRawBindings = function (node, childNodes) {
             break
         case "#comment":
             if (startWith(node.nodeValue, 'ms-for:')) {
-                handleCommentFor.call(this, node, childNodes)
+                this.getForBinding(node, scope, childNodes)
             }
             break
         default:
@@ -137,7 +129,7 @@ cp.getRawBindings = function (node, childNodes) {
                     if (node.dom) {
                         node.dom.removeAttribute(oldName)
                     }
-                    handleElementFor.call(this, node, childNodes, value)
+                    this.getForBindingByElement(node, scope, childNodes, value)
                 }
             }
 
@@ -149,17 +141,6 @@ cp.getRawBindings = function (node, childNodes) {
             }
             return has ? dirs : false
     }
-}
-function createDOMTree(parent, children) {
-    children.forEach(function (vdom) {
-        var dom = avalon.vdom(vdom, 'toDOM')
-        if (dom.nodeType === 1 && vdom.children && vdom.children.length) {
-            createDOMTree(dom, vdom.children)
-        }
-        if (!avalon.contains(parent, dom)) {
-            parent.appendChild(dom)
-        }
-    })
 }
 
 cp.compileBindings = function () {
@@ -222,7 +203,7 @@ cp.destroy = function () {
     }
 }
 
-function handleCommentFor(node, childNodes) {
+cp.getForBinding = function (node, scope, childNodes) {
     var nodes = []
     var deep = 1
     var begin = node, end
@@ -251,29 +232,58 @@ function handleCommentFor(node, childNodes) {
     var f = new VFragment(nodes)
     f.begin = begin
     f.end = end
+    f.forCb = begin.forCb
+    delete begin.forCb
+    f.parentChildren = childNodes
     f.props = {}
     childNodes.splice(start, nodes.length)
+
     this.queue.push([
-        f, this.vm, { 'ms-for': expr }
+        f, scope, { 'ms-for': expr }
     ])
 }
-
-function handleElementFor(node, childNodes, value) {
+cp.getForBindingByElement = function (node, scope, childNodes, value) {
     var si = childNodes.indexOf(node) //原来带ms-for的元素节点
     var start = {
         nodeName: '#comment',
         nodeValue: 'ms-for:' + value,
-        forCb:node.props['data-for-rendered']
+        forCb: node.props['data-for-rendered']
     }
     var end = {
         nodeName: '#comment',
         nodeValue: 'ms-for-end:'
     }
-    
-  
-     childNodes.splice(si,  1, start, node, end)
- 
-  
-     handleCommentFor.call(this, start, childNodes)
-   
+
+    childNodes.splice(si, 1, start, node, end)
+
+    this.getForBinding(start, scope, childNodes)
+
+}
+
+function createDOMTree(parent, children) {
+    console.log(children.length, '====')
+    children.forEach(function (vdom) {
+        var dom = avalon.vdom(vdom, 'toDOM')
+        if (/1/.test(dom.nodeType) && vdom.children && vdom.children.length) {
+            createDOMTree(dom, vdom.children)
+        }
+      
+        if (!avalon.contains(parent, dom)) {
+            console.log('XXX',dom)
+            if(dom.nodeType === 11){
+                console.log(dom.firstChild, '....')
+            }
+            parent.appendChild(dom)
+        }
+    })
+}
+
+function clearChild(elem) {
+    var firstChild
+    while (firstChild = elem.firstChild) {
+        if (firstChild.nodeType === 1) {
+            clearChild(firstChild)
+        }
+        elem.removeChild(firstChild)
+    }
 }

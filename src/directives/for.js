@@ -1,5 +1,8 @@
 import { avalon, createAnchor, createFragment, isObject } from '../seed/core'
 
+import { observeItemObject } from '../vmodel/share'
+
+
 var rforAs = /\s+as\s+([$\w]+)/
 var rident = /^[$a-zA-Z_][$a-zA-Z0-9_]*$/
 var rinvalid = /^(null|undefined|NaN|window|this|\$index|\$id)$/
@@ -35,28 +38,27 @@ avalon.directive('for', {
     init: function (watcher) {
         var f = watcher.node
 
-        //watcher.fragment = node
-        var begin = f.begin
-        watcher.forCb = begin.forCb
-        delete f.begin
-        var end = f.end
-        delete f.end
+        "begin,end,parentChildren,forCb".replace(avalon.rword, function (name) {
+            watcher[name] = f[name]
+            delete f[name]
+        })
 
-        watcher.node = begin
-        watcher.end = end
+     
 
         f.children.push({
             nodeName: '#comment',
             nodeValue: watcher.signature
         })
         watcher.fragment = avalon.vdom(f, 'toHTML')
-
+        watcher.node = watcher.begin
         watcher.cache = {}
     },
     diff: function (newVal, oldVal) {
+        var traceIds = createFragments(this, newVal)
         if (this.oldTrackIds === void 0)
             return true
-        var traceIds = createFragments(this, newVal)
+
+
         if (this.oldTrackIds !== traceIds) {
             this.oldTrackIds = traceIds
             return true
@@ -64,6 +66,7 @@ avalon.directive('for', {
 
     },
     update: function (node, value) {
+
         if (!this.preFragments) {
             mountList(this)
         } else {
@@ -84,7 +87,7 @@ function getTraceKey(item) {
 //创建一组fragment的虚拟DOM
 function createFragments(watcher, obj) {
     if (isObject(obj)) {
-        var array = isArray(obj)
+        var array = Array.isArray(obj)
         var ids = []
         var fragments = [], i = 0
         avalon.each(obj, function (key, value) {
@@ -106,14 +109,15 @@ function createFragments(watcher, obj) {
 
 
 function mountList(watcher) {
-    var f = createFragment()
-    watcher.fragments.forEach(function (fragment, index) {
+    var args = watcher.fragments.map(function (fragment, index) {
         FragmentDecorator(fragment, watcher, index)
         saveInCache(watcher.cache, fragment)
-        var dom = avalon.vdom(fragment, 'toDOM')
-        f.appendChild(dom)
+        return fragment
     })
-    watcher.end.parentNode.insertBefore(f, watcher.end)
+    var list = watcher.parentChildren
+    var i = list.indexOf(watcher.begin)
+    list.splice.apply(list, [i, 0].concat(args))
+    console.log('==========添加！', list)
 }
 
 function diffList(watcher) {
@@ -226,8 +230,8 @@ Fragment.prototype = {
  * @returns { key, val, index, oldIndex, watcher, dom, split, boss, vm}
  */
 function FragmentDecorator(fragment, watcher, index) {
-    var dom = fragment.dom = watcher.fragment.cloneNode(true)
-    fragment.split = dom.lastChild
+    //  var dom = fragment.dom = watcher.fragment.cloneNode(true)
+
     fragment.watcher = watcher
     fragment.vm = observeItemObject(watcher.vm, {
         data: new function () {
@@ -240,8 +244,12 @@ function FragmentDecorator(fragment, watcher, index) {
             return data
         }
     })
+  
     fragment.index = index
-    fragment.boss = avalon.scan(dom, fragment.vm)
+    console.log(watcher.fragment)
+    fragment.boss = avalon.scan(watcher.fragment, fragment.vm)
+    fragment.dom = fragment.boss.root.dom
+    fragment.split = fragment.dom.lastChild
     return fragment
 }
 // 新位置: 旧位置

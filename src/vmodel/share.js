@@ -135,3 +135,26 @@ function createAccessor(key, val, core) {
         }
 }
 platform.listFactory = listFactory
+
+
+export function observeItemObject(before, after) {
+        var core = before.$events
+        if (!core.__dep__) {
+                core.__dep__ = new Depend()
+        }
+        var state = before.$accessors
+        var keys = before.$models || {}
+        var more = after.data
+        delete after.data
+        var props = after
+        for (var key in more) {
+                keys[key] = more[key]
+                state[key] = createAccessor(key, more[key], core)
+        }
+        platform.beforeCreate(core, state, keys)
+        var observe = new Observe()
+        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+        observe = platform.createViewModel(observe, state, keys)
+        platform.afterCreate(core, observe, keys)
+        return observe
+}
