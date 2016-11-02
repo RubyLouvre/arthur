@@ -43,13 +43,15 @@ avalon.directive('for', {
             delete f[name]
         })
 
-     
+
 
         f.children.push({
             nodeName: '#comment',
             nodeValue: watcher.signature
         })
-        watcher.fragment = avalon.vdom(f, 'toHTML')
+        watcher.fragment = '<div>' + f.fragment +
+            '<!--' + watcher.signature + '--></div>'
+        console.log(watcher.fragment)
         watcher.node = watcher.begin
         watcher.cache = {}
     },
@@ -116,8 +118,7 @@ function mountList(watcher) {
     })
     var list = watcher.parentChildren
     var i = list.indexOf(watcher.begin)
-    list.splice.apply(list, [i, 0].concat(args))
-    console.log('==========添加！', list)
+    list.splice.apply(list, [i + 1, 0].concat(args))
 }
 
 function diffList(watcher) {
@@ -189,7 +190,7 @@ function updateList(watcher) {
 }
 
 function Fragment(key, val, index) {
-    this.name = '#document-fragment'
+    this.nodeName = '#document-fragment'
     this.key = key
     this.val = val
     this.index = index
@@ -230,7 +231,6 @@ Fragment.prototype = {
  * @returns { key, val, index, oldIndex, watcher, dom, split, boss, vm}
  */
 function FragmentDecorator(fragment, watcher, index) {
-    //  var dom = fragment.dom = watcher.fragment.cloneNode(true)
 
     fragment.watcher = watcher
     fragment.vm = observeItemObject(watcher.vm, {
@@ -244,13 +244,25 @@ function FragmentDecorator(fragment, watcher, index) {
             return data
         }
     })
-  
+
     fragment.index = index
-    console.log(watcher.fragment)
-    fragment.boss = avalon.scan(watcher.fragment, fragment.vm)
-    fragment.dom = fragment.boss.root.dom
-    fragment.split = fragment.dom.lastChild
-    return fragment
+    delete fragment.dom
+    fragment.children = []
+    fragment.boss = avalon.scan(watcher.fragment, fragment.vm, function () {
+        //   var oldRoot = this.root
+        //  fragment.children = oldRoot.children
+        //    this.root = fragment
+    })
+     console.log(fragment.boss.root)
+    console.log(fragment.boss.root.dom)
+    return {
+        nodeType: 2,
+        dom: fragment.boss.root.dom
+    }
+  //  fragment.split = fragment.dom.lastChild
+
+   // console.log(avalon.slice(fragment.dom.childNodes))
+   // return fragment
 }
 // 新位置: 旧位置
 function isInCache(cache, id) {

@@ -106,6 +106,7 @@ cp.getRawBindings = function (node, scope, childNodes) {
             break
         case "#comment":
             if (startWith(node.nodeValue, 'ms-for:')) {
+                console.log('------')
                 this.getForBinding(node, scope, childNodes)
             }
             break
@@ -214,22 +215,23 @@ cp.getForBinding = function (node, scope, childNodes) {
     var start = i
     while (node = childNodes[i++]) {
         nodes.push(node)
-
         if (node.nodeName === '#comment') {
             if (startWith(node.nodeValue, 'ms-for:')) {
                 deep++
-            } else if (startWith(node.nodeValue, 'ms-for-end:')) {
+            } else if (node.nodeValue === 'ms-for-end:') {
                 deep--
                 if (deep === 0) {
                     node.nodeValue = 'msfor-end:'
                     end = node
                     nodes.pop()
+                    break
                 }
             }
         }
 
     }
     var f = new VFragment(nodes)
+    f.fragment = avalon.vdom(f, 'toHTML')
     f.begin = begin
     f.end = end
     f.forCb = begin.forCb
@@ -237,13 +239,13 @@ cp.getForBinding = function (node, scope, childNodes) {
     f.parentChildren = childNodes
     f.props = {}
     childNodes.splice(start, nodes.length)
-
     this.queue.push([
         f, scope, { 'ms-for': expr }
     ])
 }
 cp.getForBindingByElement = function (node, scope, childNodes, value) {
     var si = childNodes.indexOf(node) //原来带ms-for的元素节点
+  
     var start = {
         nodeName: '#comment',
         nodeValue: 'ms-for:' + value,
@@ -253,15 +255,16 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
         nodeName: '#comment',
         nodeValue: 'ms-for-end:'
     }
+   
 
-    childNodes.splice(si, 1, start, node, end)
-
+   childNodes.splice(si, 1,  start, node, end)
+//console.log(childNodes)
+  
     this.getForBinding(start, scope, childNodes)
 
 }
 
 function createDOMTree(parent, children) {
-    console.log(children.length, '====')
     children.forEach(function (vdom) {
         var dom = avalon.vdom(vdom, 'toDOM')
         if (/1/.test(dom.nodeType) && vdom.children && vdom.children.length) {
@@ -269,10 +272,6 @@ function createDOMTree(parent, children) {
         }
       
         if (!avalon.contains(parent, dom)) {
-            console.log('XXX',dom)
-            if(dom.nodeType === 11){
-                console.log(dom.firstChild, '....')
-            }
             parent.appendChild(dom)
         }
     })
