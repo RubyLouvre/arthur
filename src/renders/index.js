@@ -61,12 +61,12 @@ cp.init = function () {
 
     this.root = vnodes[0]
     this.vnodes = vnodes
-    this.getBindings(this.root, true, this.vm)
+    this.getBindings(this.root, true, this.vm, [])
 }
 
-cp.getBindings = function (element, isRoot, scope) {
+cp.getBindings = function (element, isRoot, scope, children) {
     var childNodes = element.children
-    var dirs = this.getRawBindings(element, childNodes)
+    var dirs = this.getRawBindings(element, children)
     if (/^\w/.test(element.nodeName)) {
         var ctrlValue = dirs['ms-important'] || dirs['ms-controller']
 
@@ -94,7 +94,7 @@ cp.getBindings = function (element, isRoot, scope) {
         && !delayCompileNodes(dirs || {})
     ) {
         for (var i = 0; i < childNodes.length; i++) {
-            this.getBindings(childNodes[i], false, scope)
+            this.getBindings(childNodes[i], false, scope, childNodes)
         }
     }
     if (isRoot) {
@@ -124,7 +124,7 @@ cp.getRawBindings = function (node, childNodes) {
                 var value = attrs[name]
                 var oldName = name
                 if (name.charAt(0) === ':') {
-                    
+
                     name = 'ms-' + name.slice(1)
                 }
                 if (startWith(name, 'ms-')) {
@@ -137,7 +137,7 @@ cp.getRawBindings = function (node, childNodes) {
                     if (node.dom) {
                         node.dom.removeAttribute(oldName)
                     }
-                    handleElementFor.call(this, node, childNodes)
+                    handleElementFor.call(this, node, childNodes, value)
                 }
             }
 
@@ -225,7 +225,7 @@ cp.destroy = function () {
 function handleCommentFor(node, childNodes) {
     var nodes = []
     var deep = 1
-    var begin = node
+    var begin = node, end
     var expr = node.nodeValue.replace('ms-for:', '')
     node.nodeValue = 'msfor:' + expr
 
@@ -241,6 +241,7 @@ function handleCommentFor(node, childNodes) {
                 deep--
                 if (deep === 0) {
                     node.nodeValue = 'msfor-end:'
+                    end = node
                     nodes.pop()
                 }
             }
@@ -248,30 +249,31 @@ function handleCommentFor(node, childNodes) {
 
     }
     var f = new VFragment(nodes)
-
+    f.begin = begin
+    f.end = end
+    f.props = {}
     childNodes.splice(start, nodes.length)
     this.queue.push([
-        f, this.vm, { 'ms-for': expr }, begin
+        f, this.vm, { 'ms-for': expr }
     ])
 }
-function handleElementFor(node, childNodes) {
-    var si = childNodes.indexOf(node)
-    childNodes.splice(si, 0, {
-        nodeName: '#comment',
-        nodeValue: 'ms-for-end:'
-    })
+
+function handleElementFor(node, childNodes, value) {
+    var si = childNodes.indexOf(node) //原来带ms-for的元素节点
     var start = {
         nodeName: '#comment',
-        nodeValue: 'ms-for:' + value
+        nodeValue: 'ms-for:' + value,
+        forCb:node.props['data-for-rendered']
     }
-    var forCb = node.props['data-for-rendered']
-    if (forCb) {
-        start.forCb = forCb
+    var end = {
+        nodeName: '#comment',
+        nodeValue: 'ms-for-end:'
     }
-    if (si === 0) {
-        childNodes.unshift(start)
-    } else {
-        childNodes.splice(si - 1, 0, onloadstart)
-    }
-    handleCommentFor.call(this, start, childNodes)
+    
+  
+     childNodes.splice(si,  1, start, node, end)
+ 
+  
+     handleCommentFor.call(this, start, childNodes)
+   
 }

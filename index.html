@@ -10,21 +10,17 @@
             var  vm = avalon.define({
             $id: 'css5',
             a: true,
-            fn: function(){
-                console.log('888888')
-            },
-            aa: {
-                background: 'red'
-            },
-            bb: {
-                width: 200,
-                height: 200
-            }
+            arr: [1,2,3]
         })
           
             </script>
     </head>
     <body >
-        <div ms-controller='css5' ms-click="@fn">测试样式</div>
+        <div ms-controller='css5' >
+            <ul>
+                <li class='333'>1111</li>
+                <li ms-for="el in @arr">{{el}}</li>
+            </ul>
+        </div>
     </body>
 </html>

@@ -40,7 +40,6 @@ export function parseAttributes(dirs, tuple ) {
                 uniq[binding.name] = value
                 bindings.push(binding)
                 if (type === 'for') {
-                    binding.begin = tuple[3]
                     bindings = [binding]
                     break
                 }

@@ -1,4 +1,4 @@
-import { avalon, createAnchor, createFragment } from '../seed/core'
+import { avalon, createAnchor, createFragment, isObject } from '../seed/core'
 
 var rforAs = /\s+as\s+([$\w]+)/
 var rident = /^[$a-zA-Z_][$a-zA-Z0-9_]*$/
@@ -33,27 +33,33 @@ avalon.directive('for', {
         }
     },
     init: function (watcher) {
-        var node = watcher.node
+        var f = watcher.node
 
-        watcher.fragment = node
-        var begin = watcher.begin
-        delete watcher.begin
+        //watcher.fragment = node
+        var begin = f.begin
+        watcher.forCb = begin.forCb
+        delete f.begin
+        var end = f.end
+        delete f.end
 
         watcher.node = begin
-        watcher.end = watcher.node.nextSibling
+        watcher.end = end
 
+        f.children.push({
+            nodeName: '#comment',
+            nodeValue: watcher.signature
+        })
+        watcher.fragment = avalon.vdom(f, 'toHTML')
 
-        watcher.fragment.appendChild(createAnchor(watcher.signature))
         watcher.cache = {}
-
-        watcher.update = function () {
-            var newVal = this.value = this.get()
-            var traceIds = createFragments(this, newVal)
-            var callback = this.callback
-            if (this.oldTrackIds !== traceIds) {
-                this.oldTrackIds = traceIds
-                callback.call(this.context, newVal)
-            }
+    },
+    diff: function (newVal, oldVal) {
+        if (this.oldTrackIds === void 0)
+            return true
+        var traceIds = createFragments(this, newVal)
+        if (this.oldTrackIds !== traceIds) {
+            this.oldTrackIds = traceIds
+            return true
         }
 
     },
@@ -104,7 +110,8 @@ function mountList(watcher) {
     watcher.fragments.forEach(function (fragment, index) {
         FragmentDecorator(fragment, watcher, index)
         saveInCache(watcher.cache, fragment)
-        f.appendChild(fragment.dom)
+        var dom = avalon.vdom(fragment, 'toDOM')
+        f.appendChild(dom)
     })
     watcher.end.parentNode.insertBefore(f, watcher.end)
 }
@@ -278,3 +285,4 @@ function fuzzyMatchCache(cache) {
         return isInCache(cache, key)
     }
 }
+
