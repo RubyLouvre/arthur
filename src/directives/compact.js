@@ -15,3 +15,4 @@ import './on'
 import './for'
 
 import './class.hover.active'
+import './duplex/compact'

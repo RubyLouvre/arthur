@@ -1,4 +1,4 @@
-import { updateModelActions } from './updateModelActions'
+import { updateDataActions } from './updateDataActions'
 
 export function updateDataHandle(event) {
     var elem = this
@@ -23,18 +23,18 @@ export function updateDataHandle(event) {
         var left = timestamp - field.time || 0
         field.time = timestamp
         if (left >= field.debounceTime) {
-            updateModelActions[field.dtype].call(field)
+            updateDataActions[field.dtype].call(field)
         } else {
             clearTimeout(field.debounceID)
             field.debounceID = setTimeout(function () {
-                updateModelActions[field.dtype].call(field)
+                updateDataActions[field.dtype].call(field)
             }, left)
         }
     } else {
-        updateModelActions[field.dtype].call(field)
+        updateDataActions[field.dtype].call(field)
     }
 }
 
 export {
-    updateModelHandle as updateModel
+    updateDataHandle as updateModel
 }

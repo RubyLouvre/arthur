@@ -10,8 +10,8 @@ export var updateDataActions = {
 
         //有时候parse后一致,vm不会改变,但input里面的值
         field.value = rawValue
-        field.set(field.vm, parsedValue)
-        callback(field)
+        field.setValue(parsedValue)
+        duplexCb(field)
         var pos = field.pos
         if (dom.caret) {
             field.setCaret(dom, pos)
@@ -24,7 +24,7 @@ export var updateDataActions = {
         var field = this
         if (field.isChecked) {
             var val = !field.value
-            field.set(field.vm, val)
+            field.setValue(parsedValue)
             callback(field)
         } else {
             updateModelMethods.input.call(field)
@@ -42,7 +42,7 @@ export var updateDataActions = {
         if (array[method]) {
             var val = field.parseValue(field.dom.value)
             array[method](val)
-            callback(field)
+            duplexCb(field)
         }
 
     },
@@ -58,7 +58,7 @@ export var updateDataActions = {
                 val = field.parseValue(val)
             }
             field.set(field.vm, val)
-            callback(field)
+            duplexCb(field)
         }
     },
     contenteditable: function () {
@@ -66,7 +66,7 @@ export var updateDataActions = {
     }
 }
 
-function callback(field) {
+function duplexCb(field) {
     if (field.userCb) {
         field.userCb.call(field.vm, {
             type: 'changed',
@@ -74,6 +74,3 @@ function callback(field) {
         })
     }
 }
-
-
-

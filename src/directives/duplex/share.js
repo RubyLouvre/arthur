@@ -100,7 +100,7 @@ try { //#272 IE9-IE11, firefox
         setters[this.tagName].call(this, value)
         var data = this.__ms_duplex__
         if (!this.caret && data && data.isString) {
-            data.update.call(this, { type: 'setter' })
+            data.duplex.call(this, { type: 'setter' })
         }
     }
     var inputProto = HTMLInputElement.prototype
