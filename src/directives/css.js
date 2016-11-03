@@ -2,30 +2,30 @@
 import { avalon } from '../seed/core'
 
 var cssDir = avalon.directive('css', {
-    diff: function (newValue, oldValue) {
-        if (Object(newValue) === newValue) {
-            newValue = newValue.$model || newValue//安全的遍历VBscript
-            if (Array.isArray(newValue)) {//转换成对象
+    diff: function (newVal, oldVal) {
+        if (Object(newVal) === newVal) {
+            newVal = newVal.$model || newVal//安全的遍历VBscript
+            if (Array.isArray(newVal)) {//转换成对象
                 var b = {}
-                newValue.forEach(function (el) {
+                newVal.forEach(function (el) {
                     el && avalon.shadowCopy(b, el)
                 })
-                newValue = b
+                newVal = b
                 avalon.warn(this.type,'指令的值不建议使用数组形式了！')
             }
             var hasChange = false
-            if (!oldValue) {//如果一开始为空
-                this.value = newValue
+            if (!oldVal) {//如果一开始为空
+                this.value = newVal
                 hasChange = true
             } else {
                 var patch = {}
-                for (var i in newValue) {//diff差异点
-                    if (newValue[i] !== oldValue[i]) {
+                for (var i in newVal) {//diff差异点
+                    if (newVal[i] !== oldVal[i]) {
                         hasChange = true
                     }
-                    patch[i] = newValue[i]
+                    patch[i] = newVal[i]
                 }
-                for (var i in oldValue) {
+                for (var i in oldVal) {
                     if (!(i in patch)) {
                         hasChange = true
                         patch[i] = ''
@@ -40,12 +40,12 @@ var cssDir = avalon.directive('css', {
         }
         return false
     },
-    update: function (vdom, change) {
+    update: function (vdom, value) {
         var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
             var wrap = avalon(dom)
-            for (var name in change) {
-                wrap.css(name, change[name])
+            for (var name in value) {
+                wrap.css(name, value[name])
             }
         }
     }

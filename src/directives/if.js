@@ -3,18 +3,18 @@ import { avalon, createAnchor } from '../seed/core'
 avalon.directive('if', {
     delay: true,
     priority: 5,
-    init: function (watcher) {
-        watcher.placeholder = createAnchor('if')
-        watcher.isShow = true
-        var props = watcher.node.props
+    init: function () {
+        this.placeholder = createAnchor('if')
+        this.isShow = true
+        var props = this.node.props
         delete props['ms-if']
         delete props[':if']
-        watcher.fragment = avalon.vdom(watcher.node, 'toHTML')
+        this.fragment = avalon.vdom(this.node, 'toHTML')
 
     },
-    diff: function (newValue, oldValue) {
-        var n = !!newValue
-        if (oldValue === void 0 || n !== oldValue) {
+    diff: function (newVal, oldVal) {
+        var n = !!newVal
+        if (oldValue === void 0 || n !== oldVal) {
             this.value = n
             return true
         }

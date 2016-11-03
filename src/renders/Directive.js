@@ -34,15 +34,48 @@ function walkThrough(target, root) {
  * @param {type} callback
  * @returns {Watcher}
  */
-
+export var protectedMenbers = {
+    vm:1,
+    callback:1,
+    depIds:1,
+    newDepIds:1,
+    depends:1,
+    newDepends:1,
+    oldValue:1,
+    value:1,
+    getValue:1,
+    setValue:1,
+    get:1,
+    beforeGet:1,
+    afterGet:1,
+    addDepend:1,
+    removeDepends:1,
+    beforeUpdate:1,
+    update:1,
+    //diff
+    //getter
+    //setter
+    //expr
+    //vdom
+    //type: "for"
+    //name: "ms-for"
+    //attrName: ":for"
+    //param: "click"
+    //beforeDestroy
+    destroy: 1
+}
 export function Directive(vm, options, callback) {
+    
+    for(var i in options){
+        if(protectedMenbers[i] !== 1){
+           this[i] = options[i]
+        }
+    }
     this.vm = vm
-    avalon.mix(this, options)
     this.callback = callback
     // 依赖 id 缓存
     this.depIds = []
     this.newDepIds = []
-    this.shallowIds = []
     // 依赖实例缓存
     this.depends = []
     this.newDepends = []
@@ -59,11 +92,10 @@ export function Directive(vm, options, callback) {
     // 缓存表达式旧值
     this.oldValue = null
     // 表达式初始值 & 提取依赖
-    // if(!this.user)
     this.value = this.get()
 }
 
-var dp = Directive.prototype
+var dp = Directive.prototype 
 
 dp.getValue = function () {
     var scope = this.vm
@@ -87,7 +119,7 @@ dp.get = function () {
     // 深层依赖获取
     if (this.deep) {
         // 先缓存浅依赖的 ids
-        this.shallowIds = avalon.mix(true, {}, this.newDepIds)
+      //  this.shallowIds = avalon.mix(true, {}, this.newDepIds)
         walkThrough(value, true)
     }
 
@@ -98,7 +130,18 @@ dp.get = function () {
 dp.beforeGet = function () {
     Depend.watcher = this
 }
-
+dp.afterGet = function () {
+    Depend.watcher = null
+    // 清除无用的依赖
+    this.removeDepends(function (depend) {
+        return this.newDepIds.indexOf(depend.guid) < 0
+    })
+    // 重设依赖缓存
+    this.depIds = this.newDepIds.slice(0)
+    this.newDepIds.length = 0
+    this.depends = this.newDepends.slice(0)
+    this.newDepends.length = 0
+}
 dp.addDepend = function (depend) {
     var guid = depend.guid
     var newIds = this.newDepIds
@@ -124,18 +167,7 @@ dp.removeDepends = function (filter) {
     })
 }
 
-dp.afterGet = function () {
-    Depend.watcher = null
-    // 清除无用的依赖
-    this.removeDepends(function (depend) {
-        return this.newDepIds.indexOf(depend.guid) < 0
-    })
-    // 重设依赖缓存
-    this.depIds = this.newDepIds.slice(0)
-    this.newDepIds.length = 0
-    this.depends = this.newDepends.slice(0)
-    this.newDepends.length = 0
-}
+
 
 dp.beforeUpdate = function () {
     var v = this.value
@@ -151,16 +183,23 @@ dp.update = function (args, guid) {
         callback.call(this.vm, this.value, oldVal, this.node)
     }
 }
+/**
+ * 比较两个计算值是否,一致,在for, class等能复杂数据类型的指令中,它们会重写diff复法
+ */
 dp.diff = function (a, b) {
     return a !== b
 }
+/**
+ * 销毁指令
+ */
 dp.destroy = function () {
     this.value = null
     this.removeDepends()
-    if (this._destroy) {
-        this._destroy()
+    if (this.beforeDestroy) {
+        this.beforeDestroy()
     }
     for (var i in this) {
         delete this[i]
     }
 }
+// https://swenyang.gitbooks.io/translation/content/react/fiber.html

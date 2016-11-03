@@ -5,10 +5,10 @@ import { updateAttrs } from '../dom/attr/compact'
 
 avalon.directive('attr', {
     diff: cssDiff,
-    update: function (vdom, change) {
+    update: function (vdom, value) {
         var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
-            updateAttrs(dom, change)
+            updateAttrs(dom, value)
         }
     }
 })

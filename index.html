@@ -12,16 +12,16 @@
             a: 'parent',
             arr: ['aaa','bbb','ccc']
         })
-          
+         
             </script>
     </head>
     <body >
-        <div ms-controller='css5' >
+        <div ms-controller='css5'>
             <ul>
-                <li class='333'>1111</li>
-                <li ms-for="el in @arr">{{el}}</li>
-            <li class='22'>4444</li>
-                
+                <!--ms-for:(index,el) in @arr-->
+                <li >{{el}}</li>
+                <li class='22'>4444-{{index}}</li>
+                <!--ms-for-end:-->
             </ul>
         </div>
     </body>

@@ -20,9 +20,9 @@ function parseDisplay(elem, val) {
 avalon.parseDisplay = parseDisplay
 
 avalon.directive('visible', {
-    diff: function (newValue, oldValue) {
-        var n = !!newValue
-        if (oldValue === void 0 || n !== oldValue) {
+    diff: function (newVal, oldVal) {
+        var n = !!newVal
+        if (oldVal === void 0 || n !== oldVal) {
             this.value = n
             return true
         }

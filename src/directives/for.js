@@ -12,8 +12,8 @@ var rargs = /[$\w_]+/g
 avalon.directive('for', {
     delay: true,
     priority: 3,
-    parse: function (binding) {
-        var str = binding.origExpr = binding.expr, asName
+    beforeInit: function () {
+        var str = this.expr, asName
         str = str.replace(rforAs, function (a, b) {
             /* istanbul ignore if */
             if (!rident.test(b) || rinvalid.test(b)) {
@@ -29,35 +29,35 @@ avalon.directive('for', {
         if (kv.length === 1) {//确保avalon._each的回调有三个参数
             kv.unshift('$key')
         }
-        binding.expr = arr[1]
-        binding.keyName = kv[0]
-        binding.valName = kv[1]
-        binding.signature = avalon.makeHashCode('for')
+        this.expr = arr[1]
+        this.keyName = kv[0]
+        this.valName = kv[1]
+        this.signature = avalon.makeHashCode('for')
         if (asName) {
-            binding.asName = asName
+            this.asName = asName
         }
     },
-    init: function (watcher) {
-        var f = watcher.node
-
+    init: function () {
+        var f = this.node
+        var me = this
         "begin,end,parentChildren,forCb".replace(avalon.rword, function (name) {
-            watcher[name] = f[name]
+            me[name] = f[name]
             delete f[name]
         })
-        var cb = watcher.forCb
+        var cb = this.forCb
         if (typeof cb === 'string' && cb) {
             var arr = addScope(cb, 'for')
             var body = makeHandle(arr[0])
-            watcher.forCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
+            this.forCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
         }
 
         f.children.push({
             nodeName: '#comment',
-            nodeValue: watcher.signature
+            nodeValue: this.signature
         })
-        watcher.fragment = ['<div>', f.fragment, '<!--', watcher.signature, '--></div>'].join('')
-        watcher.node = watcher.begin
-        watcher.cache = {}
+        this.fragment = ['<div>', f.fragment, '<!--', this.signature, '--></div>'].join('')
+        this.node = this.begin
+        this.cache = {}
     },
     diff: function (newVal, oldVal) {
         var traceIds = createFragments(this, newVal)
@@ -98,7 +98,7 @@ function getTraceKey(item) {
 }
 
 //创建一组fragment的虚拟DOM
-function createFragments(watcher, obj) {
+function createFragments(instance, obj) {
     if (isObject(obj)) {
         var array = Array.isArray(obj)
         var ids = []
@@ -108,12 +108,12 @@ function createFragments(watcher, obj) {
             fragments.push(new Fragment(k, value, i++))
             ids.push(k)
         })
-        watcher.isArray = array
-        if (watcher.fragments) {
-            watcher.preFragments = watcher.fragments
-            watcher.fragments = fragments
+        instance.isArray = array
+        if (instance.fragments) {
+            instance.preFragments = instance.fragments
+            instance.fragments = fragments
         } else {
-            watcher.fragments = fragments
+            instance.fragments = fragments
         }
         return ids.join(';;')
     } else {
@@ -122,36 +122,35 @@ function createFragments(watcher, obj) {
 }
 
 
-function mountList(watcher) {
-
-    var args = watcher.fragments.map(function (fragment, index) {
-        FragmentDecorator(fragment, watcher, index)
-        saveInCache(watcher.cache, fragment)
+function mountList(instance) {
+    var args = instance.fragments.map(function (fragment, index) {
+        FragmentDecorator(fragment, instance, index)
+        saveInCache(instance.cache, fragment)
         return fragment
     })
-    var list = watcher.parentChildren
-    var i = list.indexOf(watcher.begin)
+    var list = instance.parentChildren
+    var i = list.indexOf(instance.begin)
     list.splice.apply(list, [i + 1, 0].concat(args))
 }
 
-function diffList(watcher) {
+function diffList(instance) {
 
-    var cache = watcher.cache
+    var cache = instance.cache
     var newCache = {}
     var fuzzy = []
-    var list = watcher.preFragments
+    var list = instance.preFragments
     var oldLen = list.length
     list.forEach(function (el) {
         el._destory = true
     })
-    watcher.fragments.forEach(function (c, index) {
+    instance.fragments.forEach(function (c, index) {
         var fragment = isInCache(cache, c.key)
         //取出之前的文档碎片
         if (fragment) {
             delete fragment._destory
             fragment.oldIndex = fragment.index
             fragment.index = index // 相当于 c.index
-            fragment.vm[watcher.keyName] = watcher.isArray ? index : fragment.key
+            fragment.vm[instance.keyName] = instance.isArray ? index : fragment.key
             saveInCache(newCache, fragment)
         } else {
             //如果找不到就进行模糊搜索
@@ -166,33 +165,32 @@ function diffList(watcher) {
             fragment.key = c.key
             var val = fragment.val = c.val
             var index = fragment.index = c.index
-            fragment.vm[watcher.valName] = val
-            fragment.vm[watcher.keyName] = watcher.isArray ? index : fragment.key
+            fragment.vm[instance.valName] = val
+            fragment.vm[instance.keyName] = instance.isArray ? index : fragment.key
             delete fragment._destory
         } else {
-            fragment = FragmentDecorator(c, watcher, c.index)
+            fragment = FragmentDecorator(c, instance, c.index)
             list.push(fragment)
         }
 
         saveInCache(newCache, fragment)
     })
 
-    watcher.fragments = list
+    instance.fragments = list
     list.sort(function (a, b) {
         return a.index - b.index
     })
-    var ch = watcher.parentChildren
-    var i = ch.indexOf(watcher.begin)
+    var ch = instance.parentChildren
+    var i = ch.indexOf(instance.begin)
     list.splice.apply(ch, [i + 1, oldLen].concat(list))
 
-    watcher.cache = newCache
+    instance.cache = newCache
 }
-function updateList(watcher) {
+function updateList(instance) {
 
-    var before = watcher.begin.dom
+    var before = instance.begin.dom
     var parent = before.parentNode
-    var list = watcher.fragments
-    var end = watcher.end.dom
+    var list = instance.fragments
     for (var i = 0, item; item = list[i]; i++) {
         if (item._destory) {
             list.splice(i, 1)
@@ -234,20 +232,20 @@ Fragment.prototype = {
 /**
  * 
  * @param {type} fragment
- * @param {type} watcher
+ * @param {type} this
  * @param {type} index
- * @returns { key, val, index, oldIndex, watcher, dom, split, boss, vm}
+ * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
  */
-function FragmentDecorator(fragment, watcher, index) {
+function FragmentDecorator(fragment, instance, index) {
 
-    fragment.watcher = watcher
-    fragment.vm = observeItemObject(watcher.vm, {
+    fragment.this = instance
+    fragment.vm = observeItemObject(instance.vm, {
         data: new function () {
             var data = {}
-            data[watcher.keyName] = watcher.isArray ? index : fragment.key
-            data[watcher.valName] = fragment.val
-            if (watcher.asName) {
-                data[watcher.asName] = []
+            data[instance.keyName] = instance.isArray ? index : fragment.key
+            data[instance.valName] = fragment.val
+            if (instance.asName) {
+                data[instance.asName] = []
             }
             return data
         }
@@ -255,7 +253,7 @@ function FragmentDecorator(fragment, watcher, index) {
 
     fragment.index = index
 
-    fragment.boss = avalon.scan(watcher.fragment, fragment.vm, function () {
+    fragment.boss = avalon.scan(instance.fragment, fragment.vm, function () {
         var oldRoot = this.root
         ap.push.apply(fragment.children, oldRoot.children)
         this.root = fragment

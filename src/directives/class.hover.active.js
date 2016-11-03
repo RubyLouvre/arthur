@@ -26,7 +26,7 @@ function classNames() {
 
 
 avalon.directive('class', {
-    diff: function (newValue, oldValue) {
+    diff: function (newVal, oldVal) {
         var type = this.type
         var vdom = this.node
         var classEvent = vdom.classEvent || {}
@@ -41,16 +41,16 @@ avalon.directive('class', {
         }
         vdom.classEvent = classEvent
 
-        var className = classNames(newValue)
+        var className = classNames(newVal)
 
-        if (typeof oldValue === void 0 || oldValue !== className) {
+        if (typeof oldVal === void 0 || oldVal !== className) {
             this.value = className
 
             vdom['change-' + type] = className
             return true
         }
     },
-    update: function (vdom, className) {
+    update: function (vdom, value) {
         var dom = vdom.dom
         if (!dom || dom.nodeType !== 1)
             return
@@ -69,19 +69,19 @@ avalon.directive('class', {
         }
         var names = ['class', 'hover', 'active']
         names.forEach(function (type) {
-           
-            if (dirType !== type )
+
+            if (dirType !== type)
                 return
 
             if (type === 'class') {
-                dom && setClass(dom, className)
+                dom && setClass(dom, value)
             } else {
                 var oldClass = dom.getAttribute(change)
                 if (oldClass) {
                     avalon(dom).removeClass(oldClass)
                 }
                 var name = 'change-' + type
-                dom.setAttribute(name, className)
+                dom.setAttribute(name, value)
             }
         })
     }

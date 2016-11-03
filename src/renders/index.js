@@ -178,8 +178,8 @@ cp.parseBindings = function(tuple) {
     }
     for (var i = 0, binding; binding = bindings[i++];) {
         var dir = d[binding.type]
-        if (dir.parse) {
-            dir.parse(binding)
+        if (dir.beforeInit) {
+            dir.beforeInit.call(binding)
         }
         var directive = new DirectiveDecorator(node, binding, scope)
         this.directives.push(directive)

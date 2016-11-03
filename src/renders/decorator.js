@@ -1,11 +1,12 @@
 import { avalon, inBrowser } from '../seed/core'
 
-import { Directive } from './Directive'
+import { Directive, protectedMenbers } from './Directive'
 
 /**
  * 一个directive装饰器
  * @returns {directive}
  */
+
 export function DirectiveDecorator(node, binding, scope) {
     var type = binding.type
     var decorator = avalon.directives[type]
@@ -17,16 +18,20 @@ export function DirectiveDecorator(node, binding, scope) {
         node.dom = dom
     }
     var callback = decorator.update ? function (value) {
-        decorator.update.call(directive, node, value)
+        decorator.update.call(directive, directive.node, value)
     } : avalon.noop
+  
     var directive = new Directive(scope, binding, callback)
-    if (decorator.diff) {
-        directive.diff = decorator.diff
+    for(var key in decorator){
+        if(!protectedMenbers[key]){
+             directive[key] = decorator[key]
+        }
+      
     }
     directive.node = node
-    directive._destory = decorator.destory
-    if (decorator.init) //这里可能会重写node, callback, type, name
-        decorator.init(directive)
+    if (typeof directive.init === 'function'){ //这里可能会重写node, callback, type, name
+        directive.init()
+    }
     delete directive.value
 
     directive.update()

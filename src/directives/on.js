@@ -12,21 +12,22 @@ export function makeHandle(body) {
     return body
 }
 avalon.directive('on', {
-    parse: function (watcher) {
-        watcher.getter = avalon.noop
+    beforeInit: function () {
+        this.getter = avalon.noop
     },
-    init: function (watcher) {
-        var vdom = watcher.node
+    init: function () {
+       
+        var vdom = this.node
 
-        var underline = watcher.name.replace('ms-on-', 'e').replace('-', '_')
-        var uuid = underline + '_' + watcher.expr.
+        var underline = this.name.replace('ms-on-', 'e').replace('-', '_')
+        var uuid = underline + '_' + this.expr.
             replace(/\s/g, '').
             replace(/[^$a-z]/ig, function (e) {
                 return e.charCodeAt(0)
             })
         var fn = avalon.eventListeners[uuid]
         if (!fn) {
-            var arr = addScope(watcher.expr)
+            var arr = addScope(this.expr)
             var body = arr[0], filters = arr[1]
             body = makeHandle(body)
             
@@ -47,11 +48,12 @@ avalon.directive('on', {
 
 
         var dom = avalon.vdom(vdom, 'toDOM')
-        dom._ms_context_ = watcher.vm
-        watcher.eventType = watcher.param.replace(/\-(\d)$/, '')
-        avalon(dom).bind(watcher.eventType, fn)
+        dom._ms_context_ = this.vm
+        this.eventType = this.param.replace(/\-(\d)$/, '')
+        delete this.param
+        avalon(dom).bind(this.eventType, fn)
     },
-    destory: function () {
+    beforeDestroy: function () {
         avalon(this.node.dom).unbind(this.eventType)
     }
 })
