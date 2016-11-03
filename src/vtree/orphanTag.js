@@ -4,6 +4,5 @@ export var orphanTag = {
     textarea: 1,
     xmp: 1,
     noscript: 1,
-    option: 1,
     template: 1
 }

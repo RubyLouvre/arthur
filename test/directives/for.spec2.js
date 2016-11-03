@@ -113,7 +113,7 @@ describe('for', function () {
             done()
         }, 300)
     })
- it('双层循环,并且重复利用已有的元素节点', function (done) {
+    it('双层循环,并且重复利用已有的元素节点', function (done) {
 
         div.innerHTML = heredoc(function () {
             /*
@@ -160,15 +160,44 @@ describe('for', function () {
                 expect(tds[7].innerHTML).toBe('88')
                 expect(tds[8].innerHTML).toBe('99')
 
-           /*     expect(tds[0].title).toBe('1')
-                expect(tds[1].title).toBe('2')
-                expect(tds[2].title).toBe('3')
-                expect(tds[3].title).toBe('4')
-                expect(tds[4].title).toBe('5')
-                expect(tds[5].title).toBe('6')
-                expect(tds[6].title).toBe('7')
-                expect(tds[7].title).toBe('8')
-                expect(tds[8].title).toBe('9')*/
+                /*     expect(tds[0].title).toBe('1')
+                     expect(tds[1].title).toBe('2')
+                     expect(tds[2].title).toBe('3')
+                     expect(tds[3].title).toBe('4')
+                     expect(tds[4].title).toBe('5')
+                     expect(tds[5].title).toBe('6')
+                     expect(tds[6].title).toBe('7')
+                     expect(tds[7].title).toBe('8')
+                     expect(tds[8].title).toBe('9')*/
+                done()
+            })
+        })
+    })
+
+    it('监听数组长度变化', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <select ms-controller='for2'>
+             <option ms-for='el in @array'>{{el.length}}</option>
+             </select>
+             */
+        })
+        vm = avalon.define({
+            $id: 'for2',
+            array: [[1, 2], [3, 4, 5]]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var options = div.getElementsByTagName('option')
+
+            expect(options[0].innerHTML).toBe('2')
+            expect(options[1].innerHTML).toBe('3')
+
+            vm.array = [['a', "b", "c", "d"], [3, 4, 6, 7, 8]]
+            setTimeout(function () {
+
+             //   expect(options[0].innerHTML).toBe('4')
+             //   expect(options[1].innerHTML).toBe('5')
                 done()
             })
         })

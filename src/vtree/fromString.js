@@ -87,7 +87,7 @@ function from(str) {
                     node.end = true
                 } else {
                     stack.push(node)
-                    if (orphanTag[nodeName]) {
+                    if (orphanTag[nodeName] || nodeName == 'option') {
                         var index = str.indexOf('</' + nodeName + '>')
                         var innerHTML = str.slice(0, index).trim()
                         str = str.slice(index)

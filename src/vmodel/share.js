@@ -63,6 +63,7 @@ function listFactory(array, rewrite) {
                 if (modern) {
                         Object.defineProperty(array, '$model', platform.modelAccessor)
                 }
+                platform.hideProperty(array, '$hashcode',  avalon.makeHashCode('$'))
                 platform.hideProperty(array, '$events', { __dep__: new Depend })
         }
         for(var i = 0, n = array.length; i < n; i++){
@@ -102,8 +103,10 @@ function createObserver(target) {
         } else if (isObject(target)) {
                 vm = modelFactory(target)
         }
-        if (vm)
-                vm.$events.__dep__ = new Depend()
+        if (vm){
+              vm.$events.__dep__ = new Depend()
+        }
+             
         return vm
 }
 // 指令需要计算自己的值，来刷新
@@ -113,6 +116,7 @@ function createObserver(target) {
 function createAccessor(key, val, core) {
         var value = val
         var childOb = createObserver(val)
+        var hash = childOb && childOb.$hashcode
         return {
                 get: function Getter() {
                         var ret = value
@@ -140,7 +144,10 @@ function createAccessor(key, val, core) {
                         }
                         core.__dep__.beforeNotify()
                         value = newValue
-                        childOb = createObserver(newValue, childOb)
+                        childOb = createObserver(newValue)
+                        if(childOb && hash){
+                           childOb.$hashcode = hash
+                        }
                         core.__dep__.notify()
                 },
                 enumerable: true,

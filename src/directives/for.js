@@ -62,6 +62,11 @@ avalon.directive('for', {
         this.cache = {}
     },
     diff: function (newVal, oldVal) {
+
+        if (this.updating) {
+            return
+        }
+        this.updating = true
         var traceIds = createFragments(this, newVal)
         if (this.oldTrackIds === void 0)
             return true
@@ -73,11 +78,9 @@ avalon.directive('for', {
 
     },
     update: function (node, value) {
-        if (this.updating)
-            return
-        this.updating = true
+
         if (!this.preFragments) {
-            this.fragments =  this.fragments || []
+            this.fragments = this.fragments || []
             mountList(this)
         } else {
             diffList(this)
@@ -126,7 +129,7 @@ function createFragments(instance, obj) {
 
 
 function mountList(instance) {
-   
+
     var args = instance.fragments.map(function (fragment, index) {
         FragmentDecorator(fragment, instance, index)
         saveInCache(instance.cache, fragment)
@@ -135,7 +138,7 @@ function mountList(instance) {
     var list = instance.parentChildren
     var i = list.indexOf(instance.begin)
     list.splice.apply(list, [i + 1, 0].concat(args))
-  
+
 }
 
 function diffList(instance) {
@@ -144,7 +147,7 @@ function diffList(instance) {
     var newCache = {}
     var fuzzy = []
     var list = instance.preFragments
-  
+
     list.forEach(function (el) {
         el._destory = true
     })
@@ -155,6 +158,7 @@ function diffList(instance) {
             delete fragment._destory
             fragment.oldIndex = fragment.index
             fragment.index = index // 相当于 c.index
+          //  fragment.vm[instance.valName] = c.val ??
             fragment.vm[instance.keyName] = instance.isArray ? index : fragment.key
             saveInCache(newCache, fragment)
         } else {
@@ -162,7 +166,6 @@ function diffList(instance) {
             fuzzy.push(c)
         }
     })
-
     fuzzy.forEach(function (c) {
         var fragment = fuzzyMatchCache(cache, c.key)
         if (fragment) {//重复利用
@@ -170,6 +173,7 @@ function diffList(instance) {
             fragment.key = c.key
             var val = fragment.val = c.val
             var index = fragment.index = c.index
+
             fragment.vm[instance.valName] = val
             fragment.vm[instance.keyName] = instance.isArray ? index : fragment.key
             delete fragment._destory
@@ -185,7 +189,7 @@ function diffList(instance) {
     list.sort(function (a, b) {
         return a.index - b.index
     })
-  
+
     instance.cache = newCache
 }
 function updateList(instance) {
@@ -202,14 +206,15 @@ function updateList(instance) {
         }
         if (item.oldIndex !== item.index) {
             var f = item.toFragment()
-            parent.insertBefore(f, before.nextSibling||end)
+            parent.insertBefore(f, before.nextSibling || end)
         }
         before = item.split
     }
     var ch = instance.parentChildren
     var startIndex = ch.indexOf(instance.begin)
     var endIndex = ch.indexOf(instance.end)
-    list.splice.apply(ch, [startIndex + 1, endIndex- startIndex].concat(list))
+
+    list.splice.apply(ch, [startIndex + 1, endIndex - startIndex].concat(list))
 }
 
 

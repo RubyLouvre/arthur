@@ -23,7 +23,7 @@ export function from(node) {
                 isVoidTag: !!voidTag[type],
                 props: markProps(node, node.attributes)
             }
-            if (orphanTag[type]) {
+            if (orphanTag[type] || type == 'option') {
                 makeOrphan(vnode, type, node.text || node.innerHTML)
                 if (node.childNodes.length === 1) {
                     vnode.children[0].dom = node.firstChild
@@ -32,8 +32,8 @@ export function from(node) {
                 vnode.children = []
                 for (var i = 0, el; el = node.childNodes[i++];) {
                     var child = from(el)
-                    if(/\S/.test(child.nodeValue)){
-                       vnode.children.push(child)
+                    if (/\S/.test(child.nodeValue)) {
+                        vnode.children.push(child)
                     }
                 }
             }

@@ -10,7 +10,7 @@ export function VElement(type, props, children, isVoidTag) {
 function skipFalseAndFunction(a) {
     return a !== false && (Object(a) !== a)
 }
- /* istanbul ignore next */  
+/* istanbul ignore next */
 var specalAttrs = {
     "class": function (dom, val) {
         dom.className = val
@@ -37,7 +37,7 @@ VElement.prototype = {
         var dom, tagName = this.nodeName
         if (avalon.modern && svgTags[tagName]) {
             dom = createSVG(tagName)
-         /* istanbul ignore next*/    
+            /* istanbul ignore next*/
         } else if (!avalon.modern && (VMLTags[tagName] || rvml.test(tagName))) {
             dom = createVML(tagName)
         } else {
@@ -45,7 +45,7 @@ VElement.prototype = {
         }
 
         var props = this.props || {}
-       
+
         for (var i in props) {
             var val = props[i]
             if (skipFalseAndFunction(val)) {
@@ -61,21 +61,23 @@ VElement.prototype = {
         var template = c[0] ? c[0].nodeValue : ''
         switch (this.nodeName) {
             case 'script':
-               dom.type = 'noexec'
-               dom.text = template
-               dom.type = props.type || ''
-               break
-            case 'option':
+                dom.type = 'noexec'
                 dom.text = template
-                //https://github.com/facebook/react/blob/0.13-stable/src/browser/ui/dom/setInnerHTML.js#L66-L81
-                dom.innerHTML = '\uFEFF' +template
-                var textNode = dom.firstChild
-                if (textNode.data.length === 1) {
-                  dom.removeChild(textNode)
-                } else {
-                  textNode.deleteData(0, 1)
-                }
+                dom.type = props.type || ''
                 break
+            //     case 'option':
+
+            //     avalon.clearHTML(dom)
+            //     dom.text = template
+            //https://github.com/facebook/react/blob/0.13-stable/src/browser/ui/dom/setInnerHTML.js#L66-L81
+            //     dom.innerHTML = '\uFEFF' +template
+            //     var textNode = dom.firstChild
+            //     if (textNode.data.length === 1) {
+            //       dom.removeChild(textNode)
+            //    } else {
+            //      textNode.deleteData(0, 1)
+            //    }
+            //   break
             case 'style':
                 /* istanbul ignore if*/
                 if ('styleSheet' in dom) {
@@ -94,8 +96,8 @@ VElement.prototype = {
                 dom.innerHTML = template
                 break
             default:
-               /* istanbul ignore next */
-                if (!this.isVoidTag && this.children){
+                /* istanbul ignore next */
+                if (!this.isVoidTag && this.children) {
                     this.children.forEach(function (c) {
                         c && dom.appendChild(avalon.vdom(c, 'toDOM'))
                     })
