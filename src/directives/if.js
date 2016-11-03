@@ -20,15 +20,19 @@ avalon.directive('if', {
         }
     },
     update: function (vdom, value) {
-        if (this.isShow === value)
+        if (this.isShow === value){
+            if(this.isShow && !this.boss){
+               continueScan(this, vdom)
+              
+            }
             return
+        }
+           
         this.isShow = value
         var placeholder = this.placeholder
         if (value) {
             var p = placeholder.parentNode
-            var boss = this.boss = avalon.scan(this.fragment, this.vm)
-            vdom.children = boss.root.children
-            vdom.dom = boss.root.dom
+            continueScan(this, vdom)
             p && p.replaceChild(vdom.dom, placeholder)
 
         } else {//移除DOM
@@ -43,4 +47,8 @@ avalon.directive('if', {
         }
     }
 })
-
+function continueScan(instance, vdom){
+    var boss =  instance.boss = avalon.scan(instance.fragment, instance.vm)
+    vdom.children = boss.root.children
+    vdom.dom = boss.root.dom
+}

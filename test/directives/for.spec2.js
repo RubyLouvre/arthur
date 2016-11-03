@@ -196,10 +196,127 @@ describe('for', function () {
             vm.array = [['a', "b", "c", "d"], [3, 4, 6, 7, 8]]
             setTimeout(function () {
 
-             //   expect(options[0].innerHTML).toBe('4')
-             //   expect(options[1].innerHTML).toBe('5')
+                expect(options[0].innerHTML).toBe('4')
+                expect(options[1].innerHTML).toBe('5')
                 done()
             })
         })
+    })
+
+    it('添加新的对象元素', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <ul ms-controller='for3'>
+             <li ms-for='el in @array'>{{el.a}}</li>
+             </ul>
+             */
+        })
+        vm = avalon.define({
+            $id: 'for3',
+            array: [{ a: 1 }]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var lis = div.getElementsByTagName('li')
+
+            expect(lis[0].innerHTML).toBe('1')
+
+            vm.array = [{ a: 2 }, { a: 3 }]
+            setTimeout(function () {
+
+                expect(lis[0].innerHTML).toBe('2')
+                expect(lis[1].innerHTML).toBe('3')
+                done()
+            })
+        })
+    })
+
+    it('ms-if与ms-for并用', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <ul ms-controller='for4'>
+             <div class='panel' ms-for='(jj, el) in @panels' ms-if='jj === @curIndex' ms-html='el'></div>
+             </ul>
+             */
+        })
+        vm = avalon.define({
+            $id: 'for4',
+            curIndex: 0, //默认显示第一个
+            panels: ["<div>面板1</div>", "<p>面板2</p>", "<strong>面板3</strong>"]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var ds = div.getElementsByTagName('div')
+            var prop = 'innerText' in div ? 'innerText' : 'textContent'
+            expect(ds[0][prop]).toBe('面板1')
+            vm.curIndex = 1
+            setTimeout(function () {
+                expect(ds[0][prop]).toBe('面板2')
+                vm.curIndex = 2
+                setTimeout(function () {
+                    expect(ds[0][prop]).toBe('面板3')
+                    done()
+                })
+            })
+        })
+    })
+    it('ms-if+ms-for', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <div ms-controller="for10">
+             <div ms-if="@toggle">
+             <p class="am-text-danger">此处是带ms-if的内容</p>
+             <ul class="am-list" >
+             <li ms-for="el in @lists">{{el}}</li>
+             </ul>
+             </div>
+             </div>
+             */
+        })
+
+        vm = avalon.define({
+            $id: 'for10',
+            lists: ['你好', '司徒正美'],
+            toggle: true
+        });
+        avalon.scan(div)
+        setTimeout(function () {
+            var ss = div.getElementsByTagName('li')
+            expect(ss.length).toBe(2)
+            vm.toggle = false
+            setTimeout(function () {
+                var ss = div.getElementsByTagName('li')
+                expect(ss.length).toBe(0)
+                vm.toggle = true
+                setTimeout(function () {
+                    var ss = div.getElementsByTagName('li')
+                    expect(ss.length+"!!").toBe("2!!")
+                    done()
+                })
+            })
+        })
+
+    })
+    it('数组循环+对象循环', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <table ms-controller="for7" >
+             <tr ms-for="el in @list">
+             <td ms-for="elem in el">{{elem}}</td>
+             </tr>
+             </table>
+             */
+        })
+        vm = avalon.define({
+            $id: 'for7',
+            list: [{ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 3 }]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var tds = div.getElementsByTagName('td')
+            expect(tds.length).toBe(9)
+            done()
+
+        }, 300)
     })
 })
