@@ -6,10 +6,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="dist/avalon.js"></script>
 	<script>
-            var   vm = avalon.define({
+         var vm = avalon.define({
             $id: 'for1',
-            array: [{a:[1, 2, 3]}]//, [4, 5, 6], [7, 8, 9, 10]
+            array: [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
         })
+        
+        setTimeout(function(){
+            vm.array = [[44,55],[66,77]]
+        },3000)
             </script>
 </head>
 
@@ -17,7 +21,7 @@
 	<div ms-controller='for1'>
 		<table>
 			<tr ms-for='tr in @array'>
-				<td ms-for='td in tr.a'>{{td}}</td>
+				<td ms-for='td in tr'>{{td}}</td>
 			</tr>
 		</table>
 	</div>

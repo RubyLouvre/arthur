@@ -326,29 +326,6 @@ describe('for', function () {
             delete avalon.vmodels.for7
         }, 300)
     })
-    it('ms-for+ms-text', function (done) {
-        //https://github.com/RubyLouvre/avalon/issues/1422
-        div.innerHTML = heredoc(function () {
-            /*
-             <div ms-controller="for8" >
-             <p ms-for="el in @list">{{el}}</p>
-             <strong>{{@kk}}</strong>
-             </div>
-             */
-        })
-        avalon.define({
-            $id: 'for8',
-            list: [],
-            kk: 22
-        })
-        avalon.scan(div)
-        setTimeout(function () {
-            var el = div.getElementsByTagName('strong')[0]
-            expect(el.innerHTML.trim()).toBe('22')
-            done()
-            delete avalon.vmodels.for8
-        }, 300)
-    })
 
     it('双重循环,__local__对象传递问题', function (done) {
         return
@@ -536,28 +513,7 @@ describe('for', function () {
             }, 100)
         }, 100);
     })
-    it('防止构建循环区域错误', function (done) {
-        div.innerHTML = heredoc(function () {
-            /*
-             <ul ms-controller="for13">
-             <li>zzz</li>
-             <li ms-for="el in @arr">{{el}}</li>    
-             </ul>
-             */
-        })
-
-        vm = avalon.define({
-            $id: 'for13',
-            arr: ['aaa', 'bbb', 'ccc'],
-            bbb: true
-        });
-        avalon.scan(div)
-        setTimeout(function () {
-            var lis = div.getElementsByTagName('li')
-            expect(lis.length).toBe(4)
-            done()
-        }, 150)
-    })
+    
 
     it('注解for指令嵌套问题', function (done) {
         div.innerHTML = heredoc(function () {

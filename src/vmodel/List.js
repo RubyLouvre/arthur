@@ -74,12 +74,10 @@ __method__.forEach(function (method) {
         var size = this.length
         var core = this.$events
       
-      
         core.__dep__.beforeNotify()
         var args = platform.listFactory(arguments, true)
         var result = original.apply(this, args)
    
-        
         platform.toModel(this)
         core.__dep__.notify(method)
         return result

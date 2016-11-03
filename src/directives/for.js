@@ -42,15 +42,15 @@ avalon.directive('for', {
     init: function () {
         var f = this.node
         var me = this
-        "begin,end,parentChildren,forCb".replace(avalon.rword, function (name) {
+        "begin,end,parentChildren,userCb".replace(avalon.rword, function (name) {
             me[name] = f[name]
             delete f[name]
         })
-        var cb = this.forCb
+        var cb = this.userCb
         if (typeof cb === 'string' && cb) {
             var arr = addScope(cb, 'for')
             var body = makeHandle(arr[0])
-            this.forCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
+            this.userCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
         }
 
         f.children.push({
@@ -87,8 +87,8 @@ avalon.directive('for', {
             updateList(this)
         }
 
-        if (this.forCb) {
-            this.forCb.call(this.vm, {
+        if (this.userCb) {
+            this.userCb.call(this.vm, {
                 type: 'rendered',
                 target: this.begin.dom,
                 signature: this.signature

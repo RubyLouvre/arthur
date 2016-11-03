@@ -5,7 +5,6 @@ avalon.directive('if', {
     priority: 5,
     init: function () {
         this.placeholder = createAnchor('if')
-        this.isShow = true
         var props = this.node.props
         delete props['ms-if']
         delete props[':if']
@@ -20,14 +19,10 @@ avalon.directive('if', {
         }
     },
     update: function (vdom, value) {
-        if (this.isShow === value){
-            if(this.isShow && !this.boss){
-               continueScan(this, vdom)
-              
-            }
+        if (this.isShow === void 0 && value ){
+            continueScan(this, vdom)
             return
         }
-           
         this.isShow = value
         var placeholder = this.placeholder
         if (value) {
@@ -48,7 +43,7 @@ avalon.directive('if', {
     }
 })
 function continueScan(instance, vdom){
-    var boss =  instance.boss = avalon.scan(instance.fragment, instance.vm)
+    var boss = instance.boss = avalon.scan(instance.fragment, instance.vm)
     vdom.children = boss.root.children
     vdom.dom = boss.root.dom
 }

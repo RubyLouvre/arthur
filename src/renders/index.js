@@ -147,7 +147,6 @@ cp.getRawBindings = function (node, scope, childNodes) {
 cp.compileBindings = function () {
 
     this.queue.forEach(function (tuple) {
-        // console.log(tuple)
         this.parseBindings(tuple)
     }, this)
 
@@ -235,8 +234,8 @@ cp.getForBinding = function (node, scope, childNodes) {
     f.fragment = avalon.vdom(f, 'toHTML')
     f.begin = begin
     f.end = end
-    f.forCb = begin.forCb
-    delete begin.forCb
+    f.userCb = begin.userCb
+    delete begin.userCb
     f.parentChildren = childNodes
     f.props = {}
     childNodes.splice(start, nodes.length)
@@ -250,7 +249,7 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
     var begin = {
         nodeName: '#comment',
         nodeValue: 'ms-for:' + value,
-        forCb: node.props['data-for-rendered']
+        userCb: node.props['data-for-rendered']
     }
     var end = {
         nodeName: '#comment',
