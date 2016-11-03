@@ -1,5 +1,5 @@
 import { avalon } from '../seed/core'
-import { Depend } from '../vmodel/depend'
+import { Depend, pushTarget, popTarget } from '../vmodel/depend'
 import { createGetter, createSetter } from "../parser/index"
 /** 
  * 遍历对象/数组每一个可枚举属性
@@ -10,13 +10,13 @@ var walkedObs = []
 function walkThrough(target, root) {
     var events = target && target.$events
 
-    var guid = events && events.__dep__.guid
+    var uuid = events && events.__dep__.uuid
 
-    if (guid) {
-        if (walkedObs.indexOf(guid) > -1) {
+    if (uuid) {
+        if (walkedObs.indexOf(uuid) > -1) {
             return
         } else {
-            walkedObs.push(guid)
+            walkedObs.push(uuid)
         }
     }
 
@@ -35,23 +35,22 @@ function walkThrough(target, root) {
  * @returns {Watcher}
  */
 export var protectedMenbers = {
-    vm:1,
-    callback:1,
-    depIds:1,
-    newDepIds:1,
-    depends:1,
-    newDepends:1,
-    oldValue:1,
-    value:1,
-    getValue:1,
-    setValue:1,
-    get:1,
-    beforeGet:1,
-    afterGet:1,
-    addDepend:1,
-    removeDepends:1,
-    beforeUpdate:1,
-    update:1,
+    vm: 1,
+    callback: 1,
+    depIds: 1,
+    newDepIds: 1,
+    depends: 1,
+    newDepends: 1,
+    oldValue: 1,
+    value: 1,
+    getValue: 1,
+    setValue: 1,
+    get: 1,
+
+    addDepend: 1,
+    removeDepends: 1,
+    beforeUpdate: 1,
+    update: 1,
     //diff
     //getter
     //setter
@@ -65,10 +64,10 @@ export var protectedMenbers = {
     destroy: 1
 }
 export function Directive(vm, options, callback) {
-    
-    for(var i in options){
-        if(protectedMenbers[i] !== 1){
-           this[i] = options[i]
+
+    for (var i in options) {
+        if (protectedMenbers[i] !== 1) {
+            this[i] = options[i]
         }
     }
     this.vm = vm
@@ -92,17 +91,18 @@ export function Directive(vm, options, callback) {
     // 缓存表达式旧值
     this.oldValue = null
     // 表达式初始值 & 提取依赖
+
     this.value = this.get()
 }
 
-var dp = Directive.prototype 
+var dp = Directive.prototype
 
 dp.getValue = function () {
     var scope = this.vm
     try {
         return this.getter.call(scope, scope)
     } catch (e) {
-        avalon.log(this.getter + ' exec error')
+       // avalon.log(this.getter + ' exec error')
     }
 }
 
@@ -114,42 +114,39 @@ dp.setValue = function (value) {
 }
 dp.get = function () {
     var value
-    this.beforeGet()
+    pushTarget(this)
     value = this.getValue()
     // 深层依赖获取
     if (this.deep) {
         // 先缓存浅依赖的 ids
-      //  this.shallowIds = avalon.mix(true, {}, this.newDepIds)
+        //  this.shallowIds = avalon.mix(true, {}, this.newDepIds)
         walkThrough(value, true)
     }
 
-    this.afterGet()
-    return value
-}
-
-dp.beforeGet = function () {
-    Depend.watcher = this
-}
-dp.afterGet = function () {
-    Depend.watcher = null
+    popTarget()
     // 清除无用的依赖
+    var deps = this.newDepIds.slice(0)
     this.removeDepends(function (depend) {
-        return this.newDepIds.indexOf(depend.guid) < 0
-    })
+        return deps.indexOf(depend.uuid) < 0
+    }, this)
     // 重设依赖缓存
-    this.depIds = this.newDepIds.slice(0)
+    this.depIds = deps
     this.newDepIds.length = 0
     this.depends = this.newDepends.slice(0)
     this.newDepends.length = 0
+
+    return value
 }
+
+
 dp.addDepend = function (depend) {
-    var guid = depend.guid
+    var uuid = depend.uuid
     var newIds = this.newDepIds
-    if (newIds.indexOf(guid) < 0) {
-        newIds.push(guid)
+    if (newIds.indexOf(uuid) < 0) {
+        newIds.push(uuid)
         this.newDepends.push(depend)
-        if (this.depIds.indexOf(guid) < 0) {
-            depend.addWatcher(this)
+        if (this.depIds.indexOf(uuid) < 0) {
+            depend.addSub(this)
         }
     }
 }
@@ -159,14 +156,13 @@ dp.removeDepends = function (filter) {
     this.depends.forEach(function (depend) {
         if (filter) {
             if (filter.call(self, depend)) {
-                depend.removeWatcher(self)
+                depend.removeSub(self)
             }
         } else {
-            depend.removeWatcher(self)
+            depend.removeSub(self)
         }
     })
 }
-
 
 
 dp.beforeUpdate = function () {
@@ -174,11 +170,11 @@ dp.beforeUpdate = function () {
     this.oldValue = v && v.$events ? v.$model : v
 }
 
-dp.update = function (args, guid) {
+dp.update = function (args, uuid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
-    if (callback && this.diff(newVal, oldVal, args)) {
+    if (callback  && this.diff(newVal, oldVal, args)) {
         callback.call(this.vm, this.value, oldVal, this.node)
     }
 }

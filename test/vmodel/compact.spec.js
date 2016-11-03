@@ -166,7 +166,7 @@ describe('depend', function () {
         var d = new Depend
         var a = 1
         var b = 1
-        d.watchers.push({
+        d.subs.push({
             update: function () {
                 a = 2
             },

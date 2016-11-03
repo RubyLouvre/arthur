@@ -240,7 +240,6 @@ export function afterCreate(core, observe, keys) {
             if (!(key in $accessors)) {
                 observe[key] = keys[key]
             }
-
             keys[key] = true
         }
     }

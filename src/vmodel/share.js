@@ -110,7 +110,7 @@ function createAccessor(key, val, core) {
         return {
                 get: function Getter() {
                         var ret = value
-                        if (Depend.watcher) {
+                        if (Depend.target) {
                                 core.__dep__.collect()
                                 if (childOb && childOb.$events) {
                                         childOb.$events.__dep__.collect()
