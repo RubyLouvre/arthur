@@ -10,11 +10,14 @@ var impDir = avalon.directive('important', {
     },
     callback: function () {
         var node = this.node
+        var scope = this.scope
         var dom = avalon.vdom(node, 'toDOM')
         dom.removeAttribute(this.attrName)
         avalon(dom).removeClass('ms-controller')
-        this.scope.$fire('onReady')
-        delete this.scope.$events.onReady
+        scope.$fire('onReady')
+        scope.$element = node
+        scope.$render = this.render
+        delete scope.$events.onReady
     }
 })
 

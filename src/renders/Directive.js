@@ -178,8 +178,7 @@ dp.update = function (args, guid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
-    if (callback && this.diff(newVal, oldVal)) {
-        // directive.update.call(this, node, value)
+    if (callback && this.diff(newVal, oldVal, args)) {
         callback.call(this.vm, this.value, oldVal, this.node)
     }
 }

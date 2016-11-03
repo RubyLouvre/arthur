@@ -56,7 +56,7 @@ describe('for', function () {
             /*
              <div ms-controller='for0' >
              <ul>
-             <li ms-for='($index, el) in @array ' data-for-rendered="@fn">{{$index}}::{{el}}</li>
+             <li ms-for='($index, el) in @array |limitBy(4)' data-for-rendered="@fn">{{$index}}::{{el}}</li>
              </ul>
              </div>
              */
@@ -68,7 +68,8 @@ describe('for', function () {
                 a: 11,
                 b: 22,
                 c: 33,
-                d: 44
+                d: 44,
+                e: 55
             },
             fn: function () {
                 called = true
@@ -82,12 +83,94 @@ describe('for', function () {
             expect(lis[1].innerHTML).toBe('b::22')
             expect(lis[2].innerHTML).toBe('c::33')
             expect(lis[3].innerHTML).toBe('d::44')
-           
-          done()
-          
+            expect(lis.length).toBe(4)
+            expect(called).toBe(true)
+            done()
+
 
         }, 300)
     })
 
+    it('使用注释循环', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <div ms-controller="for1" >
+             <!--ms-for:el in @forlist -->
+             <p>{{el}}</p>
+             <!--ms-for-end:-->
+             </div>
+             */
+        })
 
+        vm = avalon.define({
+            $id: "for1",
+            forlist: [1, 2, 3]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var ps = div.getElementsByTagName('p')
+            expect(ps.length).toBe(3)
+            done()
+        }, 300)
+    })
+ it('双层循环,并且重复利用已有的元素节点', function (done) {
+
+        div.innerHTML = heredoc(function () {
+            /*
+             <div ms-controller='for1'>
+             <table>
+             <tr ms-for='tr in @array'>
+             <td ms-for='td in tr'>{{td}}</td>
+             </tr>
+             </table>
+             </div>
+             */
+        })
+        vm = avalon.define({
+            $id: 'for1',
+            array: [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var tds = div.getElementsByTagName('td')
+
+            expect(tds[0].innerHTML).toBe('1')
+            expect(tds[1].innerHTML).toBe('2')
+            expect(tds[2].innerHTML).toBe('3')
+            expect(tds[3].innerHTML).toBe('4')
+            expect(tds[4].innerHTML).toBe('5')
+            expect(tds[5].innerHTML).toBe('6')
+            expect(tds[6].innerHTML).toBe('7')
+            expect(tds[7].innerHTML).toBe('8')
+            expect(tds[8].innerHTML).toBe('9')
+            expect(tds[9].innerHTML).toBe('10')
+            avalon.each(tds, function (i, el) {
+                el.title = el.innerHTML
+            })
+            vm.array = [[11, 22, 33], [44, 55, 66], [77, 88, 99]]
+            setTimeout(function () {
+                expect(tds.length).toBe(9)
+                expect(tds[0].innerHTML).toBe('11')
+                expect(tds[1].innerHTML).toBe('22')
+                expect(tds[2].innerHTML).toBe('33')
+                expect(tds[3].innerHTML).toBe('44')
+                expect(tds[4].innerHTML).toBe('55')
+                expect(tds[5].innerHTML).toBe('66')
+                expect(tds[6].innerHTML).toBe('77')
+                expect(tds[7].innerHTML).toBe('88')
+                expect(tds[8].innerHTML).toBe('99')
+
+                expect(tds[0].title).toBe('1')
+                expect(tds[1].title).toBe('2')
+                expect(tds[2].title).toBe('3')
+                expect(tds[3].title).toBe('4')
+                expect(tds[4].title).toBe('5')
+                expect(tds[5].title).toBe('6')
+                expect(tds[6].title).toBe('7')
+                expect(tds[7].title).toBe('8')
+                expect(tds[8].title).toBe('9')
+                done()
+            })
+        })
+    })
 })

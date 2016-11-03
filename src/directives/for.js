@@ -75,6 +75,8 @@ avalon.directive('for', {
             return
         this.updating = true
         if (!this.preFragments) {
+
+            this.fragments =   this.fragments || []
             mountList(this)
         } else {
             diffList(this)
@@ -99,6 +101,7 @@ function getTraceKey(item) {
 
 //创建一组fragment的虚拟DOM
 function createFragments(instance, obj) {
+    console.log(obj, '!!!')
     if (isObject(obj)) {
         var array = Array.isArray(obj)
         var ids = []
@@ -123,6 +126,7 @@ function createFragments(instance, obj) {
 
 
 function mountList(instance) {
+   
     var args = instance.fragments.map(function (fragment, index) {
         FragmentDecorator(fragment, instance, index)
         saveInCache(instance.cache, fragment)
@@ -131,6 +135,13 @@ function mountList(instance) {
     var list = instance.parentChildren
     var i = list.indexOf(instance.begin)
     list.splice.apply(list, [i + 1, 0].concat(args))
+    if(instance.begin.dom){
+        var b = instance.begin.dom
+        var e = instance.end.dom
+
+  console.log(list, '---------',b.nextSibling === e)
+    }
+  
 }
 
 function diffList(instance) {
@@ -183,14 +194,13 @@ function diffList(instance) {
     var ch = instance.parentChildren
     var i = ch.indexOf(instance.begin)
     list.splice.apply(ch, [i + 1, oldLen].concat(list))
-
     instance.cache = newCache
 }
 function updateList(instance) {
-
     var before = instance.begin.dom
     var parent = before.parentNode
     var list = instance.fragments
+      var end = instance.end.dom
     for (var i = 0, item; item = list[i]; i++) {
         if (item._destory) {
             list.splice(i, 1)
@@ -200,7 +210,7 @@ function updateList(instance) {
         }
         if (item.oldIndex !== item.index) {
             var f = item.move()
-            parent.insertBefore(f, before.nextSibling)
+            parent.insertBefore(f, before.nextSibling||end)
         }
         before = item.split
     }
