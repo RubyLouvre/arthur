@@ -2,7 +2,7 @@ import { updateModelActions } from './updateModelActions'
 
 export function updateDataHandle(event) {
     var elem = this
-    var field = this.__ms_duplex__
+    var field = elem.__ms_duplex__
     if (elem.composing) {
         //防止onpropertychange引发爆栈
         return
