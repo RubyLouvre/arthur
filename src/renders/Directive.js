@@ -174,7 +174,7 @@ dp.update = function (args, uuid) {
     var oldVal = this.oldValue
     var newVal = this.value = this.get()
     var callback = this.callback
-    if (callback  && this.diff(newVal, oldVal, args)) {
+    if (callback && this.diff(newVal, oldVal, args)) {
         callback.call(this.vm, this.value, oldVal, this.node)
     }
 }

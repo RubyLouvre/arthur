@@ -14,7 +14,7 @@ avalon.directive('if', {
     },
     diff: function (newVal, oldVal) {
         var n = !!newVal
-        if (oldValue === void 0 || n !== oldVal) {
+        if (oldVal === void 0 || n !== oldVal) {
             this.value = n
             return true
         }

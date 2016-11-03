@@ -77,7 +77,7 @@ avalon.directive('for', {
         }
 
     },
-    update: function (node, value) {
+    update: function () {
 
         if (!this.preFragments) {
             this.fragments = this.fragments || []

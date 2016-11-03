@@ -274,7 +274,9 @@ function createDOMTree(parent, children) {
         if (rhasChildren.test(dom.nodeType) && vdom.children && vdom.children.length) {
             createDOMTree(dom, vdom.children)
         }
-        parent.appendChild(dom)
+        //高级版本可以尝试 querySelectorAll
+        if(rhasChildren.test(parent.nodeType))
+           parent.appendChild(dom)
     })
 }
 
