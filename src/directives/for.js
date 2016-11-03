@@ -144,7 +144,7 @@ function diffList(instance) {
     var newCache = {}
     var fuzzy = []
     var list = instance.preFragments
-    var oldLen = list.length
+  
     list.forEach(function (el) {
         el._destory = true
     })
@@ -185,16 +185,14 @@ function diffList(instance) {
     list.sort(function (a, b) {
         return a.index - b.index
     })
-    var ch = instance.parentChildren
-    var i = ch.indexOf(instance.begin)
-    list.splice.apply(ch, [i + 1, oldLen].concat(list))
+  
     instance.cache = newCache
 }
 function updateList(instance) {
     var before = instance.begin.dom
     var parent = before.parentNode
     var list = instance.fragments
-      var end = instance.end.dom
+    var end = instance.end.dom
     for (var i = 0, item; item = list[i]; i++) {
         if (item._destory) {
             list.splice(i, 1)
@@ -208,6 +206,10 @@ function updateList(instance) {
         }
         before = item.split
     }
+    var ch = instance.parentChildren
+    var startIndex = ch.indexOf(instance.begin)
+    var endIndex = ch.indexOf(instance.end)
+    list.splice.apply(ch, [startIndex + 1, endIndex- startIndex].concat(list))
 }
 
 

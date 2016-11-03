@@ -70,27 +70,16 @@ __method__.forEach(function (method) {
     var original = ap[method]
     __array__[method] = function () {
         // 继续尝试劫持数组元素的属性
-        var args = []
+       
         var size = this.length
         var core = this.$events
-        for (var i = 0; i < arguments.length; i++) {
-            args.push(arguments[i])
-        }
+      
+      
         core.__dep__.beforeNotify()
+        var args = platform.listFactory(arguments, true)
         var result = original.apply(this, args)
-        var inserts = []
-        switch (method) {
-            case 'push':
-            case 'unshift':
-                inserts = args
-                break
-            case 'splice':
-                inserts = args.slice(2)
-                break
-        }
-        if (inserts && inserts.length) {
-            inserts = platform.listFactory(inserts, true)
-        }
+   
+        
         platform.toModel(this)
         core.__dep__.notify(method)
         return result

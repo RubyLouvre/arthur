@@ -19,7 +19,7 @@ VFragment.prototype = {
         return this.dom = f
     },
     destory: function () {
-        this.move()
+        this.toFragment()
         this.boss && this.boss.destroy()
         for (var i in this) {
             this[i] = null

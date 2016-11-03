@@ -65,11 +65,12 @@ function listFactory(array, rewrite) {
                 }
                 platform.hideProperty(array, '$events', { __dep__: new Depend })
         }
-        array.forEach(function (item, i) {
+        for(var i = 0, n = array.length; i < n; i++){
+               var item = array[i]
                 if (isObject(item)) {
-                        array[i] = createObserver(item)
+                       array[i] = createObserver(item)
                 }
-        })
+        }
         return array
 }
 
@@ -95,7 +96,9 @@ function createObserver(target) {
         }
         var vm
         if (Array.isArray(target)) {
+               
                 vm = listFactory(target)
+                
         } else if (isObject(target)) {
                 vm = modelFactory(target)
         }
@@ -103,6 +106,9 @@ function createObserver(target) {
                 vm.$events.__dep__ = new Depend()
         return vm
 }
+// 指令需要计算自己的值，来刷新
+// 在计算前，将自己放到DepStack中
+// 然后开始计算，在Getter方法里，
 
 function createAccessor(key, val, core) {
         var value = val
@@ -116,6 +122,13 @@ function createAccessor(key, val, core) {
                                         childOb.$events.__dep__.collect()
                                 }
                         }
+                        if (Array.isArray(val)) {
+                                val.forEach(function (item) {
+                                        if (item && item.$events) {
+                                                item.$events.__dep__.collect()
+                                        }
+                                });
+                        }
                         if (childOb)
                                 return childOb
                         return ret
@@ -127,7 +140,7 @@ function createAccessor(key, val, core) {
                         }
                         core.__dep__.beforeNotify()
                         value = newValue
-                        childOb = createObserver(newValue)
+                        childOb = createObserver(newValue, childOb)
                         core.__dep__.notify()
                 },
                 enumerable: true,
