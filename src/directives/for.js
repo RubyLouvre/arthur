@@ -2,6 +2,8 @@ import { avalon, createAnchor, createFragment, isObject, ap } from '../seed/core
 
 import { observeItemObject } from '../vmodel/share'
 import { makeHandle } from './on'
+import { VFragment } from '../vdom/VFragment'
+
 import { addScope } from '../parser/index'
 
 
@@ -75,8 +77,7 @@ avalon.directive('for', {
             return
         this.updating = true
         if (!this.preFragments) {
-
-            this.fragments =   this.fragments || []
+            this.fragments =  this.fragments || []
             mountList(this)
         } else {
             diffList(this)
@@ -101,14 +102,13 @@ function getTraceKey(item) {
 
 //创建一组fragment的虚拟DOM
 function createFragments(instance, obj) {
-    console.log(obj, '!!!')
     if (isObject(obj)) {
         var array = Array.isArray(obj)
         var ids = []
         var fragments = [], i = 0
         avalon.each(obj, function (key, value) {
             var k = array ? getTraceKey(value) : key
-            fragments.push(new Fragment(k, value, i++))
+            fragments.push(new VFragment([], k, value, i++))
             ids.push(k)
         })
         instance.isArray = array
@@ -135,12 +135,6 @@ function mountList(instance) {
     var list = instance.parentChildren
     var i = list.indexOf(instance.begin)
     list.splice.apply(list, [i + 1, 0].concat(args))
-    if(instance.begin.dom){
-        var b = instance.begin.dom
-        var e = instance.end.dom
-
-  console.log(list, '---------',b.nextSibling === e)
-    }
   
 }
 
@@ -209,36 +203,14 @@ function updateList(instance) {
             continue
         }
         if (item.oldIndex !== item.index) {
-            var f = item.move()
+            var f = item.toFragment()
             parent.insertBefore(f, before.nextSibling||end)
         }
         before = item.split
     }
 }
 
-function Fragment(key, val, index) {
-    this.nodeName = '#document-fragment'
-    this.key = key
-    this.val = val
-    this.index = index
-    this.children = []
-}
-Fragment.prototype = {
-    destory: function () {
-        this.move()
-        this.boss.destroy()
-        for (var i in this) {
-            this[i] = null
-        }
-    },
-    move: function () {
-        var f = createFragment()
-        this.children.forEach(function (el) {
-            f.appendChild(avalon.vdom(el, 'toDOM'))
-        })
-        return f
-    }
-}
+
 /**
  * 
  * @param {type} fragment

@@ -1,28 +1,26 @@
 <!DOCTYPE html>
-
 <html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="dist/avalon.js"></script>
-        <script>
-            var  vm = avalon.define({
-            $id: 'css5',
-            a: 'parent',
-            arr: ['aaa','bbb','ccc']
+<head>
+	<title>TODO supply a title</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="dist/avalon.js"></script>
+	<script>
+            var   vm = avalon.define({
+            $id: 'for1',
+            array: [{a:[1, 2, 3]}]//, [4, 5, 6], [7, 8, 9, 10]
         })
-         
             </script>
-    </head>
-    <body >
-        <div ms-controller='css5'>
-            <ul>
-                <!--ms-for:(index,el) in @arr-->
-                <li >{{el}}</li>
-                <li class='22'>4444-{{index}}</li>
-                <!--ms-for-end:-->
-            </ul>
-        </div>
-    </body>
+</head>
+
+<body>
+	<div ms-controller='for1'>
+		<table>
+			<tr ms-for='tr in @array'>
+				<td ms-for='td in tr.a'>{{td}}</td>
+			</tr>
+		</table>
+	</div>
+</body>
+
 </html>
