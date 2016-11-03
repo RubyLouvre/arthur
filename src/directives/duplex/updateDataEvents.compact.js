@@ -12,7 +12,6 @@ import { updateModel } from './updateDataHandle'
 
 export function updateDataEvents(dom, data) {
     var events = {}
-    data.update = updateModel
     //添加需要监听的事件
     switch (data.dtype) {
         case 'radio':
