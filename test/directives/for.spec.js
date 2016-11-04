@@ -1,3 +1,5 @@
+import { avalon } from '../../src/seed/core'
+import '../../src/renders/index'
 
 describe('for', function () {
     var body = document.body, div, vm
@@ -176,7 +178,7 @@ describe('for', function () {
         })
         vm = avalon.define({
             $id: 'for3',
-            array: [{a: 1}]
+            array: [{ a: 1 }]
         })
         avalon.scan(div)
         setTimeout(function () {
@@ -184,13 +186,13 @@ describe('for', function () {
 
             expect(lis[0].innerHTML).toBe('1')
 
-            vm.array = [{a: 2}, {a: 3}]
+            vm.array = [{ a: 2 }, { a: 3 }]
             setTimeout(function () {
 
                 expect(lis[0].innerHTML).toBe('2')
                 expect(lis[1].innerHTML).toBe('3')
                 done()
-            })
+            }, 100)
         })
     })
 
@@ -219,13 +221,12 @@ describe('for', function () {
                 setTimeout(function () {
                     expect(ds[0][prop]).toBe('面板3')
                     done()
-                })
-            })
-        })
+                }, 100)
+            }, 100)
+        }, 100)
     })
 
     it('ms-duplex与ms-for并用', function (done) {
-        return
         div.innerHTML = heredoc(function () {
             /*
              <table ms-controller="for5" border="1">
@@ -242,7 +243,7 @@ describe('for', function () {
         })
         vm = avalon.define({
             $id: "for5",
-            data: [{checked: false}, {checked: false}, {checked: false}],
+            data: [{ checked: false }, { checked: false }, { checked: false }],
             allchecked: false,
             checkAll: function (e) {
                 var checked = e.target.checked
@@ -277,7 +278,7 @@ describe('for', function () {
                 expect(ths[2][prop]).toBe('2::true')
                 done()
             }, 100)
-        })
+        }, 100)
     })
     it('使用注释循环', function (done) {
         div.innerHTML = heredoc(function () {
@@ -290,7 +291,7 @@ describe('for', function () {
              */
         })
 
-        avalon.define({
+        vm = avalon.define({
             $id: "for6",
             forlist: [1, 2, 3]
         })
@@ -300,7 +301,6 @@ describe('for', function () {
             expect(ps.length).toBe(3)
 
             done()
-            delete avalon.vmodels.for6
         }, 300)
     })
 
@@ -314,71 +314,76 @@ describe('for', function () {
              </table>
              */
         })
-        avalon.define({
+        vm = avalon.define({
             $id: 'for7',
-            list: [{a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3}]
+            list: [{ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 3 }]
         })
         avalon.scan(div)
         setTimeout(function () {
             var tds = div.getElementsByTagName('td')
             expect(tds.length).toBe(9)
             done()
-            delete avalon.vmodels.for7
         }, 300)
     })
-
-    it('双重循环,__local__对象传递问题', function (done) {
-        return
+    it('ms-for+ms-text', function (done) {
+        //https://github.com/RubyLouvre/avalon/issues/1422
         div.innerHTML = heredoc(function () {
             /*
-             <div ms-controller="for9">
-             <div ms-for="el in ##data">
-             {{el.name}}
-             <button type="button" ms-click="##add1(el)">添加</button>
-             <div ms-for="item in el.list">
-             <strong>{{item.name}}</strong>
-             <em class="del" ms-click="##del(el,item)">删除</em>
-             </div>
-             </div>
+             <div ms-controller="for8" >
+             <p ms-for="el in @list">{{el}}</p>
+             <strong>{{@kk}}</strong>
              </div>
              */
         })
-        var list = ["A", "B", "C"]
         vm = avalon.define({
-            $id: "for9",
-            data: [{name: "test", list: [{name: "item1"}]}],
-            add1: function (el) {
-                el.list.push({name: 'item' + list.shift()})
+            $id: 'for8',
+            list: [],
+            kk: 22
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var el = div.getElementsByTagName('strong')[0]
+            expect(el.innerHTML.trim()).toBe('22')
+            done()
+        }, 300)
+    })
+
+    it('简单对象循环,这个临时加上', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <div ms-controller='for9' >
+             <ul>
+             <li ms-for='($index, el) in @array |limitBy(4)' data-for-rendered="@fn">{{$index}}::{{el}}</li>
+             </ul>
+             </div>
+             */
+        })
+        var called = false
+        vm = avalon.define({
+            $id: 'for9',
+            array: {
+                a: 11,
+                b: 22,
+                c: 33,
+                d: 44,
+                e: 55
             },
-            del: function (el, item) {
-                el.list.remove(item)
+            fn: function () {
+                called = true
             }
         })
         avalon.scan(div)
         setTimeout(function () {
-            var ss = div.getElementsByTagName('strong')
-            expect(ss[0].innerHTML.trim()).toBe('item1')
-            var btn = div.getElementsByTagName('button')[0]
-            fireClick(btn)
-            fireClick(btn)
-            fireClick(btn)
-            setTimeout(function () {
-                expect(ss.length).toBe(4)
-                expect(ss[1].innerHTML.trim()).toBe('itemA')
-                expect(ss[2].innerHTML.trim()).toBe('itemB')
-                expect(ss[3].innerHTML.trim()).toBe('itemC')
-                var ems = div.getElementsByTagName('em')
-                fireClick(ems[2])
-                setTimeout(function () {
-                    expect(ss.length).toBe(3)
-                    expect(ss[1].innerHTML.trim()).toBe('itemA')
-                    expect(ss[2].innerHTML.trim()).toBe('itemC')
-
-                    done()
-                })
-
-            })
-        })
+            var lis = div.getElementsByTagName('li')
+            var ps = div.getElementsByTagName('p')
+            expect(lis[0].innerHTML).toBe('a::11')
+            expect(lis[1].innerHTML).toBe('b::22')
+            expect(lis[2].innerHTML).toBe('c::33')
+            expect(lis[3].innerHTML).toBe('d::44')
+            expect(lis.length).toBe(4)
+            expect(called).toBe(true)
+            done()
+        }, 300)
 
     })
     it('ms-if+ms-for', function (done) {
@@ -462,21 +467,21 @@ describe('for', function () {
         })
 
         var Data = [
-            {"Caption_Chs": "分店编码", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "公司名称", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "公司名称02", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "公司名称03", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "公司名称04", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "中文地址01", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "中文地址02", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "中文地址03", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "公司地址04", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "英文地址01", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "联系人", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "电话", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "传真", "ColumnType": "nvarchar"},
-            {"Caption_Chs": "预设折扣%", "ColumnType": "decimal"},
-            {"Caption_Chs": "简称", "ColumnType": "nvarchar"}
+            { "Caption_Chs": "分店编码", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "公司名称", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "公司名称02", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "公司名称03", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "公司名称04", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "中文地址01", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "中文地址02", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "中文地址03", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "公司地址04", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "英文地址01", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "联系人", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "电话", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "传真", "ColumnType": "nvarchar" },
+            { "Caption_Chs": "预设折扣%", "ColumnType": "decimal" },
+            { "Caption_Chs": "简称", "ColumnType": "nvarchar" }
         ];
         vm = avalon.define({
             $id: "for12",
@@ -486,7 +491,8 @@ describe('for', function () {
         });
         avalon.scan(div)
         setTimeout(function () {
-            Data.push({"Caption_Chs": "新内容",
+            Data.push({
+                "Caption_Chs": "新内容",
                 "ColumnType": "nvarchar"
             });
 
@@ -513,7 +519,28 @@ describe('for', function () {
             }, 100)
         }, 100);
     })
-    
+    it('防止构建循环区域错误', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <ul ms-controller="for13">
+             <li>zzz</li>
+             <li ms-for="el in @arr">{{el}}</li>    
+             </ul>
+             */
+        })
+
+        vm = avalon.define({
+            $id: 'for13',
+            arr: ['aaa', 'bbb', 'ccc'],
+            bbb: true
+        });
+        avalon.scan(div)
+        setTimeout(function () {
+            var lis = div.getElementsByTagName('li')
+            expect(lis.length).toBe(4)
+            done()
+        }, 150)
+    })
 
     it('注解for指令嵌套问题', function (done) {
         div.innerHTML = heredoc(function () {
@@ -547,7 +574,7 @@ describe('for', function () {
         vm = avalon.define({
             $id: 'for14',
             arr: [
-                {a: 'a1', b: 'b1'}, {a: 'a2', b: 'b2'}, {a: 'a3', b: 'b3'}
+                { a: 'a1', b: 'b1' }, { a: 'a2', b: 'b2' }, { a: 'a3', b: 'b3' }
             ]
         });
         avalon.scan(div)
@@ -597,28 +624,28 @@ describe('for', function () {
         vm = avalon.define({
             $id: 'for16',
             arr: [2, 3, 4],
-            fn: function(){}
+            fn: function () { }
         })
         avalon.scan(div)
         setTimeout(function () {
             var bs = div.getElementsByTagName('b')
-            expect(bs[0]._ms_local.$index).toBe(0)
-            expect(bs[0]._ms_local.item).toBe(2)
-            expect(bs[1]._ms_local.$index).toBe(1)
-            expect(bs[1]._ms_local.item).toBe(3)
-            expect(bs[2]._ms_local.$index).toBe(2)
-            expect(bs[2]._ms_local.item).toBe(4)
+            expect(bs[0]._ms_context_.$index).toBe(0)
+            expect(bs[0]._ms_context_.item).toBe(2)
+            expect(bs[1]._ms_context_.$index).toBe(1)
+            expect(bs[1]._ms_context_.item).toBe(3)
+            expect(bs[2]._ms_context_.$index).toBe(2)
+            expect(bs[2]._ms_context_.item).toBe(4)
             vm.arr.unshift(7)
             setTimeout(function () {
                 bs = div.getElementsByTagName('b')
-                expect(bs[0]._ms_local.$index).toBe(0)
-                expect(bs[0]._ms_local.item).toBe(7)
-                expect(bs[1]._ms_local.$index).toBe(1)
-                expect(bs[1]._ms_local.item).toBe(2)
-                expect(bs[2]._ms_local.$index).toBe(2)
-                expect(bs[2]._ms_local.item).toBe(3)
-                expect(bs[3]._ms_local.$index).toBe(3)
-                expect(bs[3]._ms_local.item).toBe(4)
+                expect(bs[0]._ms_context_.$index).toBe(0)
+                expect(bs[0]._ms_context_.item).toBe(7)
+                expect(bs[1]._ms_context_.$index).toBe(1)
+                expect(bs[1]._ms_context_.item).toBe(2)
+                expect(bs[2]._ms_context_.$index).toBe(2)
+                expect(bs[2]._ms_context_.item).toBe(3)
+                expect(bs[3]._ms_context_.$index).toBe(3)
+                expect(bs[3]._ms_context_.item).toBe(4)
                 done()
             }, 300)
 

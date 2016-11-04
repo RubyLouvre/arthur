@@ -18,16 +18,15 @@ export var updateDataActions = {
         }
         //vm.aaa = '1234567890'
         //处理 <input ms-duplex='@aaa|limitBy(8)'/>{{@aaa}} 这种格式化同步不一致的情况 
-
     },
     radio: function () {
         var field = this
         if (field.isChecked) {
             var val = !field.value
-            field.setValue(parsedValue)
-            callback(field)
+            field.setValue(val)
+            duplexCb(field)
         } else {
-            updateModelMethods.input.call(field)
+            updateDataActions.input.call(field)
             field.value = NaN
         }
     },
@@ -57,12 +56,12 @@ export var updateDataActions = {
             } else {
                 val = field.parseValue(val)
             }
-            field.set(field.vm, val)
+            field.setValue(val)
             duplexCb(field)
         }
     },
     contenteditable: function () {
-        updateModelActions.input.call(this, 'innerHTML')
+        updateDataActions.input.call(this, 'innerHTML')
     }
 }
 

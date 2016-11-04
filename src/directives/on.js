@@ -1,22 +1,13 @@
 import { avalon, inBrowser } from '../seed/core'
 
-import { addScope } from '../parser/index'
-var rhandleName = /^__vmodel__\.[$\w\.]+$/
-export function makeHandle(body) {
-    if (rhandleName.test(body)) {
-        body = body + '($event)'
-    }
-    body = body.replace(/__vmodel__\.([^(]+)\(([^)]*)\)/, function (a, b, c) {
-        return '__vmodel__.' + b + '.call(__vmodel__' + (/\S/.test(c) ? ',' + c : '') + ')'
-    })
-    return body
-}
+import { addScope, makeHandle } from '../parser/index'
+
 avalon.directive('on', {
     beforeInit: function () {
         this.getter = avalon.noop
     },
     init: function () {
-       
+
         var vdom = this.node
 
         var underline = this.name.replace('ms-on-', 'e').replace('-', '_')
@@ -30,7 +21,7 @@ avalon.directive('on', {
             var arr = addScope(this.expr)
             var body = arr[0], filters = arr[1]
             body = makeHandle(body)
-            
+
             if (filters) {
                 filters = filters.replace(/__value__/g, '$event')
                 filters.push('if($event.$return){\n\treturn;\n}')

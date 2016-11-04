@@ -9,12 +9,12 @@ avalon.directive('text', {
             avalon.error('自闭合元素不能使用ms-text')
         }
         var child = { nodeName: '#text', nodeValue: this.value }
-        node.children = [
-            child
-        ]
+        node.children.splice(0, node.children.length, child)
+        if(node.dom){
+            delete node.dom
+        }
         avalon.vdom(child,'toDOM')
         this.node = child
-
         var type = 'nodeValue'
         this.type = this.name = type
         var directive = avalon.directives[type]

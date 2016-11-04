@@ -1,10 +1,9 @@
 import { avalon, createAnchor, createFragment, isObject, ap } from '../seed/core'
 
 import { observeItemObject } from '../vmodel/share'
-import { makeHandle } from './on'
 import { VFragment } from '../vdom/VFragment'
 
-import { addScope } from '../parser/index'
+import { addScope, makeHandle } from '../parser/index'
 
 
 var rforAs = /\s+as\s+([$\w]+)/
@@ -158,7 +157,6 @@ function diffList(instance) {
             delete fragment._destory
             fragment.oldIndex = fragment.index
             fragment.index = index // 相当于 c.index
-          //  fragment.vm[instance.valName] = c.val ??
             fragment.vm[instance.keyName] = instance.isArray ? index : fragment.key
             saveInCache(newCache, fragment)
         } else {

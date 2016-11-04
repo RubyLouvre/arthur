@@ -1,5 +1,8 @@
 import { avalon } from '../../seed/core'
 import { rcheckedType } from '../../dom/rcheckedType'
+import { lookupOption } from './option'
+import { addScope, makeHandle } from '../../parser/index'
+import { fromDOM } from '../../vtree/fromDOM'
 
 var rchangeFilter = /\|\s*change\b/
 var rdebounceFilter = /\|\s*debounce(?:\(([^)]+)\))?/
@@ -37,8 +40,9 @@ export function duplexInit() {
         //如果是radio, checkbox,判定用户使用了checked格式函数没有
         parsers = []
         dtype = 'radio'
+        this.isChecked = isChecked
     }
-    this.parser = parsers
+    this.parsers = parsers
     if (!/input|textarea|select/.test(node.nodeName)) {
         if ('contenteditable' in node.props) {
             dtype = 'contenteditable'
@@ -54,17 +58,40 @@ export function duplexInit() {
     //判定是否使用了 change debounce 过滤器
     if (dtype === 'input' || dtype === 'contenteditable') {
         this.isString = true
+        if (dtype === 'contenteditable') {
+            if (this.node.dom) {
+                avalon.clearHTML(this.node.dom)
+            }
+        }
     } else {
         delete this.isChange
         delete this.debounceTime
     }
-    this.userCb = node.props['data-duplex-changed']
+    var cb = node.props['data-duplex-changed']
+    if (cb) {
+        var arr = addScope(cb, 'xx')
+        var body = makeHandle(arr[0])
+        this.userCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
+    }
+
 }
 export function duplexDiff(newVal, oldVal) {
-    if (this.compareVal === void 0 || newVal + '' !== this.compareVal) {
-        this.compareVal = newVal + ''
-        return true
+
+    if (this.isString) {//减少不必要的视图渲染
+        newVal = this.parseValue(newVal)
+
+        this.value = newVal += ''
+        if (newVal !== this.compareVal) {
+            this.compareVal = newVal
+            return true
+        }
+    } else if (Array.isArray(newVal)) {
+        if (newVal + '' !== this.compareVal) {
+            this.compareVal = newVal + ''
+            return true
+        }
     }
+
 }
 
 
@@ -74,7 +101,6 @@ export function duplexValidate(node, vnode) {
     if (rules && !field.validator) {
         while (node && node.nodeType === 1) {
             var validator = node._ms_validator_
-
             if (validator) {
                 field.rules = rules
                 field.validator = validator
@@ -133,39 +159,51 @@ function parseValue(val) {
 
 export var updateView = {
     input: function () {//处理单个value值处理
+        this.node.props.value = this.value + ''
         this.dom.value = this.value
+
+    },
+    updateChecked: function (vdom, checked) {
+        if (vdom.dom) {
+            vdom.dom.checked = checked
+        }
     },
     radio: function () {//处理单个checked属性
+        var node = this.node
+        var nodeValue = node.props.value
         var checked
         if (this.isChecked) {
             checked = !!this.value
         } else {
-            checked = this.value + '' === this.dom.value
+            checked = this.value + '' === nodeValue
         }
-        var dom = this.dom
-      
-      dom.checked = checked
-       
+        node.props.checked = checked
+        updateView.updateChecked(node, checked)
     },
     checkbox: function () {//处理多个checked属性
-        var checked = false
-        var dom = this.dom
-        var value = dom.value
-        for (var i = 0; i < this.value.length; i++) {
-            var el = this.value[i]
-            if (el + '' === value) {
-                checked = true
-            }
-        }
-        dom.checked = checked
+        var node = this.node
+        var value = node.props.value
+        var values = [].concat(this.value)
+        var checked = values.some(function (el) {
+            return el + '' === value
+        })
+        node.props.checked = checked
+        updateView.updateChecked(node, checked)
     },
     select: function () {//处理子级的selected属性
         var a = Array.isArray(this.value) ?
             this.value.map(String) : this.value + ''
-        avalon(this.dom).val(a)
+        lookupOption(this.node, a)
     },
-    contenteditable: function () {//处理单个innerHTML
+    contenteditable: function () {//处理单个innerHTML 
+
         this.dom.innerHTML = this.value
+        var a = fromDOM(this.dom)
+        var list = this.node.children
+        list.length = 0
+        Array.prototype.push.apply(list, a.children)
+
         this.duplex.call(this.dom)
     }
 }
+

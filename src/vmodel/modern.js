@@ -21,7 +21,7 @@ export function toJson(val) {
                                 }
                                 if (val.hasOwnProperty(i)) {
                                         var value = val[i]
-                                        obj[i] = value && value.$events ? toJson(value): value
+                                        obj[i] = value && value.$events ? toJson(value) : value
                                 }
                         }
                         return obj
@@ -103,8 +103,8 @@ function afterCreate(core, observe, keys) {
                         hideProperty(observe, key, keys[key])
                         delete keys[key]
                 } else {
-                        if(!(key in $accessors)){
-                          observe[key] = keys[key]
+                        if (!(key in $accessors)) {
+                                observe[key] = keys[key]
                         }
                         keys[key] = true
                 }

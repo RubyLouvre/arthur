@@ -79,7 +79,6 @@ export function Directive(vm, options, callback) {
     this.depends = []
     this.newDepends = []
     var expr = this.expr
-
     // 缓存取值函数
     if (typeof this.getter !== 'function') {
         this.getter = createGetter(expr, this.type)

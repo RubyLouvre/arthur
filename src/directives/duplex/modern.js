@@ -1,8 +1,6 @@
 
 import { avalon } from '../../seed/core'
-import { duplexBeforeInit, duplexInit, duplexDiff, duplexValidate } from './share'
-import { updateModel } from './updateDataHandle'
-import { updateView } from './updateView.modern'
+import { duplexBeforeInit, duplexInit, duplexDiff, duplexValidate, valueHijack, updateView } from './share'
 import { updateDataEvents } from './updateDataEvents.modern'
 
 
@@ -18,7 +16,7 @@ avalon.directive('duplex', {
             this.dom = dom
             dom.__ms_duplex__ = this
             //绑定事件
-            updateModelEvents(dom, this)
+            updateDataEvents(dom, this)
             //添加验证
             duplexValidate(dom, vdom)
         }

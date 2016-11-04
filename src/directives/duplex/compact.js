@@ -1,6 +1,6 @@
 
 import { avalon } from '../../seed/core'
-import { duplexBeforeInit, duplexInit, duplexDiff, duplexValidate, updateView } from './share'
+import { duplexBeforeInit, duplexInit, duplexDiff, duplexValidate, valueHijack, updateView } from './share'
 import { updateModel } from './updateDataHandle'
 import { updateDataEvents } from './updateDataEvents.compact'
 
@@ -17,7 +17,7 @@ avalon.directive('duplex', {
             this.duplex = updateModel
             dom.__ms_duplex__ = this
             //绑定事件
-            updateModelEvents(dom, this)
+            updateDataEvents(dom, this)
             //添加验证
             duplexValidate(dom, vdom)
         }
@@ -25,7 +25,7 @@ avalon.directive('duplex', {
         //需要通过轮询同步, chrome 42及以下版本需要这个hack
         if (this.isString
             && !avalon.msie
-            && updateModelHack === false
+            && valueHijack === false
             && !dom.valueHijack) {
 
             dom.valueHijack = updateModel
@@ -39,24 +39,21 @@ avalon.directive('duplex', {
         }
         //更新视图
         updateView[this.dtype].call(this)
+
     }
 })
 
-if (avalon.msie == 6) {
-    updateView.radio = function () {//处理单个checked属性
-        var checked
-        if (this.isChecked) {
-            checked = !!this.value
-        } else {
-            checked = this.value + '' === this.dom.value
+if (avalon.msie === 6) {
+    updateView.updateChecked = function (vdom, checked) {
+        var dom = vdom.dom
+        if (dom) {
+            setTimeout(function () {
+                //IE8 checkbox, radio是使用defaultChecked控制选中状态，
+                //并且要先设置defaultChecked后设置checked
+                //并且必须设置延迟
+                dom.defaultChecked = checked
+                dom.checked = checked
+            }, 30)
         }
-        var dom = this.dom
-        setTimeout(function () {
-            //IE8 checkbox, radio是使用defaultChecked控制选中状态，
-            //并且要先设置defaultChecked后设置checked
-            //并且必须设置延迟
-            dom.defaultChecked = checked
-            dom.checked = checked
-        }, 30)
     }
 }

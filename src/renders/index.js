@@ -46,7 +46,7 @@ cp.init = function () {
     var vnodes
     if (this.root && this.root.nodeType > 0) {
         vnodes = fromDOM(this.root) //转换虚拟DOM
-        clearChild(this.root)
+        dumpTree(this.root)
     } else if (typeof this.root === 'string') {
         vnodes = fromString(this.root) //转换虚拟DOM
     }
@@ -153,7 +153,7 @@ cp.compileBindings = function () {
     this.beforeReady()
     var root = this.root
     var rootDom = avalon.vdom(root, 'toDOM')
-    createDOMTree(rootDom, root.children)
+    groupTree(rootDom, root.children)
 
     this.callbacks.forEach(function (el) {
         el.callback()
@@ -215,6 +215,7 @@ cp.getForBinding = function (node, scope, childNodes) {
     var start = i
     while (node = childNodes[i++]) {
         nodes.push(node)
+       
         if (node.nodeName === '#comment') {
             if (startWith(node.nodeValue, 'ms-for:')) {
                 deep++
@@ -230,6 +231,7 @@ cp.getForBinding = function (node, scope, childNodes) {
         }
 
     }
+    
     var f = new VFragment(nodes)
     f.fragment = avalon.vdom(f, 'toHTML')
     f.begin = begin
@@ -263,7 +265,7 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
 
 }
 var rhasChildren = /1/
-function createDOMTree(parent, children) {
+function groupTree(parent, children) {
     children.forEach(function (vdom) {
         if (vdom.nodeName === '#document-fragment') {
             var dom = createFragment()
@@ -271,7 +273,7 @@ function createDOMTree(parent, children) {
             dom = avalon.vdom(vdom, 'toDOM')
         }
         if (rhasChildren.test(dom.nodeType) && vdom.children && vdom.children.length) {
-            createDOMTree(dom, vdom.children)
+            groupTree(dom, vdom.children)
         }
         //高级版本可以尝试 querySelectorAll
         if(rhasChildren.test(parent.nodeType))
@@ -279,11 +281,11 @@ function createDOMTree(parent, children) {
     })
 }
 
-function clearChild(elem) {
+function dumpTree(elem) {
     var firstChild
     while (firstChild = elem.firstChild) {
         if (firstChild.nodeType === 1) {
-            clearChild(firstChild)
+            dumpTree(firstChild)
         }
         elem.removeChild(firstChild)
     }

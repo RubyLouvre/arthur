@@ -21,7 +21,7 @@ var rcontent = /\S/
 export function fromString(str) {
     return from(str)
 }
-
+var rtagStart = /[\!\/a-z]/i //闭标签的第一个字符,开标签的第一个英文,注释节点的!
 function from(str) {
     stringPool.map = {}
     str = clearString(str)
@@ -36,7 +36,23 @@ function from(str) {
         var node = false
         if (str.charAt(0) !== '<') {//处理文本节点
             var i = str.indexOf('<')
-            i = i === -1 ? str.length : i
+            if(i === -1){
+                i = str.length
+            }else if(!rtagStart.test(str.charAt(i+1))){
+                //处理`内容2 {{ (idx1 < < <  1 ? 'red' : 'blue' ) + a }} ` 的情况 
+                var tryCount = str.length - i
+                while(tryCount--){
+                    if(!rtagStart.test(str.charAt(i+1))){
+                        i = str.indexOf('<',i+1)
+                    }else{
+                        break
+                    }
+                }
+                if(tryCount == 0){
+                    i = str.length
+                }
+            }
+            
             var nodeValue = str.slice(0, i).replace(rfill, fill)
             str = str.slice(i)
             node = {

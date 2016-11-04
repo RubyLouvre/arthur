@@ -29,7 +29,6 @@ export function parseInterpolate(dir) {
             str = str.slice(index + config.closeTag.length)
         }
     } while (str.length)
-
     return [{
         expr: tokens.join('+'),
         name: 'nodeValue',

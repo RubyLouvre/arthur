@@ -101,5 +101,19 @@ describe('fromString', function () {
         expect(c[3].children[0].nodeValue).toBe('<span>444</span>')
         expect(c[4].children[0].nodeValue).toBe('body{color:12px;}')
     })
+    it('许多尖括号的', function () {
+        var str = heredoc(function () {
+            /*
+             <strong>
+             内容2 {{ (idx1 < < < < 1 ? 'red' : idx1 > 1 ? 'green' : 'blue') + '-' + item2 }}
+             </strong>
+             */
+        })
+        var div = fromString(str)[0]
+
+        expect(div.children.length).toBe(1)
+        expect(div.children[0].nodeValue.trim()).toMatch(/\{\{.+\}\}/)
+       
+    })
 })
 
