@@ -1,4 +1,4 @@
-import { avalon, createFragment, config, delayCompileNodes } from
+import { avalon, createFragment, config, delayCompileNodes ,directives} from
     '../seed/core'
 import { fromDOM } from
     '../vtree/fromDOM'
@@ -65,15 +65,12 @@ cp.getBindings = function (element, isRoot, scope, children) {
         if (ctrlValue) {
             var ctrlName = dirs['ms-important'] == ctrlValue ? 'important' : 'controller'
             var prefix = 'ms-' + ctrlName in element.props ? 'ms-' : ':'
-            var ctrl = avalon.directives[ctrlName]
+            var ctrl = directives[ctrlName]
             scope = ctrl.getScope(ctrlValue, scope)
             delete dirs['ms-' + ctrlName]
-            this.callbacks.push({
-                attrName: prefix + ctrlName,
-                scope: scope,
-                render: this,
-                node: element,
-                callback: ctrl.callback
+            var render = this
+            this.callbacks.push(function () {
+                ctrl.update.call(render, element, scope, prefix + ctrlName)
             })
         }
 
@@ -154,11 +151,22 @@ cp.compileBindings = function () {
     var root = this.root
     var rootDom = avalon.vdom(root, 'toDOM')
     groupTree(rootDom, root.children)
-
-    this.callbacks.forEach(function (el) {
-        el.callback()
+    avalon.log('attach dom tree!')
+    this.queue.length = 0
+    this.mount = true
+    for (var i = 0, fn; fn = this.callbacks[i++];) {
+        fn()
+    }
+    this.directives.forEach(function (el) {
+        el.callback = directives[el.type].update
+        el.update = function () {
+            var oldVal = this.oldValue
+            var newVal = this.value = this.get()
+            if (this.callback && this.diff(newVal, oldVal)) {
+                this.callback(this.node, newVal)
+            }
+        }
     })
-
 }
 
 /**
@@ -170,27 +178,19 @@ cp.parseBindings = function (tuple) {
     var scope = tuple[1]
     var dirs = tuple[2]
     var bindings = []
-    var d = avalon.directives
     if ('nodeValue' in dirs) {
         bindings = parseInterpolate(dirs)
     } else if (!('ms-skip' in dirs)) {
         bindings = parseAttributes(dirs, tuple)
     }
     for (var i = 0, binding; binding = bindings[i++];) {
-        var dir = d[binding.type]
+        var dir = directives[binding.type]
         if (dir.beforeInit) {
             dir.beforeInit.call(binding)
         }
-        var directive = new DirectiveDecorator(node, binding, scope)
+        var directive = new DirectiveDecorator(node, binding, scope, this)
         this.directives.push(directive)
-        if (dir.ready) {
-            this.callbacks.push({
-                callback: function () {
-                    delete directive.oldValue
-                    directive.update()
-                }
-            })
-        }
+
     }
 }
 
@@ -215,7 +215,7 @@ cp.getForBinding = function (node, scope, childNodes) {
     var start = i
     while (node = childNodes[i++]) {
         nodes.push(node)
-       
+
         if (node.nodeName === '#comment') {
             if (startWith(node.nodeValue, 'ms-for:')) {
                 deep++
@@ -231,7 +231,7 @@ cp.getForBinding = function (node, scope, childNodes) {
         }
 
     }
-    
+
     var f = new VFragment(nodes)
     f.fragment = avalon.vdom(f, 'toHTML')
     f.begin = begin
@@ -276,8 +276,8 @@ function groupTree(parent, children) {
             groupTree(dom, vdom.children)
         }
         //高级版本可以尝试 querySelectorAll
-        if(rhasChildren.test(parent.nodeType))
-           parent.appendChild(dom)
+        if (rhasChildren.test(parent.nodeType))
+            parent.appendChild(dom)
     })
 }
 

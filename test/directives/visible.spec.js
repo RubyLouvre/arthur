@@ -26,7 +26,7 @@ describe('visible', function () {
             a: true
         })
         avalon.scan(div)
-        setTimeout(function () {
+        setTimeout(function () {//1
             avalon.log(avalon(div.firstChild).css('display'),'visible spec')
             expect(avalon(div.firstChild).css('display')).not.toBe('none')
             done()
@@ -51,17 +51,17 @@ describe('visible', function () {
         var tr = div.getElementsByTagName('tr')[0]
         var td = div.getElementsByTagName('td')[0]
 
-        expect(c[0].style.display).toBe('inline-block')
+        expect(c[0].style.display).toBe('inline-block')//4
         expect(c[1].style.display).toBe('')
         expect(tr.style.display).toBe('')
         expect(td.style.display).toBe('')
-        vm.a = false
+        vm.a = false//8
         setTimeout(function () {
             expect(c[0].style.display).toBe('none')
             expect(c[1].style.display).toBe('none')
             expect(tr.style.display).toBe('none')
             expect(td.style.display).toBe('none')
-            vm.a = true
+            vm.a = true//12
             setTimeout(function () {
                 expect(c[0].style.display).toBe('inline-block')
                 expect(c[1].style.display).toBe('')

@@ -49,6 +49,6 @@ export function parseAttributes(dirs, tuple ) {
     }
     return bindings.sort(byPriority)
 }
-function byPriority(a, b) {
+export function byPriority(a, b) {
     return a.priority - b.priority
 }

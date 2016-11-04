@@ -8,17 +8,16 @@ var impDir = avalon.directive('important', {
             return v
         return scope
     },
-    callback: function () {
-        var node = this.node
-        var scope = this.scope
+    update: function (node, scope, attrName) {
+         avalon.log(attrName + ' dir update!')
         var dom = avalon.vdom(node, 'toDOM')
-        dom.removeAttribute(this.attrName)
+        dom.removeAttribute(attrName)
         avalon(dom).removeClass('ms-controller')
         scope.$fire('onReady')
         scope.$element = node
-        scope.$render = this.render
+        scope.$render = this
         delete scope.$events.onReady
     }
 })
 
-export var impCb = impDir.callback
+export var impCb = impDir.update

@@ -9,5 +9,5 @@ avalon.directive('controller', {
             return v
         return scope
     },
-    callback: impCb
+    update: impCb
 })

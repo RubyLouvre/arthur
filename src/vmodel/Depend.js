@@ -1,4 +1,4 @@
-
+import { scheduling } from '../renders/scheduling'
 var depId = 0
 /**
  * 依赖收集类 用于联结 VM 与 Watcher
@@ -36,8 +36,8 @@ dp.removeSub = function (sub) {
  * 为 watcher 收集当前的依赖
  */
 dp.collect = function () {
-  if (Depend.target) {
-      Depend.target.addDepend(this)
+    if (Depend.target) {
+        Depend.target.addDepend(this)
     }
 }
 
@@ -57,19 +57,20 @@ dp.beforeNotify = function () {
 dp.notify = function (args) {
     var uuid = this.uuid
     this.subs.forEach(function (sub) {
-        sub.update(args, uuid)
+        scheduling(sub)
     })
 }
+
 
 Depend.target = null
 var targetStack = []
 
-export function pushTarget (_target) {
-  if (Depend.target) 
-     targetStack.push(Depend.target)
-  Depend.target = _target
+export function pushTarget(_target) {
+    if (Depend.target)
+        targetStack.push(Depend.target)
+    Depend.target = _target
 }
 
-export function popTarget () {
-  Depend.target = targetStack.pop()
+export function popTarget() {
+    Depend.target = targetStack.pop()
 }
