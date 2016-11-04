@@ -14,7 +14,7 @@ avalon.directive('duplex', {
         var dom = vdom.dom
         if (!this.dom) {
             this.dom = dom
-            this.duplex = updateModel
+            this.duplexCb = updateModel
             dom.__ms_duplex__ = this
             //绑定事件
             updateDataEvents(dom, this)

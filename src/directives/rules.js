@@ -1,13 +1,12 @@
-import { avalon } from '../seed/core'
+import { avalon, isObject } from '../seed/core'
 
 avalon.directive('rules', {
-    diff: function (copy, src, name) {
-        var neo = copy[name]
-        if (neo && Object.prototype.toString.call(neo) === '[object Object]') {
-            src[name] = neo.$model || neo
-            var field = src.dom && src.dom.__ms_duplex__
-            if (field) {
-                field.rules = copy[name]
+    diff: function (rules) {
+        if (isObject(rules)) {
+            var vdom = this.node
+            vdom.rules = rules.$model || rules
+            if(vdom.field){
+                vdom.field =  vdom.rules
             }
         }
     }

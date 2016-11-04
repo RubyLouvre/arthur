@@ -35,3 +35,4 @@ import './directives/active.spec'
 import './directives/for.spec'
 */
 import './directives/duplex.spec'
+import './directives/rules.spec'

@@ -35,7 +35,7 @@ export function duplexInit() {
         }
         return a
     }) : []
-
+    node.duplex = this
     if (rcheckedType.test(etype) && isChecked) {
         //如果是radio, checkbox,判定用户使用了checked格式函数没有
         parsers = []
@@ -63,7 +63,7 @@ export function duplexInit() {
     }else if( !this.isChecked ){
         this.isString = true
     }
-            
+    
     var cb = node.props['data-duplex-changed']
     if (cb) {
         var arr = addScope(cb, 'xx')
@@ -91,10 +91,10 @@ export function duplexDiff(newVal, oldVal) {
 }
 
 
-export function duplexValidate(node, vnode) {
-    var field = node.__ms_duplex__
-    var rules = vnode['ms-rules']
-    if (rules && !field.validator) {
+export function duplexValidate(node, vdom) {
+    var field = vdom.duplex
+    var rules = vdom.rules
+    if (vdom.validator) {
         while (node && node.nodeType === 1) {
             var validator = node._ms_validator_
             if (validator) {
@@ -122,7 +122,7 @@ try { //#272 IE9-IE11, firefox
         setters[this.tagName].call(this, value)
         var data = this.__ms_duplex__
         if (!this.caret && data && data.isString) {
-            data.duplex.call(this, { type: 'setter' })
+            data.duplexCb.call(this, { type: 'setter' })
         }
     }
     var inputProto = HTMLInputElement.prototype
@@ -199,7 +199,7 @@ export var updateView = {
         list.length = 0
         Array.prototype.push.apply(list, a.children)
 
-        this.duplex.call(this.dom)
+        this.duplexCb.call(this.dom)
     }
 }
 

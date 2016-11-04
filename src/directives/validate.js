@@ -1,7 +1,7 @@
-import { avalon } from '../seed/core'
+import { avalon,isObject } from '../seed/core'
 var valiDir = avalon.directive('validate', {
     //验证单个表单元素
-    diff: function (newVal) {
+    diff: function (validator) {
 
         var vdom = this.node
 
@@ -9,10 +9,10 @@ var valiDir = avalon.directive('validate', {
             return
         }
 
-        if (isObject(newVal)) {
+        if (isObject(validator)) {
 
-            if (newVal.$id) {//转换为普通对象
-                newVal = newVal.$model
+            if (validator.$id) {//转换为普通对象
+                validator = validator.$model
             }
 
             vdom.validate = validator
