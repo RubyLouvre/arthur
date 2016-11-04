@@ -10,3 +10,4 @@ import './vmodel/compact'
 
 import './renders/index'
 
+import './effect/index'

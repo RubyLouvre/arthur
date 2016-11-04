@@ -25,12 +25,13 @@ avalon.directive('effect', {
         cssDiff.call(this, effect, this.oldVal)
         //  cssDiff.call(this, copy, src, name, 'afterChange')
     },
-    update: function (dom, vdom, parent, opts) {
+    update: function (vdom, _, opts) {
         /* istanbul ignore if */
+        var dom = this.node.dom
         if (dom && dom.nodeType === 1) {
             var name = 'ms-effect'
-            var option = vdom[name] || opts || {}
-            vdom.dynamic[name] = 1
+            var option = vdom.effect
+        
             var type = option.is
             /* istanbul ignore if */
             if (!type) {//如果没有指定类型
@@ -229,7 +230,7 @@ avalon.applyEffect = function (node, vnode, opts) {
             }
         }
         getAction(opts)
-        avalon.directives.effect.update(node, vnode, 0, avalon.shadowCopy({}, opts))
+        avalon.directives.effect.update(vnode, 0, avalon.shadowCopy({}, opts))
 
     } else if (cb) {
         cb(node)
