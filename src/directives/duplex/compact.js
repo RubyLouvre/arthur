@@ -6,7 +6,7 @@ import { updateDataEvents } from './updateDataEvents.compact'
 
 
 avalon.directive('duplex', {
-    priority: 2000,
+    priority: 9999999,
     beforeInit: duplexBeforeInit,
     init: duplexInit,
     diff: duplexDiff,

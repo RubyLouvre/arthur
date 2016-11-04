@@ -17,7 +17,6 @@ function setOption(vdom, values) {
             vdom.dom.selected = props.selected
         }
     }
-
 }
 
 function getOptionValue(vdom, props) {

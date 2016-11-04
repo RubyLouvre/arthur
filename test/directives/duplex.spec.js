@@ -182,7 +182,7 @@ describe('duplex', function () {
              </div>
              */
         })
-        var vm = avalon.define({
+        vm = avalon.define({
             $id: 'duplex5',
             aaa: "ccc"
 
@@ -201,19 +201,9 @@ describe('duplex', function () {
             expect(spans[0].innerHTML).toBe('ccc')
             expect(inputs[0].value).toBe('ccc')
             inputs[0].value = 'bbb'
-            avalon.fireDom(div.getElementsByTagName('select')[0], 'change')
-            setTimeout(function () {
-//                expect(options[0].selected).toBe(false)
-//                expect(options[1].selected).toBe(true)
-//                expect(options[2].selected).toBe(false)
-//                expect(options[3].selected).toBe(false)
-//                expect(spans[0].innerHTML).toBe('bbb')
-
-                done()
-            })
-
-
-
+         
+             done()
+         
         }, 80)
     })
     it('select3', function (done) {

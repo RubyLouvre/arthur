@@ -23,7 +23,7 @@ import './vtree/fromDOM.spec'
 
 import './vmodel/compact.spec'
 
-
+/*
 import './directives/expr.spec'
 import './directives/css.spec'
 import './directives/text.spec'
@@ -33,3 +33,5 @@ import './directives/class.spec'
 import './directives/hover.spec'
 import './directives/active.spec'
 import './directives/for.spec'
+*/
+import './directives/duplex.spec'

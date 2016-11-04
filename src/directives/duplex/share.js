@@ -56,17 +56,14 @@ export function duplexInit() {
     this.dtype = dtype
     var isChanged = false, debounceTime = 0
     //判定是否使用了 change debounce 过滤器
-    if (dtype === 'input' || dtype === 'contenteditable') {
-        this.isString = true
-        if (dtype === 'contenteditable') {
-            if (this.node.dom) {
-                avalon.clearHTML(this.node.dom)
-            }
-        }
-    } else {
+  
+    if (dtype !== 'input' &&  dtype !== 'contenteditable'){
         delete this.isChange
         delete this.debounceTime
+    }else if( !this.isChecked ){
+        this.isString = true
     }
+            
     var cb = node.props['data-duplex-changed']
     if (cb) {
         var arr = addScope(cb, 'xx')
@@ -76,18 +73,17 @@ export function duplexInit() {
 
 }
 export function duplexDiff(newVal, oldVal) {
-
-    if (this.isString) {//减少不必要的视图渲染
+ 
+    if (Array.isArray(newVal)) {
+        if (newVal + '' !== this.compareVal) {
+            this.compareVal = newVal + ''
+            return true
+        }
+    }else {
         newVal = this.parseValue(newVal)
-
         this.value = newVal += ''
         if (newVal !== this.compareVal) {
             this.compareVal = newVal
-            return true
-        }
-    } else if (Array.isArray(newVal)) {
-        if (newVal + '' !== this.compareVal) {
-            this.compareVal = newVal + ''
             return true
         }
     }
