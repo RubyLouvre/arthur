@@ -1,20 +1,19 @@
 import { avalon,isObject } from '../seed/core'
 var valiDir = avalon.directive('validate', {
-    //验证单个表单元素
     diff: function (validator) {
-
         var vdom = this.node
-
         if (vdom.validator) {
             return
         }
-
         if (isObject(validator)) {
-
-            if (validator.$id) {//转换为普通对象
+            //注意，这个Form标签的虚拟DOM有两个验证对象
+            //一个是vmValidator，它是用户VM上的那个原始子对象，也是一个VM
+            //一个是validator，它是vmValidator.$model， 这是为了防止IE6－8添加子属性时添加的hack
+            //也可以称之为safeValidate
+            vdom.vmValidator = validator
+            if (validator.$model) {//转换为普通对象
                 validator = validator.$model
             }
-
             vdom.validate = validator
             for (var name in valiDir.defaults) {
                 if (!validator.hasOwnProperty(name)) {
@@ -22,19 +21,23 @@ var valiDir = avalon.directive('validate', {
                 }
             }
             validator.fields = validator.fields || []
-
+            return true
         }
     },
     update: function (vdom, value) {
         var validator = vdom.validate
-        dom._ms_validator_ = validator
+        var dom = vdom.dom
         validator.dom = dom
+        dom._ms_validator_ = validator
+        
+        //为了方便用户手动执行验证，我们需要为原始vmValidate上添加一个onManual方法
         var v = vdom.vmValidator
         try {
             v.onManual = onManual
         } catch (e) {
         }
         delete vdom.vmValidator
+
         dom.setAttribute('novalidate', 'novalidate')
         function onManual() {
             valiDir.validateAll.call(validator, validator.onValidateAll)

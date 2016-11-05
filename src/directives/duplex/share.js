@@ -92,9 +92,11 @@ export function duplexDiff(newVal, oldVal) {
 
 
 export function duplexValidate(node, vdom) {
+    //将当前虚拟DOM的duplex添加到它上面的表单元素的validate指令的fields数组中
     var field = vdom.duplex
     var rules = vdom.rules
-    if (vdom.validator) {
+
+    if (rules && !field.validator) {
         while (node && node.nodeType === 1) {
             var validator = node._ms_validator_
             if (validator) {

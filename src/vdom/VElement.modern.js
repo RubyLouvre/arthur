@@ -46,7 +46,6 @@ VElement.prototype = {
             default:
                 if (!this.isVoidTag) {
                     if(! this.children){
-                        console.log(this)
                         return
                     }
                     this.children.forEach(function (c) {
