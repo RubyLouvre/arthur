@@ -1,13 +1,14 @@
 import './seed/core.spec'
 import './seed/browser.spec'
 import './seed/cache.spec'
-//import './seed/langSpec'
 import './seed/lang.compact.spec'
 
 import './filters/index.spec'
 import './vdom/compact.spec'
 
 import './dom/shim.compact.spec'
+
+
 
 import './dom/ready.compact.spec'
 import './dom/val.compact.spec'
@@ -23,16 +24,21 @@ import './vtree/fromDOM.spec'
 
 import './vmodel/compact.spec'
 
-/*
+
 import './directives/expr.spec'
 import './directives/css.spec'
+
 import './directives/text.spec'
 import './directives/attr.spec'
 import './directives/class.spec'
 import './directives/hover.spec'
 import './directives/active.spec'
-import './directives/for.spec'
-*/
-import './directives/visible.spec'
-import './directives/duplex.spec'
 import './directives/rules.spec'
+import './directives/visible.spec'
+
+import './directives/validate.spec'
+
+
+import './directives/duplex.spec'
+
+import './directives/for.spec'

@@ -56,7 +56,7 @@ export function duplexInit() {
     this.dtype = dtype
     var isChanged = false, debounceTime = 0
     //判定是否使用了 change debounce 过滤器
-  
+   // this.isChecked = /boolean/.test(parsers)
     if (dtype !== 'input' &&  dtype !== 'contenteditable'){
         delete this.isChange
         delete this.debounceTime
@@ -81,7 +81,9 @@ export function duplexDiff(newVal, oldVal) {
         }
     }else {
         newVal = this.parseValue(newVal)
-        this.value = newVal += ''
+        if(!this.isChecked){
+           this.value = newVal += ''
+        }
         if (newVal !== this.compareVal) {
             this.compareVal = newVal
             return true

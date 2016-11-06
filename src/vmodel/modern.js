@@ -1,8 +1,9 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Directive } from '../renders/Directive'
-import './share'
-export { platform }
+import {observeItemObject} from './share'
+
+export { avalon, platform, observeItemObject }
 
 
 export function toJson(val) {

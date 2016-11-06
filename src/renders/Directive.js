@@ -112,6 +112,8 @@ dp.setValue = function (value) {
     }
 }
 dp.get = function () {
+    if(!this.type)
+        return void 0
     var value
     pushTarget(this)
     value = this.getValue()
@@ -124,7 +126,14 @@ dp.get = function () {
 
     popTarget()
     // 清除无用的依赖
+   try{
     var deps = this.newDepIds.slice(0)
+}catch(e){
+    console.log(e)
+    console.log(this)
+    console.log(this.type)
+    console.log(this.expr)
+}
     this.removeDepends(function (depend) {
         return deps.indexOf(depend.uuid) < 0
     }, this)

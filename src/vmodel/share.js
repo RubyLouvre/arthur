@@ -159,10 +159,11 @@ export function observeItemObject(before, after) {
                 core.__dep__ = new Depend()
         }
         var state = before.$accessors
-        var keys = before.$models || {}
+        var keys = before.$model || {}
         var more = after.data
         delete after.data
         var props = after
+       
         for (var key in more) {
                 keys[key] = more[key]
                 state[key] = createAccessor(key, more[key], core)

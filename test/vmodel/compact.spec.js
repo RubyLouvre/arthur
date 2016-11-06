@@ -1,4 +1,4 @@
-import { avalon, afterCreate, platform } from
+import { avalon, afterCreate, platform, observeItemObject } from
     '../../src/vmodel/compact'
 import { Depend } from
     '../../src/vmodel/depend'
@@ -161,6 +161,28 @@ describe('vmodel', function () {
 
 })
 
+
+describe('observeItemObject', function () {
+    it('test', function () {
+        var vm =avalon.define({
+            $id: 'xcvdsfdsf',
+            a: 1,
+            b: '2',
+            
+            c: new Date,
+            d: function(){},
+            $e: 33
+        })
+       var vm2 = observeItemObject(vm,{
+            data: {
+                dd:11,
+                $cc: 22
+            }
+        })
+       expect(vm2.d).toA('function')
+    })
+})
+
 describe('depend', function () {
     it('test', function () {
         var d = new Depend
@@ -191,7 +213,7 @@ describe('Directive', function () {
         var d = new Directive(vm, {
             expr: '@aaa',
             deep: false,
-            type: 'user',
+            type: 'user'
         }, function (a, b) {
             args = [a, b]
         })
