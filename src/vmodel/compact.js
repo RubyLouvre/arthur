@@ -200,7 +200,7 @@ function beforeCreate(core, state, keys, byUser) {
         $watch: function $watch(expr, callback, deep) {
             var w = new Directive(core.__proxy__, {
                 deep: deep,
-                user: true,
+                type: 'user',
                 expr: expr
             }, callback)
             if (!core[expr]) {

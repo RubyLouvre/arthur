@@ -9,7 +9,6 @@ var impDir = avalon.directive('important', {
         return scope
     },
     update: function (node, scope, attrName) {
-         avalon.log(attrName + ' dir update!')
         var dom = avalon.vdom(node, 'toDOM')
         dom.removeAttribute(attrName)
         avalon(dom).removeClass('ms-controller')

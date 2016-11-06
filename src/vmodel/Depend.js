@@ -57,7 +57,8 @@ dp.beforeNotify = function () {
 dp.notify = function (args) {
     var uuid = this.uuid
     this.subs.forEach(function (sub) {
-        scheduling(sub)
+        sub.update()
+       // scheduling(sub)
     })
 }
 

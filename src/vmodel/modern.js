@@ -64,7 +64,7 @@ function $watch(expr, callback, deep) {
         var core = this.$events
         var w = new Directive(this, {
                 deep: deep,
-                user: true,
+                type: 'user',
                 expr: expr
         }, callback)
         if (!core[expr]) {

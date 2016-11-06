@@ -22,11 +22,12 @@ var cssDir = avalon.directive('css', {
                 }
             }
             var hasChange = false
+            var patch = {}
             if (!oldVal) {//如果一开始为空
-                this.value = newVal
+                patch = newVal
                 hasChange = true
             } else {
-                var patch = {}
+                
                 for (var i in newVal) {//diff差异点
                     if (newVal[i] !== oldVal[i]) {
                         hasChange = true
@@ -39,10 +40,9 @@ var cssDir = avalon.directive('css', {
                         patch[i] = ''
                     }
                 }
-                this.value = patch
             }
-
             if (hasChange) {
+                this.value = patch
                 return true
             }
         }

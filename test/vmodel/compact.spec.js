@@ -190,7 +190,8 @@ describe('Directive', function () {
         var args = []
         var d = new Directive(vm, {
             expr: '@aaa',
-            deep: false
+            deep: false,
+            type: 'user',
         }, function (a, b) {
             args = [a, b]
         })

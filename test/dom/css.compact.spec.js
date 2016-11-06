@@ -17,11 +17,14 @@ describe('css', function () {
         
         expect( $root.css('opacity') ).toBe('1')
         $root.css('opacity', 0.55)
-        expect( $root.css('opacity') ).toBe('0.55')
+        //phantomjs在这里返回  0.550000011920929
+        expect( $root.css('opacity') ).toMatch(/0\.55/)
         $root.css('opacity', '0.8')
-        expect( $root.css('opacity') ).toBe('0.8')
+        //phantomjs在这里返回 0.800000011920929
+        expect( $root.css('opacity') ).toMatch(/0\.8/)
        $root.css('opacity', '0.823')
-        expect( $root.css('opacity') ).toBe('0.823')
+        //phantomjs在这里返回'0.8230000138282776
+        expect( $root.css('opacity') ).toMatch(/0\.823/)
         expect( $root.css('top') ).toBe('0px')
         expect( $root.css('left') ).toBe('0px')
     })

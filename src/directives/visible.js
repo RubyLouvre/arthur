@@ -27,10 +27,7 @@ avalon.directive('visible', {
         }
     },
     ready: true,
-    update: function (vdom, show) {
-       
-         avalon.log('visible dir update!')
-     
+    update: function (vdom, show) {     
         var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
             var display = dom.style.display

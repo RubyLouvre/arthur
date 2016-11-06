@@ -1,4 +1,4 @@
-import { avalon, createFragment, config, delayCompileNodes ,directives} from
+import { avalon, createFragment, config, inBrowser, delayCompileNodes, directives } from
     '../seed/core'
 import { fromDOM } from
     '../vtree/fromDOM'
@@ -19,20 +19,25 @@ import { parseInterpolate } from
 
 import '../directives/compact'
 
-function startWith(long, short) {
-    return long.indexOf(short) === 0
-}
 
-
+/**
+ * 生成一个渲染器,并作为它第一个遇到的ms-controller对应的VM的$render属性
+ * @param {String|DOM} node
+ * @param {ViewModel|Undefined} vm
+ * @param {Function|Undefined} beforeReady
+ * @returns {Render}
+ */
 avalon.scan = function (node, vm, beforeReady) {
     return new Render(node, vm, beforeReady || avalon.noop)
 }
-
+/**
+ * avalon.scan 的内部实现
+ */
 function Render(node, vm, beforeReady) {
-    this.root = node
+    this.root = node //如果传入的字符串,确保只有一个标签作为根节点
     this.vm = vm
     this.beforeReady = beforeReady
-    this.queue = []
+    this.bindings = [] //收集待加工的绑定属性
     this.callbacks = []
     this.directives = []
     this.init()
@@ -41,11 +46,16 @@ function Render(node, vm, beforeReady) {
 
 
 var cp = Render.prototype
-
+/**
+ * 开始扫描指定区域
+ * 收集绑定属性
+ * 生成指令并建立与VM的关联
+ */
 cp.init = function () {
     var vnodes
     if (this.root && this.root.nodeType > 0) {
         vnodes = fromDOM(this.root) //转换虚拟DOM
+        //将扫描区域的每一个节点与其父节点分离,更少指令对DOM操作时,对首屏输出造成的频繁重绘
         dumpTree(this.root)
     } else if (typeof this.root === 'string') {
         vnodes = fromString(this.root) //转换虚拟DOM
@@ -55,30 +65,39 @@ cp.init = function () {
     this.vnodes = vnodes
     this.getBindings(this.root, true, this.vm, [])
 }
-
-cp.getBindings = function (element, isRoot, scope, children) {
-    var childNodes = element.children
-    var dirs = this.getRawBindings(element, scope, children)
-    if (/^\w/.test(element.nodeName)) {
-        var ctrlValue = dirs['ms-important'] || dirs['ms-controller']
-
-        if (ctrlValue) {
-            var ctrlName = dirs['ms-important'] == ctrlValue ? 'important' : 'controller'
-            var prefix = 'ms-' + ctrlName in element.props ? 'ms-' : ':'
-            var ctrl = directives[ctrlName]
-            scope = ctrl.getScope(ctrlValue, scope)
-            delete dirs['ms-' + ctrlName]
+/**
+ * 
+ * @param {DOM} dom
+ * @param {type} isRoot
+ * @param {type} scope
+ * @param {Array} children, dom所在的原数组
+ * @returns {undefined}
+ */
+cp.getBindings = function (dom, isRoot, scope, children) {
+    var childNodes = dom.children
+    var dirs = this.getBinding(dom, scope, children)
+    if (/^\w/.test(dom.nodeName)) {
+        var expr = dirs['ms-important'] || dirs['ms-controller']
+        if (expr) {
+            //推算出指令类型
+            var type = dirs['ms-important'] === expr ? 'important' : 'controller'
+            //推算出用户定义时属性名,是使用ms-属性还是:属性
+            var name = ('ms-' + type) in dom.props ? 'ms-' + type : ':' + type
+            var dir = directives[type]
+            scope = dir.getScope(expr, scope)
+            delete dirs['ms-' + type]
             var render = this
             this.callbacks.push(function () {
-                ctrl.update.call(render, element, scope, prefix + ctrlName)
+                dir.update.call(render, dom, scope, name)
             })
         }
 
     }
     if (dirs) {
-        this.queue.push([element, scope, dirs])
+        this.bindings.push([dom, scope, dirs])
     }
-    if (!orphanTag[element.nodeName]
+    //如果存在子节点,并且不是容器元素(script, stype, textarea, xmp...)
+    if (!orphanTag[dom.nodeName]
         && childNodes
         && childNodes.length
         && !delayCompileNodes(dirs || {})
@@ -88,12 +107,17 @@ cp.getBindings = function (element, isRoot, scope, children) {
         }
     }
     if (isRoot) {
-        this.compileBindings()
+        this.complete()
     }
 }
-
-
-cp.getRawBindings = function (node, scope, childNodes) {
+/**
+ * 
+ * @param {type} node
+ * @param {type} scope
+ * @param {type} childNodes
+ * @returns {Array|false}
+ */
+cp.getBinding = function (node, scope, childNodes) {
     switch (node.nodeName) {
         case '#text':
             if (config.rexpr.test(node.nodeValue)) {
@@ -114,7 +138,6 @@ cp.getRawBindings = function (node, scope, childNodes) {
                 var value = attrs[name]
                 var oldName = name
                 if (name.charAt(0) === ':') {
-
                     name = 'ms-' + name.slice(1)
                 }
                 if (startWith(name, 'ms-')) {
@@ -128,6 +151,7 @@ cp.getRawBindings = function (node, scope, childNodes) {
                         node.dom.removeAttribute(oldName)
                     }
                     this.getForBindingByElement(node, scope, childNodes, value)
+                    break
                 }
             }
 
@@ -140,70 +164,88 @@ cp.getRawBindings = function (node, scope, childNodes) {
             return has ? dirs : false
     }
 }
+/**
+ * 将绑定属性转换为指令
+ * 执行各种回调与优化指令
+ * @returns {undefined}
+ */
 
-cp.compileBindings = function () {
-
-    this.queue.forEach(function (tuple) {
-        this.parseBindings(tuple)
-    }, this)
-
+cp.complete = function () {
+    this.yieldDirectives()
     this.beforeReady()
-    var root = this.root
-    var rootDom = avalon.vdom(root, 'toDOM')
-    groupTree(rootDom, root.children)
-    avalon.log('attach dom tree!')
-    this.queue.length = 0
+    if (inBrowser) {
+        var root = this.root
+        var rootDom = avalon.vdom(root, 'toDOM')
+        groupTree(rootDom, root.children)
+    }
+
     this.mount = true
     for (var i = 0, fn; fn = this.callbacks[i++];) {
         fn()
     }
-    this.directives.forEach(function (el) {
+    this.optimizeDirectives()
+}
+
+/**
+ * 将收集到的绑定属性进行深加工,最后转换指令
+ * @param {tuple} tuple
+ * @returns {Array<tuple>}
+ */
+cp.yieldDirectives = function () {
+    let tuple
+    while (tuple = this.bindings.shift()) {
+        let [node, scope, dirs] = tuple
+        let bindings = []
+        if ('nodeValue' in dirs) {
+            bindings = parseInterpolate(dirs)
+        } else if (!('ms-skip' in dirs)) {
+            bindings = parseAttributes(dirs, tuple)
+        }
+        for (let i = 0, binding; binding = bindings[i++];) {
+            var dir = directives[binding.type]
+            if (dir.beforeInit) {
+                dir.beforeInit.call(binding)
+            }
+            let directive = new DirectiveDecorator(node, binding, scope, this)
+            this.directives.push(directive)
+        }
+    }
+}
+/**
+ * 修改指令的update与callback方法,让它们以后执行时更加高效
+ * @returns {undefined}
+ */
+cp.optimizeDirectives = function () {
+    for (var i = 0, el; el = this.directives[i++];) {
         el.callback = directives[el.type].update
         el.update = function () {
             var oldVal = this.oldValue
             var newVal = this.value = this.get()
             if (this.callback && this.diff(newVal, oldVal)) {
-                this.callback(this.node, newVal)
+                this.callback(this.node, this.value)
             }
         }
-    })
+    }
 }
-
 /**
- * 将收集到的绑定属性进行深加工,最后转换为watcher
- * @param   {Array}  tuple  [node, scope, dirs]
+ * 销毁所有指令
+ * @returns {undefined}
  */
-cp.parseBindings = function (tuple) {
-    var node = tuple[0]
-    var scope = tuple[1]
-    var dirs = tuple[2]
-    var bindings = []
-    if ('nodeValue' in dirs) {
-        bindings = parseInterpolate(dirs)
-    } else if (!('ms-skip' in dirs)) {
-        bindings = parseAttributes(dirs, tuple)
-    }
-    for (var i = 0, binding; binding = bindings[i++];) {
-        var dir = directives[binding.type]
-        if (dir.beforeInit) {
-            dir.beforeInit.call(binding)
-        }
-        var directive = new DirectiveDecorator(node, binding, scope, this)
-        this.directives.push(directive)
-
-    }
-}
-
-
 cp.destroy = function () {
-    this.directives.forEach(function (directive) {
-        directive.destroy()
-    })
+    for (var i = 0, el; el = this.directives[i++];) {
+        el.destroy()
+    }
     for (var i in this) {
         delete this[i]
     }
 }
-
+/**
+ * 将循环区域转换为for指令
+ * @param {type} node
+ * @param {type} scope
+ * @param {type} childNodes
+ * @returns {undefined}
+ */
 cp.getForBinding = function (node, scope, childNodes) {
     var nodes = []
     var deep = 1
@@ -239,14 +281,22 @@ cp.getForBinding = function (node, scope, childNodes) {
     f.userCb = begin.userCb
     delete begin.userCb
     f.parentChildren = childNodes
-    f.props = {}
+    f.props = {}//冒充元素节点
     childNodes.splice(start, nodes.length)
-    this.queue.push([
+    this.bindings.push([
         f, scope, { 'ms-for': expr }
     ])
 }
+/**
+ * 在带ms-for元素节点旁添加两个注释节点,组成循环区域
+ * @param {type} node
+ * @param {type} scope
+ * @param {type} childNodes
+ * @param {type} value
+ * @returns {undefined}
+ */
 cp.getForBindingByElement = function (node, scope, childNodes, value) {
-    var si = childNodes.indexOf(node) //原来带ms-for的元素节点
+    var index = childNodes.indexOf(node) //原来带ms-for的元素节点
 
     var begin = {
         nodeName: '#comment',
@@ -258,12 +308,16 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
         nodeValue: 'ms-for-end:'
     }
 
-
-    childNodes.splice(si, 1, begin, node, end)
-
+    childNodes.splice(index, 1, begin, node, end)
     this.getForBinding(begin, scope, childNodes)
 
 }
+
+function startWith(long, short) {
+    return long.indexOf(short) === 0
+}
+
+
 var rhasChildren = /1/
 function groupTree(parent, children) {
     children.forEach(function (vdom) {

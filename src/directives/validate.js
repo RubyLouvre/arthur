@@ -2,7 +2,7 @@ import { avalon,isObject } from '../seed/core'
 var valiDir = avalon.directive('validate', {
     diff: function (validator) {
         var vdom = this.node
-        if (vdom.validator) {
+        if (vdom.validator && vdom.validator) {
             return
         }
         if (isObject(validator)) {
@@ -14,7 +14,7 @@ var valiDir = avalon.directive('validate', {
             if (validator.$model) {//转换为普通对象
                 validator = validator.$model
             }
-            vdom.validate = validator
+            vdom.validator = validator
             for (var name in valiDir.defaults) {
                 if (!validator.hasOwnProperty(name)) {
                     validator[name] = valiDir.defaults[name]
@@ -25,7 +25,7 @@ var valiDir = avalon.directive('validate', {
         }
     },
     update: function (vdom, value) {
-        var validator = vdom.validate
+        var validator = vdom.validator
         var dom = vdom.dom
         validator.dom = dom
         dom._ms_validator_ = validator
@@ -67,7 +67,6 @@ var valiDir = avalon.directive('validate', {
         }).map(function (field) {
             return valiDir.validate(field, true)
         })
-
         return Promise.all(promise).then(function (array) {
             var reasons = array.concat.apply([], array)
             if (validator.deduplicateInValidateAll) {
@@ -113,8 +112,8 @@ var valiDir = avalon.directive('validate', {
         var elem = field.dom
         var validator = field.validator
         /* istanbul ignore if */
-        if (typeof Promise !== 'function') {
-            avalon.error('please npm install avalon-promise or bluebird')
+        if (typeof Promise !== 'function') {//avalon-promise不支持phantomjs
+            avalon.error('please npm install es6-promise or bluebird')
         }
         /* istanbul ignore if */
         if (elem.disabled)
