@@ -19,7 +19,7 @@ export function parseAttributes(dirs, tuple ) {
         }
         //ms-on-click
         if (arr[1] === 'on') {
-            arr[3] = parseFloat(arr[2]) || 0
+            arr[3] = parseFloat(arr[3]) || 0
         }
 
         var type = arr[1]

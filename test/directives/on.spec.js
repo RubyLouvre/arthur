@@ -115,9 +115,7 @@ describe('on', function () {
              ms-click='@a' 
              ms-click-2='@c' 
              ms-click-4='@b' 
-             ms-click-1='@d'  >TEST
-             
-             </div>
+             ms-click-1='@d'>TEST</div>
              */
         })
         var str = ""
