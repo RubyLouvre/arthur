@@ -24,14 +24,16 @@ avalon.directive('on', {
 
             if (filters) {
                 filters = filters.replace(/__value__/g, '$event')
-                filters.push('if($event.$return){\n\treturn;\n}')
+                filters += '\nif($event.$return){\n\treturn;\n}'
             }
             var ret = [
                 'try{',
                 '\tvar __vmodel__ = this;',
                 '\t' + filters,
                 '\treturn ' + body,
-                '}catch(e){avalon.log(e)}']
+                '}catch(e){avalon.log(e)}'].filter(function (el) {
+                    return /\S/.test(el)
+                })
             fn = new Function('$event', ret.join('\n'))
             fn.uuid = uuid
             avalon.eventListeners[uuid] = fn

@@ -52,38 +52,37 @@ avalon.directive('class', {
     },
     update: function (vdom, value) {
         var dom = vdom.dom
-        if (!dom || dom.nodeType !== 1)
-            return
-        var dirType = this.type
-        var change = 'change-' + dirType
-        var classEvent = vdom.classEvent
-        if (classEvent) {
-            for (var i in classEvent) {
-                if (i === 'tabIndex') {
-                    dom[i] = classEvent[i]
+        if (dom && dom.nodeType == 1) {
+
+            var dirType = this.type
+            var change = 'change-' + dirType
+            var classEvent = vdom.classEvent
+            if (classEvent) {
+                for (var i in classEvent) {
+                    if (i === 'tabIndex') {
+                        dom[i] = classEvent[i]
+                    } else {
+                        avalon.bind(dom, i, classEvent[i])
+                    }
+                }
+                vdom.classEvent = {}
+            }
+            var names = ['class', 'hover', 'active']
+            names.forEach(function (type) {
+                if (dirType !== type)
+                    return
+                if (type === 'class') {
+                    dom && setClass(dom, value)
                 } else {
-                    avalon.bind(dom, i, classEvent[i])
+                    var oldClass = dom.getAttribute(change)
+                    if (oldClass) {
+                        avalon(dom).removeClass(oldClass)
+                    }
+                    var name = 'change-' + type
+                    dom.setAttribute(name, value)
                 }
-            }
-            vdom.classEvent = {}
+            })
         }
-        var names = ['class', 'hover', 'active']
-        names.forEach(function (type) {
-
-            if (dirType !== type)
-                return
-
-            if (type === 'class') {
-                dom && setClass(dom, value)
-            } else {
-                var oldClass = dom.getAttribute(change)
-                if (oldClass) {
-                    avalon(dom).removeClass(oldClass)
-                }
-                var name = 'change-' + type
-                dom.setAttribute(name, value)
-            }
-        })
     }
 })
 

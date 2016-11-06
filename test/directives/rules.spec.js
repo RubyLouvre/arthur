@@ -233,7 +233,7 @@ describe('验证规则', function () {
         })
     })
 
-    it('maxlength', function () {
+    it('minlength', function () {//最小输入 
         var elem = document.createElement('input')
         var v = avalon.validators
         elem.value = 'test2example.com'
@@ -243,17 +243,17 @@ describe('验证规则', function () {
             },
             dom: elem
         }
-        v.maxlength.get(elem.value, field, function (v) {
-            expect(v).toBe(false)
+        v.minlength.get(elem.value, field, function (v) {
+            expect(v).toBe(true)
         })
     })
-    it('norequired', function () {
+    it('maxlength', function () {//最多输入 
         var elem = document.createElement('input')
         var v = avalon.validators
         elem.value = 'test2example.com'
         var field = {
             data: {
-                minlength: 7
+                maxlength: 7
             },
             dom: elem
         }

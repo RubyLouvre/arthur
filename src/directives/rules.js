@@ -5,8 +5,8 @@ avalon.directive('rules', {
         if (isObject(rules)) {
             var vdom = this.node
             vdom.rules = rules.$model || rules
-            if(vdom.field){
-                vdom.field =  vdom.rules
+            if (vdom.duplex) {
+                vdom.duplex.rules = vdom.rules
             }
         }
     }

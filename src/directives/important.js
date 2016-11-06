@@ -6,7 +6,7 @@ var impDir = avalon.directive('important', {
         var v = avalon.vmodels[name]
         if (v)
             return v
-        return scope
+        throw 'error'
     },
     update: function (node, scope, attrName) {
         var dom = avalon.vdom(node, 'toDOM')

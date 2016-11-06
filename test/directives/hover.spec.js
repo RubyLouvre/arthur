@@ -42,7 +42,13 @@ describe('hover', function () {
             target: el
         })
         expect(avalon(el).hasClass('h')).toBe(false)
-        done()
+
+        vm.aaa = 'ddd ccc'
+        setTimeout(function(){
+             expect(avalon(el).attr('change-hover')).toBe('ddd ccc')
+            done()
+        },100)
+        
 
     })
 })
