@@ -1,5 +1,8 @@
 import { avalon } from '../../src/seed/core'
 import '../../src/renders/index'
+import { pollValue } from '../../src/directives/duplex/compact'
+import { lookupOption } from '../../src/directives/duplex/option'
+
 
 describe('duplex', function () {
     var body = document.body, div, vm
@@ -201,9 +204,9 @@ describe('duplex', function () {
             expect(spans[0].innerHTML).toBe('ccc')
             expect(inputs[0].value).toBe('ccc')
             inputs[0].value = 'bbb'
-         
-             done()
-         
+
+            done()
+
         }, 80)
     })
     it('select3', function (done) {
@@ -267,7 +270,7 @@ describe('duplex', function () {
         vm = avalon.define({
             $id: 'duplex7',
             topic: ['1', '2'],
-            list: [{name: 'dog', value: '1'}, {name: 'bird', value: '2'}, {name: 'cat', value: '3'}],
+            list: [{ name: 'dog', value: '1' }, { name: 'bird', value: '2' }, { name: 'cat', value: '3' }],
         })
         avalon.scan(div, vm)
         setTimeout(function () {
@@ -353,5 +356,49 @@ describe('duplex', function () {
             }, 100)
         }, 100)
 
+    })
+    it('pollValue', function (done) {
+        var el = document.createElement('input')
+        el.composing = true
+        document.body.appendChild(el)
+
+        var id = pollValue.call({
+            isString: true,
+            dom: el
+        }, NaN, true)
+        expect(el.valueHijack).toA('function')
+        expect(id).toA('number')
+        setTimeout(function () {
+            document.body.removeChild(el)
+            setTimeout(function () {
+                clearInterval(id)
+                done()
+            }, 100)
+        }, 400)
+
+
+    })
+
+    it('lookupOption', function () {
+        var props = {}
+        lookupOption({
+            children: [{
+                nodeName: 'optgroup',
+                children: [
+                    {
+                        nodeName: 'option',
+                        props: props,
+                        children: [{
+                            nodeName: '#document-fragment',
+                            children: [{
+                                nodeName: '#text',
+                                nodeValue: 'xxx'
+                            }]
+                        }]
+                    }
+                ]
+            }]
+        },['xxx'])
+        expect(props.selected).toBe(true)
     })
 })

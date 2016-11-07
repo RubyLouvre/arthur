@@ -1,6 +1,7 @@
 import { avalon } from '../../src/seed/core'
 import '../../src/renders/index'
 
+
 describe('for', function () {
     var body = document.body, div, vm
     beforeEach(function () {
@@ -353,7 +354,7 @@ describe('for', function () {
             /*
              <div ms-controller='for9' >
              <ul>
-             <li ms-for='($index, el) in @array |limitBy(4)' data-for-rendered="@fn">{{$index}}::{{el}}</li>
+             <li ms-for='($index, el) in @array |limitBy(4) as list' data-for-rendered="@fn">{{$index}}::{{el}}::{{list.length}}</li>
              </ul>
              </div>
              */
@@ -361,7 +362,7 @@ describe('for', function () {
         var called = false
         vm = avalon.define({
             $id: 'for9',
-            array: [1,2,1,2,3],
+            array: [1, 2, 1, 2, 3],
             fn: function () {
                 called = true
             }
@@ -370,21 +371,21 @@ describe('for', function () {
         setTimeout(function () {
             var lis = div.getElementsByTagName('li')
             var ps = div.getElementsByTagName('p')
-            expect(lis[0].innerHTML).toBe('0::1')
-            expect(lis[1].innerHTML).toBe('1::2')
-            expect(lis[2].innerHTML).toBe('2::1')
-            expect(lis[3].innerHTML).toBe('3::2')
+            expect(lis[0].innerHTML).toBe('0::1::4')
+            expect(lis[1].innerHTML).toBe('1::2::4')
+            expect(lis[2].innerHTML).toBe('2::1::4')
+            expect(lis[3].innerHTML).toBe('3::2::4')
             expect(lis.length).toBe(4)
             expect(called).toBe(true)
             vm.array.reverse()
             setTimeout(function () {
-                expect(lis[0].innerHTML).toBe('0::3')
-                expect(lis[1].innerHTML).toBe('1::2')
-                expect(lis[2].innerHTML).toBe('2::1')
-                expect(lis[3].innerHTML).toBe('3::2')
+                expect(lis[0].innerHTML).toBe('0::3::4')
+                expect(lis[1].innerHTML).toBe('1::2::4')
+                expect(lis[2].innerHTML).toBe('2::1::4')
+                expect(lis[3].innerHTML).toBe('3::2::4')
                 done()
             })
-           
+
         }, 300)
 
     })
@@ -652,5 +653,44 @@ describe('for', function () {
             }, 300)
 
         }, 300)
+    })
+    it('diff', function () {
+        var diff = avalon.directives.for.diff
+        var obj = {
+            oldTrackIds: "xxx"
+        }
+        var val = diff.call(obj, [1, 2, 3, 4])
+        expect(obj.updating).toBe(true)
+        expect(obj.oldTrackIds).toBe('number:1;;number:2;;number:3;;number:4')
+        expect(val).toBe(true)
+    })
+    it('beforeInit', function () {
+        var diff = avalon.directives.for.beforeInit
+        var obj = {
+            expr: 'el in @arr as 111'
+        }
+        try {
+            diff.call(obj)
+        } catch (e) {
+            expect('invalid').toMatch(/invalid/)
+        }
+        obj = {
+            expr: 'el in @arr as for'
+        }
+        try {
+            diff.call(obj)
+        } catch (e) {
+            expect('invalid').toMatch(/invalid/)
+        }
+        obj = {
+            expr: 'el in @arr as kkk'
+        }
+        diff.call(obj)
+        expect(obj.keyName).toBe('$key')
+        expect(obj.valName).toBe('el')
+        expect(obj.asName).toBe('kkk')
+        expect(obj.signature).toMatch(/^for\d+/)
+        expect(obj.expr).toBe('@arr')
+
     })
 })

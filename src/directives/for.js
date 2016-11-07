@@ -232,7 +232,7 @@ function FragmentDecorator(fragment, instance, index) {
             data[instance.keyName] = instance.isArray ? index : fragment.key
             data[instance.valName] = fragment.val
             if (instance.asName) {
-                data[instance.asName] = []
+                data[instance.asName] = instance.value
             }
             return data
         }

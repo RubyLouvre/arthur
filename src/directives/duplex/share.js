@@ -116,9 +116,8 @@ export function duplexValidate(node, vdom) {
 }
 
 
-export var valueHijack = false
+export var valueHijack = true
 try { //#272 IE9-IE11, firefox
-
     var setters = {}
     var aproto = HTMLInputElement.prototype
     var bproto = HTMLTextAreaElement.prototype
@@ -140,7 +139,7 @@ try { //#272 IE9-IE11, firefox
     Object.defineProperty(bproto, 'value', {
         set: newSetter
     })
-    valueHijack = true
+    valueHijack = false
 } catch (e) {
     //在chrome 43中 ms-duplex终于不需要使用定时器实现双向绑定了
     // http://updates.html5rocks.com/2015/04/DOM-attributes-now-on-the-prototype
