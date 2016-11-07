@@ -58,9 +58,9 @@ describe('验证规则', function () {
                     
                     expect(input._ms_duplex_.rules).toEqual({required:false})
                     done()
-                })
+                },100)
             })
-        })
+        },100)
 
     })
 

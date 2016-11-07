@@ -36,19 +36,20 @@ describe('validate', function () {
              </form>
              */
         })
-        var callback = sinon.spy()
-        var error = sinon.spy()
+      var validate = {
+                onError: function(){},
+                deduplicateInValidateAll: true,
+                onValidateAll: function(){},
+                validateInKeyup: false
+      }
+      spyOn(validate, 'onError')
+        spyOn(validate, 'onValidateAll')
         vm = avalon.define({
             $id: "validate1",
             aaa: '',
             bbb: '',
             ccc: '',
-            validate: {
-                onError: error,
-                deduplicateInValidateAll: true,
-                onValidateAll: callback,
-                validateInKeyup: false
-            }
+            validate: validate
         })
         avalon.scan(div)
         vm.aaa = '1234'
@@ -57,20 +58,21 @@ describe('validate', function () {
         var btn = div.getElementsByTagName('button')[0]
         fireClick(btn)
         setTimeout(function () {
-            expect(callback.called).toBe(true)
-            var first = callback.args[0][0]
-            expect(first.length).toBe(1)
+            expect(validate.onValidateAll).toHaveBeenCalled()
 
+            //  expect(validate.onValidateAll).toHaveBeenCalled()
+            var first = validate.onValidateAll.calls.argsFor(0)[0]
+            expect(first.length).toBe(1)
             expect(first[0].getMessage()).toBe('必须是中文字符')
             expect(first[0].message).toBe('必须是中文字符')
 
-            expect(error.called).toBe(false)
+            expect(validate.onError).not.toHaveBeenCalled();
 
             vm.aaa = "司徒正美"
             fireClick(btn)
             setTimeout(function () {
-                expect(callback.callCount).toBe(2)
-                expect(callback.args[1][0].length).toBe(0)
+                expect( validate.onValidateAll.calls.count()).toBe(2)
+                expect(validate.onValidateAll.calls.argsFor(1)[0]).toEqual([])
                 done()
             }, 300)
 
