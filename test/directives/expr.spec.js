@@ -16,9 +16,10 @@ describe('expr', function () {
             bbb: 222
         })
         avalon.scan(div)
-        expect(div.innerHTML).toBe('<div>111+222</div>')
+        //IE6-8需要处理标签名的大写化
+        expect(div.innerHTML.toLowerCase()).toBe('<div>111+222</div>')
         vm.aa_bb = '司徒正美'
-        expect(div.innerHTML).toBe('<div>司徒正美+222</div>')
+        expect(div.innerHTML.toLowerCase()).toBe('<div>司徒正美+222</div>')
         delete avalon.vmodels.text1
     })
 
@@ -35,7 +36,7 @@ describe('expr', function () {
             bbb: 222
         })
         avalon.scan(div)
-        expect(div.innerHTML).toBe('<div>AAA+222</div>')
+        expect(div.innerHTML.replace(/DIV/g,'div')).toBe('<div>AAA+222</div>')
         delete avalon.vmodels.text2
     })
 
@@ -52,7 +53,7 @@ describe('expr', function () {
             bbb: 1477928314673
         })
         avalon.scan(div)
-        expect(div.innerHTML).toBe('<div>AE4D...+2016-10-31</div>')
+        expect(div.innerHTML.replace(/DIV/g,'div')).toBe('<div>AE4D...+2016-10-31</div>')
         delete avalon.vmodels.text3
     })
 })

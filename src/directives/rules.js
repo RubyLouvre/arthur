@@ -1,10 +1,10 @@
-import { avalon, isObject } from '../seed/core'
+import { avalon, isObject, platform} from '../seed/core'
 
 avalon.directive('rules', {
     diff: function (rules) {
         if (isObject(rules)) {
             var vdom = this.node
-            vdom.rules = rules.$model || rules
+            vdom.rules = platform.toJson(rules)
             if (vdom.duplex) {
                 vdom.duplex.rules = vdom.rules
             }

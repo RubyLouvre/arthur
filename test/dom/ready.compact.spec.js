@@ -1,9 +1,10 @@
 import { avalon } from '../../src/seed/core'
 import { fireReady } from '../../src/dom/ready/compact'
 
+
 describe('ready', function () {
     it('isReady', function () {
-
+      
         expect(avalon.isReady).toBe(true)
         var a = 1
         avalon.isReady = false
@@ -13,6 +14,7 @@ describe('ready', function () {
         fireReady()
         expect(avalon.isReady).toBe(true)
         expect(a).toBe(2)
+        
         avalon.ready(function () {
             a = 3
         })

@@ -1,10 +1,10 @@
 
-import { avalon } from '../seed/core'
+import { avalon, platform } from '../seed/core'
 
 var cssDir = avalon.directive('css', {
     diff: function (newVal, oldVal) {
         if (Object(newVal) === newVal) {
-            newVal = newVal.$model || newVal//安全的遍历VBscript
+            newVal = platform.toJson(newVal)//安全的遍历VBscript
             if (Array.isArray(newVal)) {//转换成对象
                 var b = {}
                 newVal.forEach(function (el) {

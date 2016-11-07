@@ -1,4 +1,4 @@
-import { avalon,isObject } from '../seed/core'
+import { avalon,isObject, platform} from '../seed/core'
 var valiDir = avalon.directive('validate', {
     diff: function (validator) {
         var vdom = this.node
@@ -11,9 +11,8 @@ var valiDir = avalon.directive('validate', {
             //一个是validator，它是vmValidator.$model， 这是为了防止IE6－8添加子属性时添加的hack
             //也可以称之为safeValidate
             vdom.vmValidator = validator
-            if (validator.$model) {//转换为普通对象
-                validator = validator.$model
-            }
+            validator = platform.toJson(validator)
+    
             vdom.validator = validator
             for (var name in valiDir.defaults) {
                 if (!validator.hasOwnProperty(name)) {

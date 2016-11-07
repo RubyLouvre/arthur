@@ -21,7 +21,7 @@ avalon.ready = function (fn) {
 }
 
 avalon.ready(function () {
-    avalon.scan(document.body)
+    avalon.scan && avalon.scan(document.body)
 })
 
 /* istanbul ignore next */

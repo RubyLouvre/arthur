@@ -49,10 +49,10 @@ describe('vdom', function () {
                 new VText(' xxx ')
             ])
             expect(option.toDOM().text).toMatch('xxx')
-            var dom = option.toDOM()
-            if(avalon.modern ){
-              
-                avalon.log(dom.textContent, dom.innerText, dom.innerHTML,dom.text)
+          var dom = option.toDOM()
+            if (avalon.modern) {
+
+                avalon.log(dom.textContent, dom.innerText, dom.innerHTML, dom.text)
                 expect(dom.textContent).toMatch(' xxx ')
             }
             expect(dom.innerText).toMatch(/xx/)
@@ -61,7 +61,9 @@ describe('vdom', function () {
                 new VText('')
             ])
             expect(option2.toDOM().text).toBe('')
+
             expect(option2.toDOM().innerText).toBe('')
+
             expect(option2.toDOM().innerHTML).toBe('')
         })
         it('style', function () {

@@ -217,7 +217,7 @@ cp.yieldDirectives = function () {
  */
 cp.optimizeDirectives = function () {
     for (var i = 0, el; el = this.directives[i++];) {
-        el.callback = directives[el.type].update 
+        el.callback = directives[el.type].update
         el.update = function () {
             var oldVal = this.oldValue
             var newVal = this.value = this.get()
@@ -320,7 +320,7 @@ function startWith(long, short) {
 
 var rhasChildren = /1/
 function groupTree(parent, children) {
-     children.forEach(function (vdom) {
+    children.forEach(function (vdom) {
         if (vdom.nodeName === '#document-fragment') {
             var dom = createFragment()
         } else {
@@ -330,11 +330,20 @@ function groupTree(parent, children) {
             groupTree(dom, vdom.children)
         }
         //高级版本可以尝试 querySelectorAll
-        if (rhasChildren.test(parent.nodeType))
-            parent.appendChild(dom)
+        try {
+            if (!appendChildMayThrowError[parent.nodeName.toLowerCase()]) {
+                parent.appendChild(dom)
+            }
+        } catch (e) { }
     })
 }
-
+var appendChildMayThrowError = {
+    '#text': 1,
+    '#comment': 1,
+    script: 1,
+    style: 1,
+    noscript: 1
+}
 function dumpTree(elem) {
     var firstChild
     while (firstChild = elem.firstChild) {

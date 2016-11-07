@@ -65,19 +65,6 @@ VElement.prototype = {
                 dom.text = template
                 dom.type = props.type || ''
                 break
-            //     case 'option':
-
-            //     avalon.clearHTML(dom)
-            //     dom.text = template
-            //https://github.com/facebook/react/blob/0.13-stable/src/browser/ui/dom/setInnerHTML.js#L66-L81
-            //     dom.innerHTML = '\uFEFF' +template
-            //     var textNode = dom.firstChild
-            //     if (textNode.data.length === 1) {
-            //       dom.removeChild(textNode)
-            //    } else {
-            //      textNode.deleteData(0, 1)
-            //    }
-            //   break
             case 'style':
                 /* istanbul ignore if*/
                 if ('styleSheet' in dom) {
@@ -95,6 +82,9 @@ VElement.prototype = {
             case 'template':
                 dom.innerHTML = template
                 break
+            case 'option':
+                //IE6-8,为option添加文本子节点,不会同步到text属性中
+                dom.text = template
             default:
                 /* istanbul ignore next */
                 if (!this.isVoidTag && this.children) {
