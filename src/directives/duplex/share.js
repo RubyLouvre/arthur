@@ -100,7 +100,7 @@ export function duplexValidate(node, vdom) {
 
     if (rules && !field.validator) {
         while (node && node.nodeType === 1) {
-            var validator = node._ms_validator_
+            var validator = node._ms_validate_
             if (validator) {
                 field.rules = rules
                 field.validator = validator
@@ -124,7 +124,7 @@ try { //#272 IE9-IE11, firefox
     var bproto = HTMLTextAreaElement.prototype
     var newSetter = function (value) { // jshint ignore:line
         setters[this.tagName].call(this, value)
-        var data = this.__ms_duplex__
+        var data = this._ms_duplex_
         if (!this.caret && data && data.isString) {
             data.duplexCb.call(this, { type: 'setter' })
         }

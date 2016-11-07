@@ -361,13 +361,7 @@ describe('for', function () {
         var called = false
         vm = avalon.define({
             $id: 'for9',
-            array: {
-                a: 11,
-                b: 22,
-                c: 33,
-                d: 44,
-                e: 55
-            },
+            array: [1,2,1,2,3],
             fn: function () {
                 called = true
             }
@@ -376,13 +370,21 @@ describe('for', function () {
         setTimeout(function () {
             var lis = div.getElementsByTagName('li')
             var ps = div.getElementsByTagName('p')
-            expect(lis[0].innerHTML).toBe('a::11')
-            expect(lis[1].innerHTML).toBe('b::22')
-            expect(lis[2].innerHTML).toBe('c::33')
-            expect(lis[3].innerHTML).toBe('d::44')
+            expect(lis[0].innerHTML).toBe('0::1')
+            expect(lis[1].innerHTML).toBe('1::2')
+            expect(lis[2].innerHTML).toBe('2::1')
+            expect(lis[3].innerHTML).toBe('3::2')
             expect(lis.length).toBe(4)
             expect(called).toBe(true)
-            done()
+            vm.array.reverse()
+            setTimeout(function () {
+                expect(lis[0].innerHTML).toBe('0::3')
+                expect(lis[1].innerHTML).toBe('1::2')
+                expect(lis[2].innerHTML).toBe('2::1')
+                expect(lis[3].innerHTML).toBe('3::2')
+                done()
+            })
+           
         }, 300)
 
     })

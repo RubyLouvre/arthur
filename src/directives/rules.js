@@ -8,6 +8,7 @@ avalon.directive('rules', {
             if (vdom.duplex) {
                 vdom.duplex.rules = vdom.rules
             }
+            return true
         }
     }
 })

@@ -217,7 +217,7 @@ cp.yieldDirectives = function () {
  */
 cp.optimizeDirectives = function () {
     for (var i = 0, el; el = this.directives[i++];) {
-        el.callback = directives[el.type].update
+        el.callback = directives[el.type].update 
         el.update = function () {
             var oldVal = this.oldValue
             var newVal = this.value = this.get()

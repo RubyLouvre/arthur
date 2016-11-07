@@ -2,7 +2,7 @@ import { avalon,isObject } from '../seed/core'
 var valiDir = avalon.directive('validate', {
     diff: function (validator) {
         var vdom = this.node
-        if (vdom.validator && vdom.validator) {
+        if (vdom.validator ) {
             return
         }
         if (isObject(validator)) {
@@ -28,7 +28,7 @@ var valiDir = avalon.directive('validate', {
         var validator = vdom.validator
         var dom = vdom.dom
         validator.dom = dom
-        dom._ms_validator_ = validator
+        dom._ms_validate_ = validator
         
         //为了方便用户手动执行验证，我们需要为原始vmValidate上添加一个onManual方法
         var v = vdom.vmValidator
@@ -61,19 +61,21 @@ var valiDir = avalon.directive('validate', {
     validateAll: function (callback) {
         var validator = this
         var fn = typeof callback === 'function' ? callback : validator.onValidateAll
-        var promise = validator.fields.filter(function (field) {
+        var promises = validator.fields.filter(function (field) {
             var el = field.dom
             return el && !el.disabled && validator.dom.contains(el)
         }).map(function (field) {
             return valiDir.validate(field, true)
         })
-        return Promise.all(promise).then(function (array) {
+        var uniq = {}
+        return Promise.all(promises).then(function (array) {
             var reasons = array.concat.apply([], array)
             if (validator.deduplicateInValidateAll) {
-                var uniq = {}
+               
                 reasons = reasons.filter(function (reason) {
                     var el = reason.element
                     var uuid = el.uniqueID || (el.uniqueID = setTimeout('1'))
+                    
                     if (uniq[uuid]) {
                         return false
                     } else {
@@ -110,7 +112,7 @@ var valiDir = avalon.directive('validate', {
         var promises = []
         var value = field.value
         var elem = field.dom
-        var validator = field.validator
+       
         /* istanbul ignore if */
         if (typeof Promise !== 'function') {//avalon-promise不支持phantomjs
             avalon.error('please npm install es6-promise or bluebird')
@@ -156,6 +158,7 @@ var valiDir = avalon.directive('validate', {
                 return typeof el === 'object'
             })
             if (!isValidateAll) {
+                var validator = field.validator
                 if (reasons.length) {
                     validator.onError.call(elem, reasons, event)
                 } else {

@@ -14,7 +14,7 @@ avalon.directive('duplex', {
         if (!this.dom) {
             this.duplexCb = updateModel
             this.dom = dom
-            dom.__ms_duplex__ = this
+            dom._ms_duplex_ = this
             //绑定事件
             updateDataEvents(dom, this)
             //添加验证

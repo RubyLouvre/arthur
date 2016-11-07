@@ -53,6 +53,10 @@ describe('验证规则', function () {
                 fireClick(btn)
                 setTimeout(function () {
                     expect(flag).toBe(2)
+                    vm.bbb = false 
+                    var input = document.getElementsByTagName('input')[0]
+                    
+                    expect(input._ms_duplex_.rules).toEqual({required:false})
                     done()
                 })
             })
@@ -260,6 +264,8 @@ describe('验证规则', function () {
         v.maxlength.get(elem.value, field, function (v) {
             expect(v).toBe(false)
         })
+        
+       
     })
     it('max and min', function () {
         var elem = document.createElement('input')

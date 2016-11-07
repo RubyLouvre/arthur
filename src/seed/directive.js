@@ -8,6 +8,9 @@ export function directive(name, opts) {
         avalon.warn(name, 'directive have defined! ')
     }
     directives[name] = opts
+    if(!opts.update){
+        opts.update = function(){}
+    }
     if (opts.delay) {
         delayCompile[name] = 1
     }
