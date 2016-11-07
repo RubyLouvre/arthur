@@ -5,22 +5,50 @@
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="dist/avalon.js"></script>
-        <script>
-            var vm = avalon.define({
-                $id: 'test',
-                aaa: "111",
-                aa: {ddd:1},
-                arr: [1,2,3]
-                
-            })
-            vm.$watch('aaa', function(){
-                console.log('111')
-            })
-          //  console.log(vm)
-            </script>
+        <script src="./dist/avalon.js"></script>
     </head>
     <body>
-        <div>TODO write content</div>
+        <script>
+            var vm = avalon.define({
+                $id: "test",
+               
+                aaa: 'a',
+                bbb: 'b',
+                ccc: 'c',
+                ddd: 'd',
+                eee: 'eee',
+                fff: 'bbb',
+                ggg: ['ccc'],
+                hhh: true,
+                iii: false,
+                jjj: true
+
+            })
+        </script>
+
+        <div ms-controller="test">
+            <p><input ms-duplex="@aaa"/>{{@aaa}}</p>
+            <p><input ms-duplex="@bbb|change"/>{{@bbb}}</p>
+            <p><input ms-duplex="@ccc|debounce(300)"/>{{@ccc}}</p>
+            <p><input type="password" ms-duplex="@ddd"/>{{@ddd}}</p>
+            <p><textarea ms-duplex="@eee"></textarea>{{@eee}}</p>
+            <div><select ms-duplex="@fff">
+                <option>aaa</option>
+                <option>bbb</option>
+                <option>ccc</option>
+            </select>{{@fff}}
+            </div>
+            <p>checkbox
+               <input type="checkbox" value="aaa" ms-duplex="@ggg"/>
+               <input type="checkbox" value="bbb"  ms-duplex="@ggg"/>
+               <input type="checkbox" value="ccc"  ms-duplex="@ggg"/>
+              <input type="checkbox" value="ddd"  ms-duplex="@ggg"/>
+             {{@ggg}}
+            </p>
+            <p>checked <input type="checkbox" ms-duplex-checked="@hhh"/>{{@hhh}}</p>
+            <p>checked <input type="radio" ms-duplex-checked="@iii"/>{{@iii}}</p>
+            <p>checked <input type="radio" ms-duplex="@jjj"/>{{@jjj}}</p>
+
+        </div>
     </body>
 </html>

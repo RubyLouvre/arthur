@@ -7,13 +7,7 @@ import { compactParseJSON } from './parseJSON.compact'
 var rsvg = /^\[object SVG\w*Element\]$/
 var ramp = /&amp;/g
 
-export function updateAttrs(node, vnode) {
-    /* istanbul ignore if*/
-    if (!node || node.nodeType !== 1) {
-        return
-    }
-    vnode.dynamic['ms-attr'] = 1
-    var attrs = vnode['ms-attr']
+export function updateAttrs(node, attrs) {
     for (var attrName in attrs) {
         var val = attrs[attrName]
         // 处理路径属性

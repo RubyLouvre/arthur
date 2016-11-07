@@ -1,9 +1,9 @@
 import { avalon, platform, modern, msie } from '../seed/core'
 import { $$skipArray } from './reserved'
-import { Watcher } from './watcher'
-import './share'
+import { Directive } from '../renders/Directive'
+import {observeItemObject} from './share'
 
-export { avalon, platform }
+export { avalon, platform, observeItemObject }
 
 //如果浏览器不支持ecma262v5的Object.defineProperties或者存在BUG，比如IE8
 //标准浏览器使用__defineGetter__, __defineSetter__实现
@@ -198,9 +198,9 @@ function beforeCreate(core, state, keys, byUser) {
         $accessors: state,
     }, byUser ? {
         $watch: function $watch(expr, callback, deep) {
-            var w = new Watcher(core.__proxy__, {
+            var w = new Directive(core.__proxy__, {
                 deep: deep,
-                user: true,
+                type: 'user',
                 expr: expr
             }, callback)
             if (!core[expr]) {
@@ -240,7 +240,6 @@ export function afterCreate(core, observe, keys) {
             if (!(key in $accessors)) {
                 observe[key] = keys[key]
             }
-
             keys[key] = true
         }
     }

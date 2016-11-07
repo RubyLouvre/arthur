@@ -9,7 +9,7 @@ export function fireReady(fn) {
         fn(avalon)
     }
 }
-avalon.scan = scan
+//avalon.scan = scan
 
 avalon.ready = function (fn) {
     readyList.push(fn)

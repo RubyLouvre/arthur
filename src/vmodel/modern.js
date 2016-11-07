@@ -1,8 +1,9 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
-import { Watcher } from './watcher'
-import './share'
-export { platform }
+import { Directive } from '../renders/Directive'
+import {observeItemObject} from './share'
+
+export { avalon, platform, observeItemObject }
 
 
 export function toJson(val) {
@@ -21,7 +22,7 @@ export function toJson(val) {
                                 }
                                 if (val.hasOwnProperty(i)) {
                                         var value = val[i]
-                                        obj[i] = value && value.$events ? toJson(value): value
+                                        obj[i] = value && value.$events ? toJson(value) : value
                                 }
                         }
                         return obj
@@ -62,9 +63,9 @@ function $fire(expr, a) {
 
 function $watch(expr, callback, deep) {
         var core = this.$events
-        var w = new Watcher(this, {
+        var w = new Directive(this, {
                 deep: deep,
-                user: true,
+                type: 'user',
                 expr: expr
         }, callback)
         if (!core[expr]) {
@@ -103,8 +104,8 @@ function afterCreate(core, observe, keys) {
                         hideProperty(observe, key, keys[key])
                         delete keys[key]
                 } else {
-                        if(!(key in $accessors)){
-                          observe[key] = keys[key]
+                        if (!(key in $accessors)) {
+                                observe[key] = keys[key]
                         }
                         keys[key] = true
                 }

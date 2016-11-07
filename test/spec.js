@@ -1,7 +1,6 @@
 import './seed/core.spec'
 import './seed/browser.spec'
 import './seed/cache.spec'
-//import './seed/langSpec'
 import './seed/lang.compact.spec'
 
 import './filters/index.spec'
@@ -22,5 +21,26 @@ import './vtree/fromString.spec'
 import './vtree/fromDOM.spec'
 
 import './vmodel/compact.spec'
+import './directives/on.spec'
+
+import './directives/expr.spec'
+import './directives/css.spec'
+import './directives/important.spec'
+
+import './directives/text.spec'
+import './directives/attr.spec'
+import './directives/class.spec'
+import './directives/hover.spec'
+import './directives/active.spec'
+import './directives/visible.spec'
+
+import './directives/duplex.spec'
+
+import './directives/for.spec'
+
+
+import './directives/validate.spec'
+
+import './directives/rules.spec'
 
 

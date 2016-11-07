@@ -1,9 +1,9 @@
-import { avalon, afterCreate, platform } from
+import { avalon, afterCreate, platform, observeItemObject } from
     '../../src/vmodel/compact'
 import { Depend } from
     '../../src/vmodel/depend'
-import { Watcher } from
-    '../../src/vmodel/watcher'
+import { Directive } from
+    '../../src/renders/Directive'
 describe('vmodel', function () {
     it('vmodel', function () {
         var vm = avalon.define({
@@ -163,12 +163,34 @@ describe('vmodel', function () {
 
 })
 
+
+describe('observeItemObject', function () {
+    it('test', function () {
+        var vm =avalon.define({
+            $id: 'xcvdsfdsf',
+            a: 1,
+            b: '2',
+            
+            c: new Date,
+            d: function(){},
+            $e: 33
+        })
+       var vm2 = observeItemObject(vm,{
+            data: {
+                dd:11,
+                $cc: 22
+            }
+        })
+       expect(vm2.d).toA('function')
+    })
+})
+
 describe('depend', function () {
     it('test', function () {
         var d = new Depend
         var a = 1
         var b = 1
-        d.watchers.push({
+        d.subs.push({
             update: function () {
                 a = 2
             },
@@ -183,16 +205,17 @@ describe('depend', function () {
     })
 })
 
-describe('watcher', function () {
+describe('Directive', function () {
     it('test', function () {
         var vm = avalon.define({
             $id: 'watcher',
             aaa: 11
         })
         var args = []
-        var d = new Watcher(vm, {
+        var d = new Directive(vm, {
             expr: '@aaa',
-            deep: false
+            deep: false,
+            type: 'user'
         }, function (a, b) {
             args = [a, b]
         })

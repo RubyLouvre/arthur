@@ -2,7 +2,6 @@
 import { avalon, platform, isObject, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
-import { Watcher } from './watcher'
 import { rewriteArrayMethods } from './List'
 
 
@@ -14,7 +13,7 @@ import { rewriteArrayMethods } from './List'
  * beforeCreate: modelFactory的内部方法，用于创建之前
  * afterCreate: modelFactory的内部方法，用于创建之后
  * isObservable: 判定此属性能否转换为访问器属性
- * createObserver: ViewModel的适配方法，决定使用哪个工厂转换
+ * createObservable: ViewModel的适配方法，决定使用哪个工厂转换
  */
 
 
@@ -50,27 +49,29 @@ export function modelFactory(definition, byUser) {
         }
         //往keys中添加系统API
         platform.beforeCreate(core, state, keys, byUser)
-        var observe = new Observe()
+        var vm = new Observable()
         //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        observe = platform.createViewModel(observe, state, keys)
-        platform.afterCreate(core, observe, keys)
-        return observe
+        vm = platform.createViewModel(vm, state, keys)
+        platform.afterCreate(core, vm, keys)
+        return vm
 }
 
-function Observe() { }
+function Observable() { }
 function listFactory(array, rewrite) {
         if (!rewrite) {
                 rewriteArrayMethods(array)
-                if(modern){
-                   Object.defineProperty(array, '$model', platform.modelAccessor)
+                if (modern) {
+                        Object.defineProperty(array, '$model', platform.modelAccessor)
                 }
+                platform.hideProperty(array, '$hashcode', avalon.makeHashCode('$'))
                 platform.hideProperty(array, '$events', { __dep__: new Depend })
         }
-        array.forEach(function (item, i) {
+        for (var i = 0, n = array.length; i < n; i++) {
+                var item = array[i]
                 if (isObject(item)) {
-                        array[i] = createObserver(item)
+                        array[i] = createObservable(item)
                 }
-        })
+        }
         return array
 }
 
@@ -90,7 +91,7 @@ export function isObservable(key, val) {
         return !(val && val.nodeName && val.nodeType)
 }
 
-function createObserver(target) {
+function createObservable(target) {
         if (target.$events) {
                 return target
         }
@@ -100,25 +101,37 @@ function createObserver(target) {
         } else if (isObject(target)) {
                 vm = modelFactory(target)
         }
-        if (vm)
+        if (vm) {
                 vm.$events.__dep__ = new Depend()
+        }
         return vm
 }
+// 指令需要计算自己的值，来刷新
+// 在计算前，将自己放到DepStack中
+// 然后开始计算，在Getter方法里，
 
 function createAccessor(key, val, core) {
         var value = val
-        var childOb = createObserver(val)
+        var childOb = createObservable(val)
+        var hash = childOb && childOb.$hashcode
         return {
                 get: function Getter() {
                         var ret = value
-                        if (Depend.watcher) {
+                        if (Depend.target) {
                                 core.__dep__.collect()
                                 if (childOb && childOb.$events) {
                                         childOb.$events.__dep__.collect()
                                 }
                         }
-                        if(childOb)
-                            return childOb
+                        if (Array.isArray(val)) {
+                                val.forEach(function (item) {
+                                        if (item && item.$events) {
+                                                item.$events.__dep__.collect()
+                                        }
+                                });
+                        }
+                        if (childOb)
+                                return childOb
                         return ret
                 },
                 set: function Setter(newValue) {
@@ -128,7 +141,10 @@ function createAccessor(key, val, core) {
                         }
                         core.__dep__.beforeNotify()
                         value = newValue
-                        childOb = createObserver(newValue)
+                        childOb = createObservable(newValue)
+                        if (childOb && hash) {
+                                childOb.$hashcode = hash
+                        }
                         core.__dep__.notify()
                 },
                 enumerable: true,
@@ -136,3 +152,34 @@ function createAccessor(key, val, core) {
         }
 }
 platform.listFactory = listFactory
+
+export function observeItemObject(before, after) {
+        var core = before.$events
+        if (!core.__dep__) {
+                core.__dep__ = new Depend()
+        }
+        var state = before.$accessors
+        var keys = before.$model || {}
+        var more = after.data
+        delete after.data
+        var props = after
+       
+        for (var key in more) {
+                keys[key] = more[key]
+                state[key] = createAccessor(key, more[key], core)
+        }
+        platform.beforeCreate(core, state, keys)
+        var vm = new Observable()
+        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+        vm = platform.createViewModel(vm, state, keys)
+        platform.afterCreate(core, vm, keys)
+        return vm
+}
+/**
+ * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
+ * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
+ * 
+ * 什么是Observer？ Observer（观察者）是Observable（可观察对象）推送数据的消费者。
+ * 在RxJS中，Observer是一个由回调函数组成的对象，键名分别为next、error 和 complete，
+ * 以此接受Observable推送的不同类型的通知，下面的代码段是Observer的一个示例：
+ */

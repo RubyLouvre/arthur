@@ -10,11 +10,12 @@ module.exports = function (config) {
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['jasmine'],//jasmine
+        frameworks: ['jasmine','sinon'],//jasmine
 
 
         // list of files / patterns to load in the browser
         files: [
+             './promise.js',
             './matchers.js',
             './beforeIt.js',
             './dist/avalon.test.js'
@@ -56,7 +57,7 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['IE', 'IE7','Chrome'],
+        browsers: ['IE', 'IE7','Chrome','PhantomJS'],//
 
         customLaunchers: {
             IE7: {

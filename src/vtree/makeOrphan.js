@@ -43,3 +43,4 @@ function trimHTML(v) {
     return String(v).replace(rtrimHTML, '').trim()
 }
 
+//widget rule duplex validate
