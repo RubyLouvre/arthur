@@ -147,7 +147,7 @@ describe('on', function () {
         div.innerHTML = heredoc(function () {
             /*
              <blockquote ms-controller='on5' >
-             <div ms-click='@callback' ms-for='(jj, el) in @panels' ms-if='jj === @curIndex' ms-html='el'></div>
+             <div ms-click='@callback' ms-for='($index, el) in @panels' ms-if='$index === @curIndex' ms-html='el'></div>
              </blockquote>
              */
         })
@@ -162,12 +162,12 @@ describe('on', function () {
                 expect(str).toBe('面板3')
             }
         ]
-        var i = 0
+        
         vm = avalon.define({
-            $id: "test",
+            $id: "on5",
             curIndex: 0, //默认显示第一个,
             callback: function (e) {
-                map[i](e.target.innerHTML)
+                map[this.$index](e.target.innerHTML)
             },
             panels: ["面板1", "面板2", "面板3"]
         })
@@ -176,17 +176,17 @@ describe('on', function () {
             var divs = div.getElementsByTagName('div')
             fireClick(divs[0])
             setTimeout(function () {
-                i = 1
+                vm.$index = 1
                 fireClick(divs[0])
                 setTimeout(function () {
-                    i = 2
+                   vm.$index = 2
+                    divs = div.getElementsByTagName('div')
                     fireClick(divs[0])
-                    setTimeout(function () {
-                        done()
-                    })
-                })
-            })
-        })
+                    done()
+                   
+                },80)
+            },80)
+        },80)
 
 
     })

@@ -320,7 +320,7 @@ function startWith(long, short) {
 
 var rhasChildren = /1/
 function groupTree(parent, children) {
-    children.forEach(function (vdom) {
+     children.forEach(function (vdom) {
         if (vdom.nodeName === '#document-fragment') {
             var dom = createFragment()
         } else {
