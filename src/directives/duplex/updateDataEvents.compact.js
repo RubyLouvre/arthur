@@ -45,35 +45,28 @@ export function updateDataEvents(dom, data) {
             }
             break
         case 'input':
+           
             if (data.isChanged) {
                 events.change = updateModel
             } else {
                 //http://www.cnblogs.com/rubylouvre/archive/2013/02/17/2914604.html
                 //http://www.matts411.com/post/internet-explorer-9-oninput/
-                if (msie) {//处理输入法问题
-                    events.keyup = updateModelKeyDown
-                }
-
-                if (msie < 9) {
+                if (msie < 10) {
+                    //IE6-8的propertychange有BUG,第一次用JS修改值时不会触发,而且你是全部清空value也不会触发
+                    //IE9的propertychange不支持自动完成,退格,删除,复制,贴粘,剪切或点击右边的小X的清空操作
                     events.propertychange = updateModelHack
                     events.paste = updateModelDelay
                     events.cut = updateModelDelay
+                    //IE9在第一次删除字符时不会触发oninput
+                    events.keyup = updateModelKeyDown
                 } else {
                     events.input = updateModel
-                }
-                //IE6-8的propertychange有BUG,第一次用JS修改值时不会触发,而且你是全部清空value也不会触发
-                //IE9的propertychange不支持自动完成,退格,删除,复制,贴粘,剪切或点击右边的小X的清空操作
-                //IE11微软拼音好像才会触发compositionstart 不会触发compositionend
-                //https://github.com/RubyLouvre/avalon/issues/1368#issuecomment-220503284
-                if (!msie || msie > 9) {
                     events.compositionstart = openComposition
+                     //微软拼音输入法的BUG需要在compositionend事件中处理
                     events.compositionend = closeComposition
-                }
-                if (!msie) {
-
-                    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
-                    //如果当前浏览器支持Int8Array,那么我们就不需要以下这些事件来打补丁了
-                    if (!/\[native code\]/.test(window.Int8Array)) {
+                      //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
+                    //处理低版本的标准浏览器,通过Int8Array进行区分
+                     if (!/\[native code\]/.test(window.Int8Array)) {
                         events.keydown = updateModelKeyDown //safari < 5 opera < 11
                         events.paste = updateModelDelay//safari < 5
                         events.cut = updateModelDelay//safari < 5 

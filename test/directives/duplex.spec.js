@@ -381,6 +381,9 @@ describe('duplex', function () {
 
     it('lookupOption', function () {
         var props = {}
+        var props2 = {
+            value: 'yyy'
+        }
         lookupOption({
             children: [{
                 nodeName: 'optgroup',
@@ -397,8 +400,17 @@ describe('duplex', function () {
                         }]
                     }
                 ]
+            },{
+                nodeName: 'option',
+                props:props2,
+                children: [{
+                        nodeName: '#text',
+                        nodeValue: 'zzz'
+                }]
+                
             }]
         },['xxx'])
         expect(props.selected).toBe(true)
+        expect(props2.selected).toBe(false)
     })
 })
