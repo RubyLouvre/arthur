@@ -2,7 +2,6 @@ import { avalon, createFragment } from '../../seed/core'
 import { rcheckedType } from '../../dom/rcheckedType'
 import { lookupOption } from './option'
 import { addScope, makeHandle } from '../../parser/index'
-// import { fromDOM } from '../../vtree/fromDOM'
 import { fromString } from '../../vtree/fromString'
 
 

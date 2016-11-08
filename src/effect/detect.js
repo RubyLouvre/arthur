@@ -13,6 +13,10 @@ let checker = {
 }
 let css3
 let tran
+let transition = false
+let animation = false
+let animationEndEvent
+let transitionEndEvent
 //有的浏览器同时支持私有实现与标准写法，比如webkit支持前两种，Opera支持1、3、4
 for (let name in checker) {
     if (window[name]) {
@@ -27,9 +31,8 @@ for (let name in checker) {
     }
 }
 if (typeof tran === 'string') {
-    let transition = true
-    css3 = true
-    let transitionEndEvent = tran
+    transition = css3 = true
+    transitionEndEvent = tran
 }
 
 //animationend有两个可用形态
@@ -52,9 +55,8 @@ for (name in checker) {
     }
 }
 if (typeof ani === 'string') {
-    let animation = true
-    css3 = true
-    let animationEndEvent = ani
+    animation = css3 = true
+    animationEndEvent = ani
 }
 export {
     css3,

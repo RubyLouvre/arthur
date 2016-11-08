@@ -11,27 +11,32 @@ let transitionDuration = avalon.cssName('transition-duration')
 let animationDuration = avalon.cssName('animation-duration')
 
 
-avalon.directive('effect', {
+var effectDir = avalon.directive('effect', {
     priority: 5,
     diff: function (effect) {
-
         var vdom = this.node
         if (typeof effect === 'string') {
-            vdom.effect = {
+            effect = {
                 is: effect
             }
             avalon.warn('ms-effect的指令值不再支持字符串,必须是一个对象')
         }
-        cssDiff.call(this, effect, this.oldVal)
-        //  cssDiff.call(this, copy, src, name, 'afterChange')
+        vdom.effect = effect
+        var ok =  cssDiff.call(this, effect, this.oldValue)
+        var me = this
+        if(ok){
+            setTimeout(function(){
+               effectDir.update.call(me, vdom, vdom.effect)
+            })
+        }
     },
-    update: function (vdom, _, opts) {
+
+    update: function (vdom, value, opts) {
         /* istanbul ignore if */
         var dom = this.node.dom
         if (dom && dom.nodeType === 1) {
             var name = 'ms-effect'
-            var option = vdom.effect
-        
+            var option = effect || opts
             var type = option.is
             /* istanbul ignore if */
             if (!type) {//如果没有指定类型
@@ -84,7 +89,7 @@ function callNextAnimation() {
     }
 }
 
-
+avalon.effects = {}
 avalon.effect = function (name, opts) {
     var definition = avalon.effects[name] = (opts || {})
     if (css3 && definition.css !== false) {
@@ -117,7 +122,7 @@ Effect.prototype = {
 }
 
 var rsecond = /\d+s$/
-function toMillisecond(str) {
+export function toMillisecond(str) {
     var ratio = rsecond.test(str) ? 1000 : 1
     return parseFloat(str) * ratio
 }
@@ -214,9 +219,9 @@ function createAction(action) {
     }
 }
 
-avalon.applyEffect = function (node, vnode, opts) {
+avalon.applyEffect = function (node, vdom, opts) {
     var cb = opts.cb
-    var curEffect = vnode['ms-effect']
+    var curEffect = vnode.effect
     if (curEffect && node && node.nodeType === 1) {
         var hook = opts.hook
         var old = curEffect[hook]
@@ -230,15 +235,15 @@ avalon.applyEffect = function (node, vnode, opts) {
             }
         }
         getAction(opts)
-        avalon.directives.effect.update(vnode, 0, avalon.shadowCopy({}, opts))
+        avalon.directives.effect.update(vnode, curEffect, avalon.shadowCopy({}, opts))
 
     } else if (cb) {
         cb(node)
     }
 }
 
-function getAction(opts) {
-    if (!opts.acton) {
-        opts.action = opts.hook.replace(/^on/, '').replace(/Done$/, '').toLowerCase()
+export function getAction(opts) {
+    if (!opts.action) {
+       return opts.action = opts.hook.replace(/^on/, '').replace(/Done$/, '').toLowerCase()
     }
 }

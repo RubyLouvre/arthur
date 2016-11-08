@@ -20,24 +20,23 @@ describe('fromDOM', function () {
         it('value', function () {
                 var div = document.createElement('div')
                 div.innerHTML = heredoc(function () {
-                        /**
+                        /*
                          <select value=11>
                          <option value='ddd'>222</option>
                          <option>11</option>
                          </select>
                          <input value='ddd' type=checkbox/>
                          <input value=1234 type=password />
-                         <textarea value='ddd'></textarea>
+                         <textarea value='eee'>fff</textarea>
                          */
-                })
+                }).trim()
                 var aa = fromDOM(div)[0]
-
                 expect(aa.children.length).toBe(4)
                 expect(aa.children[0].props.value).toBe('11')
                 expect(aa.children[0].props.type).toBe('select-one')
                 expect(aa.children[1].props.value).toBe('ddd')
                 expect(aa.children[2].props.value).toBe('1234')
-                expect(aa.children[3].props.value).toBe('ddd')
+                expect(aa.children[3].props.value).toBe('fff')
         })
         it('selectedIndex', function () {
                 var div = document.createElement('div')
