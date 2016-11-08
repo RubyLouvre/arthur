@@ -57,7 +57,6 @@ avalon.bind = function (elem, type, fn) {
         if (keys.indexOf(key) === -1) {
             keys.push(key)
             setEventId(elem, keys.join(','))
-
             //将令牌放进avalon-events属性中
         }
 
@@ -138,7 +137,6 @@ function dispatch(event) {
             if (event.stopImmediate) {
                 break
             }
-
             var fn = avalon.eventListeners[uuid]
             if (fn) {
                 var vm = rhandleHasVm.test(uuid) ? handler.elem._ms_context_ : 0
@@ -162,12 +160,11 @@ var focusBlur = {
 }
 
 function delegateEvent(type) {
-
     var value = root.getAttribute('delegate-events') || ''
     if (value.indexOf(type) === -1) {
         var arr = value.match(avalon.rword) || []
         arr.push(type)
-        setEventId(root, arr.join(','))
+        root.setAttribute('delegate-events', arr.join(','))
         avalon._nativeBind(root, type, dispatch, !!focusBlur[type])
     }
 }
