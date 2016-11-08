@@ -1,4 +1,4 @@
-import { avalon, document } from '../seed/core'
+import { avalon, document, msie } from '../seed/core'
 
 export function VElement(type, props, children, isVoidTag) {
     this.nodeName = type
@@ -84,6 +84,7 @@ VElement.prototype = {
                 break
             case 'option':
                 //IE6-8,为option添加文本子节点,不会同步到text属性中
+                if(msie < 9)
                 dom.text = template
             default:
                 /* istanbul ignore next */

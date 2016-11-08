@@ -29,7 +29,7 @@ avalon.directive('on', {
                 '\tvar __vmodel__ = this;',
                 '\t' + filters,
                 '\treturn ' + body,
-                '}catch(e){avalon.log(e)}'].filter(function (el) {
+                '}catch(e){avalon.log(e, "in on dir")}'].filter(function (el) {
                     return /\S/.test(el)
                 })
             fn = new Function('$event', ret.join('\n'))
@@ -40,7 +40,7 @@ avalon.directive('on', {
 
         var dom = avalon.vdom(vdom, 'toDOM')
         dom._ms_context_ = this.vm
-       
+
         this.eventType = this.param.replace(/\-(\d)$/, '')
         delete this.param
         avalon(dom).bind(this.eventType, fn)

@@ -142,7 +142,7 @@ function mountList(instance) {
 }
 
 function diffList(instance) {
-
+    console.log('----------------------')
     var cache = instance.cache
     var newCache = {}
     var fuzzy = []
@@ -225,6 +225,7 @@ function updateList(instance) {
  * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
  */
 avalon.arr = []
+var beforeVM
 function FragmentDecorator(fragment, instance, index) {
 
     var data = {}
@@ -234,10 +235,9 @@ function FragmentDecorator(fragment, instance, index) {
         data[instance.asName] = instance.value
     }
 
-    fragment.vm = observeItemObject(instance.vm, {
+    var vm = fragment.vm = observeItemObject(instance.vm, {
         data: data
     })
-
     fragment.index = index
 
     fragment.boss = avalon.scan(instance.fragment, fragment.vm, function () {

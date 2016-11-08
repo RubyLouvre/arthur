@@ -111,12 +111,13 @@ function createObservable(target) {
 // 然后开始计算，在Getter方法里，
 
 function createAccessor(key, val, core) {
-        var value = val
+        var priVal = val
         var childOb = createObservable(val)
         var hash = childOb && childOb.$hashcode
+
         return {
                 get: function Getter() {
-                        var ret = value
+                        var ret = priVal
                         if (Depend.target) {
                                 core.__dep__.collect()
                                 if (childOb && childOb.$events) {
@@ -135,12 +136,12 @@ function createAccessor(key, val, core) {
                         return ret
                 },
                 set: function Setter(newValue) {
-                        var oldValue = value
+                        var oldValue = priVal
                         if (newValue === oldValue) {
                                 return
                         }
                         core.__dep__.beforeNotify()
-                        value = newValue
+                        priVal = newValue
                         childOb = createObservable(newValue)
                         if (childOb && hash) {
                                 childOb.$hashcode = hash
@@ -154,15 +155,14 @@ function createAccessor(key, val, core) {
 platform.listFactory = listFactory
 
 export function observeItemObject(before, after) {
-        var core = avalon.shadowCopy({}, before.$events)
+        var core = {}
         core.__dep__ = new Depend()
-        
-        var state = before.$accessors
+        var state = avalon.shadowCopy({}, before.$accessors)
         var keys = before.$model || {}
         var more = after.data
         delete after.data
         var props = after
-       
+
         for (var key in more) {
                 keys[key] = more[key]
                 state[key] = createAccessor(key, more[key], core)
@@ -175,6 +175,7 @@ export function observeItemObject(before, after) {
         vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6)
         return vm
 }
+avalon.observeItemObject = observeItemObject
 /**
  * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
  * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
