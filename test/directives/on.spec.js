@@ -40,6 +40,7 @@ describe('on', function () {
         fireClick(elem)
         setTimeout(function () {
             expect(index).toBe(3)
+            
             done()
         }, 100)
     })
@@ -143,14 +144,15 @@ describe('on', function () {
             done()
         })
     })
-    it('ms-for+ms-if+ms-on', function (done) {
+    it('ms-for+ms-on', function (done) {
         div.innerHTML = heredoc(function () {
             /*
              <blockquote ms-controller='on5' >
-             <div ms-click='@callback' ms-for='($index, el) in @panels' ms-if='$index === @curIndex' ms-html='el'></div>
+             <div ms-click='@callback' ms-for='($index, el) in @panels' ms-html='el'></div>
              </blockquote>
              */
         })
+        var i = 0
         var map = [
             function (str) {
                 expect(str).toBe('面板1')
@@ -175,18 +177,10 @@ describe('on', function () {
         setTimeout(function () {
             var divs = div.getElementsByTagName('div')
             fireClick(divs[0])
-            setTimeout(function () {
-                vm.$index = 1
-                fireClick(divs[0])
-                setTimeout(function () {
-                   vm.$index = 2
-                    divs = div.getElementsByTagName('div')
-                    fireClick(divs[0])
-                    done()
-                   
-                },80)
-            },80)
-        },80)
+            fireClick(divs[1])
+            fireClick(divs[2])
+            done()
+        },100)
 
 
     })

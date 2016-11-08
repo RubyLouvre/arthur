@@ -166,22 +166,45 @@ describe('vmodel', function () {
 
 describe('observeItemObject', function () {
     it('test', function () {
-        var vm =avalon.define({
+        var vm = avalon.define({
             $id: 'xcvdsfdsf',
             a: 1,
             b: '2',
-            
+
             c: new Date,
-            d: function(){},
+            d: function () { },
             $e: 33
         })
-       var vm2 = observeItemObject(vm,{
+        var vm2 = observeItemObject(vm, {
             data: {
-                dd:11,
+                dd: 11,
                 $cc: 22
             }
         })
-       expect(vm2.d).toA('function')
+        expect(vm2.d).toA('function')
+        delete avalon.vmodels.xcvdsfdsf
+    })
+    it('不会互相干扰', function () {
+        var vm = avalon.define({
+            $id: 'xxx32',
+            kkk: 232
+        })
+        var vm2 = observeItemObject(vm, {
+            data: {
+                value: 111
+            }
+        })
+        var vm3 = observeItemObject(vm, {
+            data: {
+                value: 444
+            }
+        })
+        expect(vm2.value).toBe(111)
+        expect(vm3.value).toBe(444)
+        vm3.value = 888
+        expect(vm2.value).toBe(111)
+        expect(vm3.value).toBe(888)
+        delete avalon.vmodels.xxx32
     })
 })
 

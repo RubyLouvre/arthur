@@ -36,13 +36,18 @@ describe('validate', function () {
              </form>
              */
         })
-      var validate = {
-                onError: function(){},
-                deduplicateInValidateAll: true,
-                onValidateAll: function(){},
-                validateInKeyup: false
-      }
-      spyOn(validate, 'onError')
+        var args1 = []
+        var validate = {
+            onError: function () {
+
+            },
+            deduplicateInValidateAll: true,
+            onValidateAll: function (a) {
+                args1 = a
+            },
+            validateInKeyup: false
+        }
+        spyOn(validate, 'onError')
         spyOn(validate, 'onValidateAll')
         vm = avalon.define({
             $id: "validate1",
@@ -59,9 +64,9 @@ describe('validate', function () {
         fireClick(btn)
         setTimeout(function () {
             expect(validate.onValidateAll).toHaveBeenCalled()
-
-            //  expect(validate.onValidateAll).toHaveBeenCalled()
-            var first = validate.onValidateAll.calls.argsFor(0)[0]
+            console.log('validate')
+            var args = validate.onValidateAll.calls.argsFor(0)
+            var first = args[0]
             expect(first.length).toBe(1)
             expect(first[0].getMessage()).toBe('必须是中文字符')
             expect(first[0].message).toBe('必须是中文字符')
@@ -71,12 +76,12 @@ describe('validate', function () {
             vm.aaa = "司徒正美"
             fireClick(btn)
             setTimeout(function () {
-                expect( validate.onValidateAll.calls.count()).toBe(2)
+                expect(validate.onValidateAll.calls.count()).toBe(2)
                 expect(validate.onValidateAll.calls.argsFor(1)[0]).toEqual([])
                 done()
             }, 300)
 
-        })
+        },100)
     })
     it('getMessage,onSuccess,onError,onComplete', function (done) {
         var valiDir = avalon.directives.validate
