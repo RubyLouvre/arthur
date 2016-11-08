@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="dist/avalon.js"></script>
+        <script>
+            //优化动画, 重新实现组件, 实现 controller的组合VM, 后端渲染, 
+            //内部的订阅机制 ,$watch的*支持
+          avalon.effect('animate')
+         var  vm = avalon.define({
+            $id: 'for9',
+            array: [1, 2, 1, 2, 3]
+        })
+
+        </script>
+        <style>
+.animate-enter, .animate-leave{
+    width:100px;
+    height:100px;
+    background: #29b6f6;
+    transition: width 2s;
+    -moz-transition: width 2s; /* Firefox 4 */
+    -webkit-transition: width 2s; /* Safari 和 Chrome */
+    -o-transition: width 2s; /* Opera */
+}  
+.animate-enter-active, .animate-leave{
+    width:300px;
+}
+.animate-leave-active{
+    width:100px;
+}
+        </style>
+    </head>
+
+    <body>
+       <div ms-controller='for9' >
+           <div style="background:red;" 
+               ms-effect="{is:'animate'}">
+                    
+           </div>
+       </div>
+
+    </body>
+
+</html>

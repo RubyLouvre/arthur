@@ -1,4 +1,4 @@
-import { avalon, Cache } from '../seed/core'
+import { avalon, window, Cache } from '../seed/core'
 import { cssDiff } from '../directives/css'
 import {
     css3,
@@ -7,8 +7,7 @@ import {
     animationEndEvent,
     transitionEndEvent
 } from './detect'
-let transitionDuration = avalon.cssName('transition-duration')
-let animationDuration = avalon.cssName('animation-duration')
+
 
 
 var effectDir = avalon.directive('effect', {
@@ -16,27 +15,28 @@ var effectDir = avalon.directive('effect', {
     diff: function (effect) {
         var vdom = this.node
         if (typeof effect === 'string') {
-            effect = {
+            this.value = effect = {
                 is: effect
             }
             avalon.warn('ms-effect的指令值不再支持字符串,必须是一个对象')
         }
-        vdom.effect = effect
-        var ok =  cssDiff.call(this, effect, this.oldValue)
+        this.value = vdom.effect = effect
+        var ok = cssDiff.call(this, effect, this.oldValue)
         var me = this
-        if(ok){
-            setTimeout(function(){
-               effectDir.update.call(me, vdom, vdom.effect)
+        if (ok) {
+            setTimeout(function () {
+                effectDir.update.call(me, vdom, vdom.effect)
             })
         }
     },
 
-    update: function (vdom, value, opts) {
+    update: function (vdom, change, opts) {
+        console.log(arguments)
         /* istanbul ignore if */
         var dom = this.node.dom
         if (dom && dom.nodeType === 1) {
             var name = 'ms-effect'
-            var option = effect || opts
+            var option = change || opts
             var type = option.is
             /* istanbul ignore if */
             if (!type) {//如果没有指定类型
@@ -53,10 +53,10 @@ var effectDir = avalon.directive('effect', {
                 return avalon.warn(type + ' effect is undefined')
             }
             var finalOption = {}
-            var action = option.action
-            if (typeof action === 'boolean') {
-                finalOption.action = action ? 'enter' : 'leave'
-            }
+            var action = actionMaps[option.action]
+
+            finalOption.action = action
+
             var Effect = avalon.Effect
             /* istanbul ignore if */
 
@@ -80,6 +80,17 @@ var effectDir = avalon.directive('effect', {
     }
 })
 
+let move = 'move'
+let leave = 'leave'
+let enter = 'enter'
+var actionMaps = {
+    'true': enter,
+    'false': leave,
+    enter,
+    leave,
+    move,
+    'undefined': enter
+}
 
 var animationQueue = []
 function callNextAnimation() {
@@ -109,8 +120,8 @@ function patchObject(obj, name, value) {
     }
 }
 
-var Effect = function (el) {
-    this.el = el
+var Effect = function (dom) {
+    this.dom = dom
 }
 
 avalon.Effect = Effect
@@ -121,11 +132,6 @@ Effect.prototype = {
     move: createAction('Move')
 }
 
-var rsecond = /\d+s$/
-export function toMillisecond(str) {
-    var ratio = rsecond.test(str) ? 1000 : 1
-    return parseFloat(str) * ratio
-}
 
 function execHooks(options, name, el) {
     var list = options[name]
@@ -139,8 +145,8 @@ var staggerCache = new Cache(128)
 function createAction(action) {
     var lower = action.toLowerCase()
     return function (option) {
-        var elem = this.el
-        var $el = avalon(elem)
+        var dom = this.dom
+        var elem = avalon(dom)
         var isAnimateDone
         var staggerTime = isFinite(option.stagger) ? option.stagger * 1000 : 0
         /* istanbul ignore if */
@@ -156,16 +162,18 @@ function createAction(action) {
             }
         }
         var staggerIndex = stagger && stagger.count || 0
+        var animationID
         var animationDone = function (e) {
             var isOk = e !== false
-            if (--elem.__ms_effect_ === 0) {
-                avalon.unbind(elem, transitionEndEvent)
-                avalon.unbind(elem, animationEndEvent)
+            if (--dom.__ms_effect_ === 0) {
+                avalon.unbind(dom, transitionEndEvent)
+                avalon.unbind(dom, animationEndEvent)
             }
-            elem.animating = void 0
-            isAnimateDone = true
+            dom.animating = void 0
+            clearTimeout(animationID)
+
             var dirWord = isOk ? 'Done' : 'Abort'
-            execHooks(option, 'on' + action + dirWord, elem)
+            execHooks(option, 'on' + action + dirWord, dom)
 
             if (stagger) {
                 if (--stagger.items === 0) {
@@ -177,41 +185,39 @@ function createAction(action) {
                 callNextAnimation()
             }
         }
-        execHooks(option, 'onBefore' + action, elem)
+        execHooks(option, 'onBefore' + action, dom)
         /* istanbul ignore if */
         /* istanbul ignore else */
         if (option[lower]) {
-            option[lower](elem, function (ok) {
+            option[lower](dom, function (ok) {
                 animationDone(ok !== false)
             })
         } else if (css3) {
-            $el.addClass(option[lower + 'Class'])
-            if (lower === 'leave') {
-                $el.removeClass(option.enterClass + ' ' + option.enterActiveClass)
-            } else if (lower === 'enter') {
-                $el.removeClass(option.leaveClass + ' ' + option.leaveActiveClass)
-            }
-            if (!elem.__ms_effect_) {
-                $el.bind(transitionEndEvent, animationDone)
-                $el.bind(animationEndEvent, animationDone)
-                elem.__ms_effect_ = 1
+            elem.addClass(option[lower + 'Class'])
+            elem.removeClass(getNeedRemoved(option, lower))
+
+            if (!dom.__ms_effect_) {
+                //绑定动画结束事件
+                elem.bind(transitionEndEvent, animationDone)
+                elem.bind(animationEndEvent, animationDone)
+                dom.__ms_effect_ = 1
             } else {
-                elem.__ms_effect_++
+                dom.__ms_effect_++
             }
             setTimeout(function () {
-                isAnimateDone = avalon.root.offsetWidth === NaN
-                $el.addClass(option[lower + 'ActiveClass'])
-                var computedStyles = window.getComputedStyle(elem)
-                var tranDuration = computedStyles[transitionDuration]
-                var animDuration = computedStyles[animationDuration]
-                var time = toMillisecond(tranDuration) || toMillisecond(animDuration)
+                //下面两行用于触发CSS3动画
+                var time = avalon.root.offsetWidth === NaN
+                elem.addClass(option[lower + 'ActiveClass'])
+                //计算动画时长
+                time = getAnimationTime(dom)
                 if (!time === 0) {
+                    //立即结束动画
                     animationDone(false)
                 } else if (!staggerTime) {
-                    setTimeout(function () {
-                        if (!isAnimateDone) {
-                            animationDone(false)
-                        }
+                    //如果动画超出时长还没有调用结束事件,这可能是元素被移除了
+                    //如果强制结束动画
+                    animationID = setTimeout(function () {
+                        animationDone(false)
                     }, time + 32)
                 }
             }, 17 + staggerTime * staggerIndex)// = 1000/60
@@ -241,9 +247,38 @@ avalon.applyEffect = function (node, vdom, opts) {
         cb(node)
     }
 }
-
+/**
+ * 获取方向
+ */
 export function getAction(opts) {
     if (!opts.action) {
-       return opts.action = opts.hook.replace(/^on/, '').replace(/Done$/, '').toLowerCase()
+        return opts.action = opts.hook.replace(/^on/, '').replace(/Done$/, '').toLowerCase()
     }
+}
+/**
+ * 需要移除的类名
+ */
+function getNeedRemoved(options, name) {
+    var name = name === 'leave' ? 'enter' : 'leave'
+    return Array(name + 'Class', name + 'ActiveClass').map(function (cls) {
+        return options[cls]
+    }).join(' ')
+}
+/**
+ * 计算动画长度
+ */
+var transitionDuration = avalon.cssName('transition-duration')
+var animationDuration = avalon.cssName('animation-duration')
+var rsecond = /\d+s$/
+export function toMillisecond(str) {
+    var ratio = rsecond.test(str) ? 1000 : 1
+    return parseFloat(str) * ratio
+}
+
+function getAnimationTime(dom) {
+    var computedStyles = window.getComputedStyle(dom)
+    var tranDuration = computedStyles[transitionDuration]
+    var animDuration = computedStyles[animationDuration]
+    var time = toMillisecond(tranDuration) || toMillisecond(animDuration)
+    return dom
 }
