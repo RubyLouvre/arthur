@@ -232,7 +232,8 @@ cp.optimizeDirectives = function () {
  * @returns {undefined}
  */
 cp.destroy = function () {
-    for (var i = 0, el; el = this.directives[i++];) {
+    var list = this.directives || []
+    for (var i = 0, el; el = list[i++];) {
         el.destroy()
     }
     for (var i in this) {

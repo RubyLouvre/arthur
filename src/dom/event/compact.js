@@ -32,7 +32,11 @@ avalon.fireDom = function (elem, type, opts) {
         hackEvent = document.createEventObject()
         if (opts)
             avalon.shadowCopy(hackEvent, opts)
+            try{
         elem.fireEvent('on' + type, hackEvent)
+            }catch(e){
+                console.log(e. type)
+            }
     }
 }
 
