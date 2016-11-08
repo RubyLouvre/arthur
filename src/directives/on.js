@@ -7,9 +7,7 @@ avalon.directive('on', {
         this.getter = avalon.noop
     },
     init: function () {
-
         var vdom = this.node
-
         var underline = this.name.replace('ms-on-', 'e').replace('-', '_')
         var uuid = underline + '_' + this.expr.
             replace(/\s/g, '').
@@ -45,6 +43,10 @@ avalon.directive('on', {
         this.eventType = this.param.replace(/\-(\d)$/, '')
         delete this.param
         avalon(dom).bind(this.eventType, fn)
+    },
+
+    diff: function(){
+        return false
     },
     beforeDestroy: function () {
         avalon(this.node.dom).unbind(this.eventType)
