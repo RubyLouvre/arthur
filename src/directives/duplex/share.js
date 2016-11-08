@@ -166,7 +166,7 @@ export var updateView = {
     },
     updateChecked: function (vdom, checked) {
         if (vdom.dom) {
-            vdom.dom.checked = checked
+           vdom.dom.defaultChecked =  vdom.dom.checked = checked
         }
     },
     radio: function () {//处理单个checked属性
@@ -183,12 +183,13 @@ export var updateView = {
     },
     checkbox: function () {//处理多个checked属性
         var node = this.node
-        var value = node.props.value
+        var props = node.props
+        var value = props.value
         var values = [].concat(this.value)
         var checked = values.some(function (el) {
             return el + '' === value
         })
-        node.props.checked = checked
+        props.defaultChecked = props.checked = checked
         updateView.updateChecked(node, checked)
     },
     select: function () {//处理子级的selected属性

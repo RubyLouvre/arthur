@@ -90,13 +90,16 @@ describe('duplex', function () {
         avalon.scan(div, vm)
         setTimeout(function () {
             var inputs = div.getElementsByTagName('input')
+            console.log(inputs[0].checked,inputs[1].checked, inputs[2].checked)
             expect(inputs[0].checked).toBe(false)
             expect(inputs[1].checked).toBe(false)
             expect(inputs[2].checked).toBe(true)
+
             fireClick(inputs[0])
             fireClick(inputs[1])
             fireClick(inputs[2])
             setTimeout(function () {
+                console.log(vm.aaa.concat())
                 expect(vm.aaa.concat()).toEqual([111, 222])
                 done()
             }, 100)

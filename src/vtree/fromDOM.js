@@ -53,6 +53,11 @@ function markProps(node, attrs) {
     }
     if (rformElement.test(node.nodeName)) {
         ret.type = node.type
+        var a = node.getAttributeNode('value')
+        if(a && /\S/.test(a.value)){//IE6,7中无法取得checkbox,radio的value
+            ret.value = a.value
+        }
+      
     }
     var style = node.style.cssText
     if (style) {

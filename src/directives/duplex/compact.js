@@ -49,17 +49,18 @@ export function pollValue(isIE, valueHijack) {
     }
 }
 /* istanbul ignore if */
-if (avalon.msie === 6) {
+if (avalon.msie < 8) {
+    var oldUpdate = updateView.updateChecked
     updateView.updateChecked = function (vdom, checked) {
         var dom = vdom.dom
         if (dom) {
             setTimeout(function () {
-                //IE8 checkbox, radio是使用defaultChecked控制选中状态，
-                //并且要先设置defaultChecked后设置checked
-                //并且必须设置延迟
-                dom.defaultChecked = checked
-                dom.checked = checked
-            }, 30)
+                oldUpdate(vdom, checked)
+                dom.firstCheckedIt = 1
+            }, dom.firstCheckedIt ? 31 : 16)
+            //IE6,7 checkbox, radio是使用defaultChecked控制选中状态，
+            //并且要先设置defaultChecked后设置checked
+            //并且必须设置延迟(因为必须插入DOM树才生效)
         }
     }
 }
