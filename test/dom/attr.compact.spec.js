@@ -23,8 +23,12 @@ describe('attr', function () {
         it('为label添加各种属性', function () {
 
             var label = document.createElement('label')
-            label.getAttribute('aaa', '111')
+            label.setAttribute('bbb', '111')
+            try{
             updateAttrs(label, props)
+            }catch(e){
+                console.log('ddd',e)
+            }
             if (avalon.modern) {
                 expect(label.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
                 expect(label.getAttribute('href')).toBe('https://github.com/ecomfe/zrender')
@@ -32,14 +36,15 @@ describe('attr', function () {
                 expect(label.getAttribute('data-title')).toBe('aaa')
                 expect(label.getAttribute('for')).toBe('bbb')
             }
-
             expect(label.className).toBe('eee')
+
             avalon(label).attr("title", '222')
             expect(avalon(label).attr('title')).toBe('222')
         })
+
         it('为option添加各种属性', function () {
             var option = document.createElement('option')
-            option.getAttribute('aaa', '111')
+            option.setAttribute('bbb', '111')
             updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
@@ -54,7 +59,8 @@ describe('attr', function () {
         })
         it('为input添加各种属性', function () {
             var option = document.createElement('input')
-            option.getAttribute('aaa', '111')
+            option.setAttribute('aaa', '111')
+          
             updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')
@@ -69,7 +75,7 @@ describe('attr', function () {
         })
         it('为textarea添加各种属性', function () {
             var option = document.createElement('textarea')
-            option.getAttribute('aaa', '111')
+            option.setAttribute('aaa', '111')
             updateAttrs(option, props)
             if (avalon.modern) {
                 expect(option.getAttribute('src')).toBe('https://github.com/ecomfe/zrender')

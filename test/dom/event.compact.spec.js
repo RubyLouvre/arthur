@@ -11,7 +11,12 @@ describe('event', function () {
     })
     it('avEvent', function () {
         var event = {
-            srcElement: {},
+            srcElement: {
+                ownerDocument: {
+                    documentElement: {},
+                    body: {}
+                }
+            },
             type: 'click',
             keyCode: 12,
             clientX: 11,
@@ -42,21 +47,19 @@ describe('event', function () {
         expect(e2).toBe(e)
 
     })
-    it('bind', function (done) {
-        avalon.ready(function () {
-            var div = document.createElement('div')
-            document.body.appendChild(div)
-            var changed = false
-            avalon(div).bind('click', function () {
-                changed = true
-                return false
-            })
-            avalon.fireDom(div, 'click')
-            fireClick(div)
-            expect(changed).toBe(true)
-            avalon(div).unbind('click')
-            done()
+    it('bind', function () {
+        var div = document.createElement('div')
+        document.body.appendChild(div)
+        var changed = false
+        avalon(div).bind('click', function () {
+            changed = true
+            return false
         })
+        avalon.fireDom(div, 'click')
+        fireClick(div)
+        expect(changed).toBe(true)
+        avalon(div).unbind('click')
+
     })
 
 
