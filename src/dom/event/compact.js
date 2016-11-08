@@ -52,7 +52,7 @@ avEvent.prototype.fixEvent = function () {
         var box = DOC.compatMode === 'BackCompat' ? DOC.body : DOC.documentElement
         event.pageX = event.clientX + (box.scrollLeft >> 0) - (box.clientLeft >> 0)
         event.pageY = event.clientY + (box.scrollTop >> 0) - (box.clientTop >> 0)
-        event.wheelDeltaY = event.wheelDelta
+        event.wheelDeltaY = ~~event.wheelDelta
         event.wheelDeltaX = 0
     }
 }

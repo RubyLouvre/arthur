@@ -172,11 +172,8 @@ function delegateEvent(type) {
 
 var rconstant = /^[A-Z_]+$/
 export function avEvent(event) {
-    try {
-        if (event.originalEvent) {
-            return event
-        }
-    } catch (e) {
+    if (event.originalEvent) {
+        return event
     }
     for (var i in event) {
         if (!rconstant.test(i) && typeof event[i] !== 'function') {

@@ -6,13 +6,13 @@ import { compactParseJSON } from './parseJSON.compact'
 
 var rsvg = /^\[object SVG\w*Element\]$/
 var ramp = /&amp;/g
-
 export function updateAttrs(node, attrs) {
     for (var attrName in attrs) {
+      try {
         var val = attrs[attrName]
         // 处理路径属性
         /* istanbul ignore if*/
-        try {
+      
             //处理HTML5 data-*属性 SVG
             if (attrName.indexOf('data-') === 0 || rsvg.test(node)) {
                 node.setAttribute(attrName, val)
@@ -30,11 +30,15 @@ export function updateAttrs(node, attrs) {
                     node.removeAttribute(propName)
                     continue
                 }
+                //IE6中classNamme, htmlFor等无法检测它们为内建属性　
+                if(msie < 8 && /[A-Z]/.test(propName)){
+                   node[propName] = val + ''
+                   continue
+                }
                 //SVG只能使用setAttribute(xxx, yyy), VML只能使用node.xxx = yyy ,
                 //HTML的固有属性必须node.xxx = yyy
                 var isInnate = (!avalon.modern && isVML(node)) ? true :
                         isInnateProps(node.nodeName, attrName)
-
                 /* istanbul ignore next */
                 if (isInnate) {
                     if (attrName === 'href' || attrName === 'src') {

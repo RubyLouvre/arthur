@@ -142,7 +142,6 @@ function mountList(instance) {
 }
 
 function diffList(instance) {
-    console.log('----------------------')
     var cache = instance.cache
     var newCache = {}
     var fuzzy = []

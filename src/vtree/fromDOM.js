@@ -21,7 +21,7 @@ export function from(node) {
                 nodeName: type,
                 dom: node,
                 isVoidTag: !!voidTag[type],
-                props: markProps(node, node.attributes)
+                props: markProps(node, node.attributes||[])
             }
             if (orphanTag[type] || type == 'option') {
                 makeOrphan(vnode, type, node.text || node.innerHTML)
