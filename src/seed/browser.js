@@ -3,13 +3,7 @@ export let win = typeof window === 'object' ? window :
     
 export let inBrowser = win.location && win.navigator
 /* istanbul ignore if  */
-if (!win.JSON) {
-    win.JSON = {
-        stringify: function () {
-            throw 'undefined json'
-        }
-    }
-}
+
 
 export let document = inBrowser ? win.document : {
     createElement: Object,

@@ -130,6 +130,7 @@ function createFragments(instance, obj) {
 function mountList(instance) {
 
     var args = instance.fragments.map(function (fragment, index) {
+
         FragmentDecorator(fragment, instance, index)
         saveInCache(instance.cache, fragment)
         return fragment
@@ -223,19 +224,18 @@ function updateList(instance) {
  * @param {type} index
  * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
  */
+avalon.arr = []
 function FragmentDecorator(fragment, instance, index) {
 
-    fragment.this = instance
+    var data = {}
+    data[instance.keyName] = instance.isArray ? index : fragment.key
+    data[instance.valName] = fragment.val
+    if (instance.asName) {
+        data[instance.asName] = instance.value
+    }
+
     fragment.vm = observeItemObject(instance.vm, {
-        data: new function () {
-            var data = {}
-            data[instance.keyName] = instance.isArray ? index : fragment.key
-            data[instance.valName] = fragment.val
-            if (instance.asName) {
-                data[instance.asName] = instance.value
-            }
-            return data
-        }
+        data: data
     })
 
     fragment.index = index

@@ -40,14 +40,12 @@ avalon.directive('on', {
 
         var dom = avalon.vdom(vdom, 'toDOM')
         dom._ms_context_ = this.vm
+       
         this.eventType = this.param.replace(/\-(\d)$/, '')
         delete this.param
         avalon(dom).bind(this.eventType, fn)
     },
 
-    diff: function(){
-        return false
-    },
     beforeDestroy: function () {
         avalon(this.node.dom).unbind(this.eventType)
     }

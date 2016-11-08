@@ -35,7 +35,7 @@ avalon.fireDom = function (elem, type, opts) {
             try{
         elem.fireEvent('on' + type, hackEvent)
             }catch(e){
-                console.log(e. type)
+                console.log(e. type,'00000')
             }
     }
 }

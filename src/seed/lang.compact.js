@@ -36,7 +36,7 @@ export var compaceQuote = (function () {
         }
 })()
 try {
-        avalon._quote = window.JSON.stringify
+        avalon._quote = JSON.stringify
 } catch (e) {
         /* istanbul ignore next  */
         avalon._quote = compaceQuote

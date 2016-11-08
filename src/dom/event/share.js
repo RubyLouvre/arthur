@@ -162,6 +162,7 @@ var focusBlur = {
 function delegateEvent(type) {
     var value = root.getAttribute('delegate-events') || ''
     if (value.indexOf(type) === -1) {
+        //IE6-8会多次绑定同种类型的同一个函数,其他游览器不会
         var arr = value.match(avalon.rword) || []
         arr.push(type)
         root.setAttribute('delegate-events', arr.join(','))

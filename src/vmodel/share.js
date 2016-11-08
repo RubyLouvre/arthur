@@ -154,10 +154,9 @@ function createAccessor(key, val, core) {
 platform.listFactory = listFactory
 
 export function observeItemObject(before, after) {
-        var core = before.$events
-        if (!core.__dep__) {
-                core.__dep__ = new Depend()
-        }
+        var core = avalon.shadowCopy({}, before.$events)
+        core.__dep__ = new Depend()
+        
         var state = before.$accessors
         var keys = before.$model || {}
         var more = after.data
@@ -173,6 +172,7 @@ export function observeItemObject(before, after) {
         //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
         vm = platform.createViewModel(vm, state, keys)
         platform.afterCreate(core, vm, keys)
+        vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6)
         return vm
 }
 /**
