@@ -157,7 +157,7 @@ platform.listFactory = listFactory
 export function observeItemObject(before, after) {
         var core = {}
         core.__dep__ = new Depend()
-        var state = avalon.shadowCopy({}, before.$accessors)
+        var state = avalon.shadowCopy({}, before.$accessors)//防止互相污染
         var keys = before.$model || {}
         var more = after.data
         delete after.data

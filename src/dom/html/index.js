@@ -1,4 +1,5 @@
 import {avalon, Cache, document, createFragment} from '../../seed/core'
+import {fromString} from '../../vtree/fromString'
 export {avalon}
 
 var rhtml = /<|&#?\w+;/
@@ -21,7 +22,7 @@ avalon.parseHTML = function (html) {
     if (hasCache) {
         return avalon.cloneNode(hasCache)
     }
-    var vnodes = avalon.lexer(html)
+    var vnodes = fromString(html)
     for (var i = 0, el; el = vnodes[i++]; ) {
         var child = avalon.vdom(el, 'toDOM')
         fragment.appendChild(child)

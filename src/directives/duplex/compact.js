@@ -25,6 +25,7 @@ avalon.directive('duplex', {
         //需要通过轮询同步, chrome 42及以下版本需要这个hack
         pollValue.call(this, avalon.msie, valueHijack)
         //更新视图
+
         updateView[this.dtype].call(this)
 
     }

@@ -1,8 +1,10 @@
-import { avalon } from '../../seed/core'
+import { avalon, createFragment } from '../../seed/core'
 import { rcheckedType } from '../../dom/rcheckedType'
 import { lookupOption } from './option'
 import { addScope, makeHandle } from '../../parser/index'
-import { fromDOM } from '../../vtree/fromDOM'
+// import { fromDOM } from '../../vtree/fromDOM'
+import { fromString } from '../../vtree/fromString'
+
 
 var rchangeFilter = /\|\s*change\b/
 var rdebounceFilter = /\|\s*debounce(?:\(([^)]+)\))?/
@@ -56,14 +58,14 @@ export function duplexInit() {
     this.dtype = dtype
     var isChanged = false, debounceTime = 0
     //判定是否使用了 change debounce 过滤器
-   // this.isChecked = /boolean/.test(parsers)
-    if (dtype !== 'input' &&  dtype !== 'contenteditable'){
+    // this.isChecked = /boolean/.test(parsers)
+    if (dtype !== 'input' && dtype !== 'contenteditable') {
         delete this.isChange
         delete this.debounceTime
-    }else if( !this.isChecked ){
+    } else if (!this.isChecked) {
         this.isString = true
     }
-    
+
     var cb = node.props['data-duplex-changed']
     if (cb) {
         var arr = addScope(cb, 'xx')
@@ -73,16 +75,16 @@ export function duplexInit() {
 
 }
 export function duplexDiff(newVal, oldVal) {
- 
+
     if (Array.isArray(newVal)) {
         if (newVal + '' !== this.compareVal) {
             this.compareVal = newVal + ''
             return true
         }
-    }else {
+    } else {
         newVal = this.parseValue(newVal)
-        if(!this.isChecked){
-           this.value = newVal += ''
+        if (!this.isChecked) {
+            this.value = newVal += ''
         }
         if (newVal !== this.compareVal) {
             this.compareVal = newVal
@@ -196,11 +198,16 @@ export var updateView = {
     },
     contenteditable: function () {//处理单个innerHTML 
 
-        this.dom.innerHTML = this.value
-        var a = fromDOM(this.dom)
+        var vnodes = fromString(this.value)
+        var fragment = createFragment()
+        for (var i = 0, el; el = vnodes[i++];) {
+            var child = avalon.vdom(el, 'toDOM')
+            fragment.appendChild(child)
+        }
+        avalon.clearHTML(this.dom).appendChild(fragment)
         var list = this.node.children
         list.length = 0
-        Array.prototype.push.apply(list, a.children)
+        Array.prototype.push.apply(list, vnodes)
 
         this.duplexCb.call(this.dom)
     }

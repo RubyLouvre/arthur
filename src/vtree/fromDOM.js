@@ -47,7 +47,8 @@ function markProps(node, attrs) {
     for (var i = 0, n = attrs.length; i < n; i++) {
         var attr = attrs[i]
         if (attr.specified) {
-            ret[attr.name] = attr.value
+            //IE6-9不会将属性名变小写,比如它会将用户的contenteditable变成contentEditable
+            ret[attr.name.toLowerCase()] = attr.value
         }
     }
     if (rformElement.test(node.nodeName)) {
