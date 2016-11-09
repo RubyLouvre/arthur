@@ -199,7 +199,7 @@ function createAction(action) {
                 var time = avalon.root.offsetWidth === NaN
                 elem.addClass(option[lower + 'ActiveClass'])
                 //计算动画时长
-                time = getAnimationTime(dom)
+                time = getAnimationTime(dom) 
                 if (!time === 0) {
                     //立即结束动画
                     animationDone(false)

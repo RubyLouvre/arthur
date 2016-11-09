@@ -114,4 +114,38 @@ describe('effect', function () {
         }
 
     })
+
+    it('enter action', function (done) {
+        var enter = avalon.Effect.prototype.enter
+        var count = 0
+        var doneCalled = false
+        enter.call({
+            dom: document.createElement('div')
+        },
+            {
+                enter: function (el, fn) {
+                    ++count
+                    console.log('xxxx')
+                    fn(false)
+                },
+                stagger: 100,
+                onBeforeEnter: function () {
+                    ++count
+                    console.log('yyyy')
+                },
+                onEnterDone: function () {
+                    doneCalled = true
+                },
+                onEnterAbort: function () {
+                    ++count
+                    console.log('zzzz')
+                }
+            })
+        setTimeout(function () {
+            expect(count).toBe(3)
+            expect(doneCalled).toBe(false)
+            done()
+        }, 300)
+
+    })
 })
