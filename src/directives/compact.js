@@ -15,6 +15,6 @@ import './on'
 import './for'
 
 import './class.hover.active'
-// import './duplex/compact'
+import './duplex/compact'
 import './rules'
 import './validate'

@@ -6,3 +6,6 @@ import './vtree/fromString'
 import './vtree/fromDOM'
 import './vmodel/modern'
 
+import './renders/index'
+
+import './effect/index'

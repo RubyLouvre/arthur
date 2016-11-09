@@ -35,36 +35,25 @@ var effectDir = avalon.directive('effect', {
         /* istanbul ignore if */
         var dom = this.node.dom
         if (dom && dom.nodeType === 1) {
-            var name = 'ms-effect'
+            //要求配置对象必须指定is属性，action必须是布尔或enter,leave,move
             var option = change || opts
-            var type = option.is
-            /* istanbul ignore if */
-            if (!type) {//如果没有指定类型
+            var is = option.is
+            if (!is) {//如果没有指定类型
                 return avalon.warn('need is option')
             }
-            var effects = avalon.effects
-            /* istanbul ignore if */
-            if (css3 && !effects[type]) {
-                avalon.effect(type)
-            }
-            var globalOption = effects[type]
-            /* istanbul ignore if */
+            var action = actionMaps[option.action] 
+            if (typeof Effect.prototype[action] !== 'function')
+                return avalon.warn('action is undefined')
+            //必须预定义特效
+            var globalOption = avalon.effects[is] 
             if (!globalOption) {//如果没有定义特效
                 return avalon.warn(type + ' effect is undefined')
             }
             var finalOption = {}
-            var action = actionMaps[option.action]
 
-            finalOption.action = action
-
-            var Effect = avalon.Effect
-            /* istanbul ignore if */
-
-            var effect = new Effect(dom)
-            avalon.mix(finalOption, globalOption, option)
-            dom.animating = finalOption.action
-            /* istanbul ignore if */
-            /* istanbul ignore else */
+            var effect = new avalon.Effect(dom)
+            avalon.mix(finalOption, globalOption, option, { action })
+          
             if (finalOption.queue) {
                 animationQueue.push(function () {
                     effect[action](finalOption)
@@ -76,7 +65,6 @@ var effectDir = avalon.directive('effect', {
                 }, 4)
             }
         }
-
     }
 })
 
@@ -108,10 +96,8 @@ avalon.effect = function (name, opts) {
         patchObject(definition, 'enterActiveClass', definition.enterClass + '-active')
         patchObject(definition, 'leaveClass', name + '-leave')
         patchObject(definition, 'leaveActiveClass', definition.leaveClass + '-active')
-
     }
-    patchObject(definition, 'action', 'enter')
-
+    return definition
 }
 
 function patchObject(obj, name, value) {
@@ -134,11 +120,12 @@ Effect.prototype = {
 
 
 function execHooks(options, name, el) {
-    var list = options[name]
-    list = Array.isArray(list) ? list : typeof list === 'function' ? [list] : []
-    list.forEach(function (fn) {
-        fn && fn(el)
-    })
+    var fns = [].concat(options[name])
+    for (var i = 0, fn; fn = fns[i++];) {
+        if (typeof fn === 'function') {
+            fn(el)
+        }
+    }
 }
 var staggerCache = new Cache(128)
 
@@ -147,9 +134,9 @@ function createAction(action) {
     return function (option) {
         var dom = this.dom
         var elem = avalon(dom)
-        var isAnimateDone
+        //处理与ms-for指令相关的stagger
+        //========BEGIN=====
         var staggerTime = isFinite(option.stagger) ? option.stagger * 1000 : 0
-        /* istanbul ignore if */
         if (staggerTime) {
             if (option.staggerKey) {
                 var stagger = staggerCache.get(option.staggerKey) ||
@@ -162,19 +149,17 @@ function createAction(action) {
             }
         }
         var staggerIndex = stagger && stagger.count || 0
-        var animationID
+        //=======END==========
+        var stopAnimationID
         var animationDone = function (e) {
             var isOk = e !== false
             if (--dom.__ms_effect_ === 0) {
                 avalon.unbind(dom, transitionEndEvent)
                 avalon.unbind(dom, animationEndEvent)
             }
-            dom.animating = void 0
-            clearTimeout(animationID)
-
+            clearTimeout(stopAnimationID)
             var dirWord = isOk ? 'Done' : 'Abort'
             execHooks(option, 'on' + action + dirWord, dom)
-
             if (stagger) {
                 if (--stagger.items === 0) {
                     stagger.count = 0
@@ -185,14 +170,16 @@ function createAction(action) {
                 callNextAnimation()
             }
         }
+        //执行开始前的钩子
         execHooks(option, 'onBefore' + action, dom)
-        /* istanbul ignore if */
-        /* istanbul ignore else */
+      
         if (option[lower]) {
+            //使用JS方式执行动画
             option[lower](dom, function (ok) {
                 animationDone(ok !== false)
             })
         } else if (css3) {
+            //使用CSS3方式执行动画
             elem.addClass(option[lower + 'Class'])
             elem.removeClass(getNeedRemoved(option, lower))
 
@@ -205,7 +192,7 @@ function createAction(action) {
                 dom.__ms_effect_++
             }
             setTimeout(function () {
-                //下面两行用于触发CSS3动画
+                //用xxx-active代替xxx类名的方式 触发CSS3动画
                 var time = avalon.root.offsetWidth === NaN
                 elem.addClass(option[lower + 'ActiveClass'])
                 //计算动画时长
@@ -216,7 +203,7 @@ function createAction(action) {
                 } else if (!staggerTime) {
                     //如果动画超出时长还没有调用结束事件,这可能是元素被移除了
                     //如果强制结束动画
-                    animationID = setTimeout(function () {
+                    stopAnimationID = setTimeout(function () {
                         animationDone(false)
                     }, time + 32)
                 }
@@ -282,3 +269,47 @@ function getAnimationTime(dom) {
     var time = toMillisecond(tranDuration) || toMillisecond(animDuration)
     return dom
 }
+/**
+ * 
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="dist/avalon.js"></script>
+        <script>
+            avalon.effect('animate')
+            var vm = avalon.define({
+                $id: 'ani',
+                a: true
+            })
+        </script>
+        <style>
+            .animate-enter, .animate-leave{
+                width:100px;
+                height:100px;
+                background: #29b6f6;
+                transition:all 2s;
+                -moz-transition: all 2s; 
+                -webkit-transition: all 2s;
+                -o-transition:all 2s;
+            }  
+            .animate-enter-active, .animate-leave{
+                width:300px;
+                height:300px;
+            }
+            .animate-leave-active{
+                width:100px;
+                height:100px;
+            }
+        </style>
+    </head>
+    <body>
+        <div :controller='ani' >
+            <p><input type='button' value='click' :click='@a =!@a'></p>
+            <div :effect="{is:'animate',action:@a}"></div>
+        </div>
+</body>
+</html>
+ * 
+ */

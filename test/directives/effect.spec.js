@@ -47,7 +47,7 @@ describe('effect', function () {
             }
         }, { color: 'green' })).toBe(true)
         expect(diff.call({
-            oldValue:{
+            oldValue: {
                 color: 'green'
             },
             node: {
@@ -69,7 +69,5 @@ describe('effect', function () {
             action: 'enter'
         })
     })
-
-
 
 })
