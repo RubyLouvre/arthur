@@ -60,12 +60,7 @@ avalon.directive('visible', {
                     dom.style.display = value
                 }
             }
-            avalon.applyEffect = function (node, vnode, opts) {
-                var cb = opts.cb
-                if (cb) {
-                    cb(node)
-                }
-            }
+     
             avalon.applyEffect(dom, vdom, {
                 hook: show ? 'onEnterDone' : 'onLeaveDone',
                 cb: cb

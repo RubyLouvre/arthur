@@ -92,7 +92,7 @@ export function isObservable(key, val) {
 }
 
 function createObservable(target) {
-        if (target.$events) {
+        if (target && target.$events) {
                 return target
         }
         var vm

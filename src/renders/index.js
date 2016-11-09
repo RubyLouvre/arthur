@@ -320,7 +320,7 @@ function startWith(long, short) {
 
 
 var rhasChildren = /1/
-function groupTree(parent, children) {
+export function groupTree(parent, children) {
     children.forEach(function (vdom) {
         if (vdom.nodeName === '#document-fragment') {
             var dom = createFragment()
@@ -345,7 +345,7 @@ var appendChildMayThrowError = {
     style: 1,
     noscript: 1
 }
-function dumpTree(elem) {
+export function dumpTree(elem) {
     var firstChild
     while (firstChild = elem.firstChild) {
         if (firstChild.nodeType === 1) {
