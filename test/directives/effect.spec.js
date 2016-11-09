@@ -8,7 +8,8 @@ import {
     transitionEndEvent
 } from '../../src/effect/detect'
 import {
-    getAction
+    getAction,
+    getAnimationTime
 } from '../../src/effect/index'
 
 describe('effect', function () {
@@ -61,13 +62,56 @@ describe('effect', function () {
     it('avalon.effect', function () {
         avalon.effect('fade')
         var fade = avalon.effects.fade
-        expect(fade).toEqual({
-            enterClass: 'fade-enter',
-            enterActiveClass: 'fade-enter-active',
-            leaveClass: 'fade-leave',
-            leaveActiveClass: 'fade-leave-active',
-            action: 'enter'
-        })
+        if (avalon.modern)
+            expect(fade).toEqual({
+                enterClass: 'fade-enter',
+                enterActiveClass: 'fade-enter-active',
+                leaveClass: 'fade-leave',
+                leaveActiveClass: 'fade-leave-active'
+            })
+        delete avalon.effects.fade
     })
 
+
+    it('avalon.effect#update', function (done) {
+        avalon.effect('fade')
+        var update = avalon.directives.effect.update
+        var vdom = {
+            dom: document.createElement('div')
+        }
+        expect(update(vdom, {})).toBe(void 0)
+        expect(update(vdom, { is: 'xxx' })).toBe(void 0)
+
+        expect(update(vdom, { is: 'fade', action: 'xxx' })).toBe(void 0)
+        var effectProto = avalon.Effect.prototype
+        var old = effectProto.enter
+        var called = false
+        effectProto.enter = function () {
+            called = true
+        }
+        expect(update(vdom, { is: 'fade', action: true })).toBe(true)
+        expect(update(vdom, { is: 'fade', action: true, queue: true })).toBe(true)
+        setTimeout(function () {
+            expect(called).toBe(true)
+            effectProto.enter = old
+            delete avalon.effects.fade
+            done()
+        }, 100)
+    })
+
+    it('getAnimationTime', function () {
+        var el = document.createElement('div')
+        el.style.cssText = 'color:red;transition:all 2s; -moz-transition: all 2s; -webkit-transition: all 2s; -o-transition:all 2s;'
+        var el2 = document.createElement('div')
+        el2.style.cssText = 'color:red; transition:all 300ms; -moz-transition: all 300ms; -webkit-transition: all 300ms; -o-transition:all 300ms;'
+        document.body.appendChild(el)
+        document.body.appendChild(el2)
+        if (avalon.modern) {
+            expect(getAnimationTime(el)).toBe(2000)
+            expect(getAnimationTime(el2)).toBe(300)
+            document.body.removeChild(el)
+            document.body.removeChild(el2)
+        }
+
+    })
 })

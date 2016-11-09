@@ -8,8 +8,6 @@ import {
     transitionEndEvent
 } from './detect'
 
-
-
 var effectDir = avalon.directive('effect', {
     priority: 5,
     diff: function (effect) {
@@ -25,48 +23,53 @@ var effectDir = avalon.directive('effect', {
         var me = this
         if (ok) {
             setTimeout(function () {
+                vdom.animating = true
                 effectDir.update.call(me, vdom, vdom.effect)
             })
+            vdom.animating = false
+            return true
         }
+        return false
     },
 
     update: function (vdom, change, opts) {
-        console.log(arguments)
-        /* istanbul ignore if */
-        var dom = this.node.dom
+        var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
             //要求配置对象必须指定is属性，action必须是布尔或enter,leave,move
             var option = change || opts
             var is = option.is
-            if (!is) {//如果没有指定类型
-                return avalon.warn('need is option')
-            }
-            var action = actionMaps[option.action] 
-            if (typeof Effect.prototype[action] !== 'function')
-                return avalon.warn('action is undefined')
-            //必须预定义特效
-            var globalOption = avalon.effects[is] 
+
+            var globalOption = avalon.effects[is]
             if (!globalOption) {//如果没有定义特效
-                return avalon.warn(type + ' effect is undefined')
+                avalon.warn(is + ' effect is undefined')
+                return
             }
             var finalOption = {}
+            var action = actionMaps[option.action]
+            if (typeof Effect.prototype[action] !== 'function') {
+                avalon.warn('action is undefined')
+                return
+            }
+            //必须预定义特效
 
             var effect = new avalon.Effect(dom)
             avalon.mix(finalOption, globalOption, option, { action })
-          
+
             if (finalOption.queue) {
                 animationQueue.push(function () {
                     effect[action](finalOption)
                 })
                 callNextAnimation()
             } else {
-                setTimeout(function () {
-                    effect[action](finalOption)
-                }, 4)
+
+                effect[action](finalOption)
+
             }
+            return true
         }
     }
 })
+
 
 let move = 'move'
 let leave = 'leave'
@@ -81,7 +84,7 @@ var actionMaps = {
 }
 
 var animationQueue = []
-function callNextAnimation() {
+export function callNextAnimation() {
     var fn = animationQueue[0]
     if (fn) {
         fn()
@@ -172,7 +175,7 @@ function createAction(action) {
         }
         //执行开始前的钩子
         execHooks(option, 'onBefore' + action, dom)
-      
+
         if (option[lower]) {
             //使用JS方式执行动画
             option[lower](dom, function (ok) {
@@ -262,12 +265,11 @@ export function toMillisecond(str) {
     return parseFloat(str) * ratio
 }
 
-function getAnimationTime(dom) {
-    var computedStyles = window.getComputedStyle(dom)
+export function getAnimationTime(dom) {
+    var computedStyles = window.getComputedStyle(dom,null)
     var tranDuration = computedStyles[transitionDuration]
     var animDuration = computedStyles[animationDuration]
-    var time = toMillisecond(tranDuration) || toMillisecond(animDuration)
-    return dom
+   return toMillisecond(tranDuration) || toMillisecond(animDuration)
 }
 /**
  * 
