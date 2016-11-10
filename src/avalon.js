@@ -11,3 +11,4 @@ import './vmodel/compact'
 import './renders/index'
 
 import './effect/index'
+import './component/index'
