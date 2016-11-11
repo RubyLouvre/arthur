@@ -136,15 +136,15 @@ function createAccessor(key, val, parent) {
                                                         item.$events.__dep__.collect()
                                                 }
                                         })
-                                } else if (avalon.deepIds) {
-                                        var exit = avalon.deepIds.indexOf(childOb.$id)
-                                        if (exit === -1) {
-                                                avalon.deepIds.push(childOb.$id)
-                                                for (var i in childOb) {
-                                                        if (childOb.hasOwnProperty(i))
-                                                                var e = childOb[i]
-                                                }
+                                } else if (avalon.deepCollect) {
+                                        //  var exit = avalon.deepIds.indexOf(childOb.$id)
+                                        //   if (exit === -1) {
+                                        //         avalon.deepIds.push(childOb.$id)
+                                        for (var i in childOb) {
+                                                if (childOb.hasOwnProperty(i))
+                                                        var e = childOb[i]
                                         }
+                                        // }
                                 }
                                 return childOb
                         }
@@ -196,11 +196,11 @@ export function observeItemObject(before, after) {
         return vm
 }
 avalon.observeItemObject = observeItemObject
-/**
- * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
- * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
- * 
- * 什么是Observer？ Observer（观察者）是Observable（可观察对象）推送数据的消费者。
- * 在RxJS中，Observer是一个由回调函数组成的对象，键名分别为next、error 和 complete，
- * 以此接受Observable推送的不同类型的通知，下面的代码段是Observer的一个示例：
- */
+        /**
+         * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
+         * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
+         * 
+         * 什么是Observer？ Observer（观察者）是Observable（可观察对象）推送数据的消费者。
+         * 在RxJS中，Observer是一个由回调函数组成的对象，键名分别为next、error 和 complete，
+         * 以此接受Observable推送的不同类型的通知，下面的代码段是Observer的一个示例：
+         */

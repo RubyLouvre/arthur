@@ -62,7 +62,7 @@ dp.get = function () {
         return void 0
     var value
     if(this.deep){
-        avalon.deepIds = []
+        avalon.deepCollect = true
     }
     pushTarget(this)
     //当我们执行指令的getValue方法时，会调用vm.xxx的某个Getter，然后将指令放进它的depend.subs数组中
@@ -70,8 +70,8 @@ dp.get = function () {
     value = this.getValue()
    
     popTarget()
-    if(this.deep && avalon.deepIds){
-       delete avalon.deepIds
+    if(this.deep && avalon.deepCollect){
+       delete avalon.deepCollect
     }
     // 然后比较newDepends与depends数组，并不在新数组的depend去掉
     var uniq = {}
