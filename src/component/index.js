@@ -1,8 +1,5 @@
 import { avalon, isObject, platform } from '../seed/core'
 import { cssDiff } from '../directives/css'
-import { observeItemObject } from '../vmodel/share'
-
-
 import { dumpTree, groupTree } from '../renders/index'
 var legalTags = { wbr: 1, xmp: 1, template: 1 }
 var events = 'onInit,onReady,onViewChange,onDispose'
@@ -124,14 +121,12 @@ avalon.directive('widget', {
 
     },
     diff: function (newVal, oldVal) {
-        if (this.updating)
-            return false
-      this.updating = true
-    //   this.value = toObject(newVal)
-      return cssDiff.call(this, newVal, oldVal)
+        if (cssDiff.call(this, newVal, oldVal)){
+           return true
+        }
     },
     update: function (vdom, value) {
-        console.log('update ',vdom.nodeName)
+        this.oldValue = value //防止递归进入
         if (this.readyState > 1) {
             var comVm = this.comVm
             if (!this.useWatchOk) {
@@ -150,7 +145,6 @@ avalon.directive('widget', {
         } else {
             this.readyState++
         }
-        delete this.updating
     },
     destory: function () {
         this.boss.destory()

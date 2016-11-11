@@ -136,10 +136,14 @@ function createAccessor(key, val, parent) {
                                                         item.$events.__dep__.collect()
                                                 }
                                         })
-                                } else if( avalon.deepCollect){
-                                        for (var i in childOb) {
-                                                if (childOb.hasOwnProperty(i))
-                                                        var e = childOb[i]
+                                } else if (avalon.deepIds) {
+                                        var exit = avalon.deepIds.indexOf(childOb.$id)
+                                        if (exit === -1) {
+                                                avalon.deepIds.push(childOb.$id)
+                                                for (var i in childOb) {
+                                                        if (childOb.hasOwnProperty(i))
+                                                                var e = childOb[i]
+                                                }
                                         }
                                 }
                                 return childOb
