@@ -50,3 +50,4 @@ import './directives/for.spec'
 */
 import './directives/effect.spec'
 
+import './directives/widget.spec'

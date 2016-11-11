@@ -1,10 +1,11 @@
-import { scheduling } from '../renders/scheduling'
+//import { scheduling } from '../renders/scheduling'
 var depId = 0
 /**
  * 依赖收集类 用于联结 VM 与 Watcher
  */
-export function Depend() {
+export function Depend(key) {
     this.subs = []
+    this.key = key
     this.uuid = depId++
 }
 
@@ -18,7 +19,10 @@ var dp = Depend.prototype
  * @param  {Object}  sub
  */
 dp.addSub = function (sub) {
-    this.subs.push(sub)
+    var index = this.subs.indexOf(sub)
+    if (index === -1) {
+        this.subs.push(sub)
+    }
 }
 
 /**
@@ -72,6 +76,6 @@ export function pushTarget(_target) {
     Depend.target = _target
 }
 
-export function popTarget() {
+export function popTarget(el) {
     Depend.target = targetStack.pop()
 }

@@ -125,20 +125,17 @@ describe('effect', function () {
             {
                 enter: function (el, fn) {
                     ++count
-                    console.log('xxxx')
                     fn(false)
                 },
                 stagger: 100,
                 onBeforeEnter: function () {
                     ++count
-                    console.log('yyyy')
                 },
                 onEnterDone: function () {
                     doneCalled = true
                 },
                 onEnterAbort: function () {
                     ++count
-                    console.log('zzzz')
                 }
             })
         setTimeout(function () {

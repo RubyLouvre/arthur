@@ -30,15 +30,19 @@ avalon.define = function (definition) {
 }
 
 export function modelFactory(definition, byUser) {
-        var core = {
-                __dep__: new Depend
-        }
+
+
         var state = {}
         var hash = avalon.makeHashCode('$')
         var keys = {
                 $id: definition.$id || hash,
                 $hashcode: hash
         }
+
+        var core = {
+                __dep__: new Depend(keys.$id)
+        }
+
         for (var key in definition) {
                 if ($$skipArray[key])
                         continue
@@ -91,7 +95,7 @@ export function isObservable(key, val) {
         return !(val && val.nodeName && val.nodeType)
 }
 
-function createObservable(target) {
+function createObservable(target, dd) {
         if (target && target.$events) {
                 return target
         }
@@ -102,7 +106,7 @@ function createObservable(target) {
                 vm = modelFactory(target)
         }
         if (vm) {
-                vm.$events.__dep__ = new Depend()
+                vm.$events.__dep__ = dd || new Depend()
         }
         return vm
 }
@@ -110,29 +114,37 @@ function createObservable(target) {
 // 在计算前，将自己放到DepStack中
 // 然后开始计算，在Getter方法里，
 
-function createAccessor(key, val, core) {
+function createAccessor(key, val, parent) {
         var priVal = val
-        var childOb = createObservable(val)
+        var selfDep = new Depend(key) //当前值对象的Depend
+        var childOb = createObservable(val, selfDep)
         var hash = childOb && childOb.$hashcode
 
         return {
                 get: function Getter() {
                         var ret = priVal
                         if (Depend.target) {
-                                core.__dep__.collect()
-                                if (childOb && childOb.$events) {
-                                        childOb.$events.__dep__.collect()
-                                }
+                                selfDep.collect()
+                                parent.__dep__.collect()
                         }
-                        if (Array.isArray(val)) {
-                                val.forEach(function (item) {
-                                        if (item && item.$events) {
-                                                item.$events.__dep__.collect()
+                        Getter.dd = selfDep
+
+                        if (childOb && childOb.$events) {
+                                if (Array.isArray(childOb)) {
+                                        childOb.forEach(function (item) {
+                                                if (item && item.$events) {
+                                                        item.$events.__dep__.collect()
+                                                }
+                                        })
+                                } else if( avalon.deepCollect){
+                                        for (var i in childOb) {
+                                                if (childOb.hasOwnProperty(i))
+                                                        var e = childOb[i]
                                         }
-                                });
-                        }
-                        if (childOb)
+                                }
                                 return childOb
+                        }
+
                         return ret
                 },
                 set: function Setter(newValue) {
@@ -140,13 +152,15 @@ function createAccessor(key, val, core) {
                         if (newValue === oldValue) {
                                 return
                         }
-                        core.__dep__.beforeNotify()
+                        selfDep.beforeNotify()
+                        parent.__dep__.beforeNotify()
                         priVal = newValue
-                        childOb = createObservable(newValue)
+                        childOb = createObservable(newValue, selfDep)
                         if (childOb && hash) {
                                 childOb.$hashcode = hash
                         }
-                        core.__dep__.notify()
+                        selfDep.notify()
+                        parent.__dep__.notify()
                 },
                 enumerable: true,
                 configurable: true
@@ -165,7 +179,9 @@ export function observeItemObject(before, after) {
 
         for (var key in more) {
                 keys[key] = more[key]
-                state[key] = createAccessor(key, more[key], core)
+                if (isObservable(key, keys[key])) {
+                        state[key] = createAccessor(key, more[key], core)
+                }
         }
         platform.beforeCreate(core, state, keys)
         var vm = new Observable()

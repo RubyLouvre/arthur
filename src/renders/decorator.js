@@ -27,21 +27,15 @@ export function DirectiveDecorator(node, binding, scope, render) {
         }
 
     } : avalon.noop
-
-    var directive = new Directive(scope, binding, callback)
-
     for (var key in decorator) {
-        if (!protectedMenbers[key]) {
-            directive[key] = decorator[key]
-        }
-
+        binding[key] = decorator[key]
     }
-    directive.node = node
-    if (typeof directive.init === 'function') { //这里可能会重写node, callback, type, name
+    binding.node = node
+    var directive = new Directive(scope, binding, callback)
+    if(directive.init){
+        //这里可能会重写node, callback, type, name
         directive.init()
     }
-    delete directive.value
-
     directive.update()
     return directive
 }

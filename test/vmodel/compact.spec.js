@@ -242,8 +242,7 @@ describe('Directive', function () {
         }, function (a, b) {
             args = [a, b]
         })
-        expect(d.depIds.length).toBe(1)
-        expect(d.depends.length).toBe(1)
+        expect(d.depends.length >= 1).toBe(true)
         expect(d.value).toBe(11)
         vm.aaa = 333
         expect(args).toEqual([333, 11])

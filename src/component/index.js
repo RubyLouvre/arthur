@@ -1,54 +1,98 @@
 import { avalon, isObject, platform } from '../seed/core'
 import { cssDiff } from '../directives/css'
+import { observeItemObject } from '../vmodel/share'
+
+
 import { dumpTree, groupTree } from '../renders/index'
 var legalTags = { wbr: 1, xmp: 1, template: 1 }
 var events = 'onInit,onReady,onViewChange,onDispose'
 var componentEvents = avalon.oneObject(events)
+function toObject(value) {
+    var value = platform.toJson(value)
+    if (Array.isArray(value)) {
+        var v = {}
+        value.forEach(function (el) {
+            el && avalon.shadowCopy(v, el)
+        })
+        return v
+    }
+    return value
+}
 avalon.directive('widget', {
     delay: true,
     priority: 4,
-    //  var value = platform.toJson(rules)
-    //cssDiff.call(this,vdom, value)
+    deep: true,
     init: function () {
-
         var vdom = this.node
-        var value = this.value
-        //如果是非空元素，比如说xmp, ms-*, template
-        var nodesWithSlot = []
-        var directives = []
-        if (!vdom.isVoidTag) {
-            var text = vdom.children[0]
-            if (text && text.nodeValue) {
-                //用上面的VM处理innerHTML中的元素
-                var childBoss = avalon.scan('<div>' + text.nodeValue + '</div>', this.vm, function () {
-                    nodesWithSlot = this.root.children
-                })
-                directives = childBoss.directives
+        var oldValue = this.getValue()
+        var value = toObject(oldValue)
+        //外部VM与内部VM
+        // ＝＝＝创建组件的VM＝＝BEGIN＝＝＝
+        var is = vdom.props.is || value.is
+        var component = avalon.components[is]
+        //外部传入的总大于内部
+        if (!('fragment' in this)) {
+            if (!vdom.isVoidTag) {
+                var text = vdom.children[0]
+                if (text && text.nodeValue) {
+                    this.fragment = text.nodeValue
+                }
+            } else {
+                this.fragment = false
             }
         }
-        // ＝＝＝创建组件的VM＝＝BEGIN＝＝＝
-        var is = vdom.props.is
-        var component = avalon.components[is]
+        //如果组件还没有注册，那么将原元素变成一个占位用的注释节点
+        if (!component) {
+            this.readyState = 0
+            vdom.nodeName = '#comment'
+            vdom.nodeValue = 'unresolved component placeholder'
+            var oldDom = vdom.dom
+            if (oldDom) {
+                var p = oldDom.parentNode
+                if (p) {
+                    delete vdom.dom
+                    p.replaceChild(oldDom, avalon.vdom(vdom, 'toDOM'))
+                }
+            }
+            return
+        }
+        this.readyState = 1
+        //如果是非空元素，比如说xmp, ms-*, template
+        var comVm = createComponentVm(component, value, is)
+        fireComponentHook(comVm, vdom, 'Init')
 
+        this.comVm = comVm
 
-        var vm = this.vm = createComponentVm(component, value, is)
-
-        vm.$fire('onInit', {
-            type: 'init',
-            target: vdom.dom,
-            vmodel: vm
-        })
+        if (oldValue && oldValue.$events) {
+            syncComponentVm(this.vm, comVm, oldValue)
+            this.useWatchOk = true
+        }
 
         // ＝＝＝创建组件的VM＝＝END＝＝＝
-        var boss = avalon.scan(component.template, vm)
-        boss.directives.push.apply(boss.directives, directives)
+        var boss = avalon.scan(component.template, comVm)
         var root = boss.root
         for (var i in root) {
             vdom[i] = root[i]
         }
         boss.root = vdom
         boss.vnodes[0] = vdom
+        var nodesWithSlot = []
+        var directives = []
+        if (this.fragment || component.soleSlot) {
+            var curVM = this.fragment ? this.vm : comVm
+            var curText = this.fragment || '{{##' + component.soleSlot + '}}'
+            var childBoss = avalon.scan('<div>' + curText + '</div>', curVM, function () {
+                nodesWithSlot = this.root.children
+            })
+            directives = childBoss.directives
+            for (var i in childBoss) {
+                delete childBoss[i]
+            }
+        }
+        boss.directives.push.apply(boss.directives, directives)
 
+
+        this.boss = boss
         var arraySlot = [], objectSlot = {}
         //从用户写的元素内部 收集要移动到 新创建的组件内部的元素
         if (component.soleSlot) {
@@ -63,41 +107,82 @@ avalon.directive('widget', {
         }
 
         //将原来元素的所有孩子，全部移动新的元素的第一个slot的位置上
-    
         if (component.soleSlot) {
             insertArraySlot(boss.vnodes, arraySlot)
         } else {
             insertObjectSlot(boss.vnodes, objectSlot)
         }
+        //处理DOM节点
         dumpTree(vdom.dom)
-
         groupTree(vdom.dom, vdom.children)
 
-        vm.$fire("onReady", {
-            type: 'ready',
-            target: vdom.dom,
-            vmodel: vm
-        })
-      
+        fireComponentHook(comVm, vdom, 'Ready')
+
         this.beforeDistory = function () {
-            this.vm.$fire("onDispose", {
-                type: 'dispose',
-                target: vdom.dom,
-                vmodel: vm
-            })
+            fireComponentHook(comVm, vdom, 'Dispose')
         }
-        this.boss = boss
-
 
     },
-    diff: function (node, value) {
-        return true
+    diff: function (newVal, oldVal) {
+        if (this.updating)
+            return false
+      this.updating = true
+    //   this.value = toObject(newVal)
+      return cssDiff.call(this, newVal, oldVal)
     },
+    update: function (vdom, value) {
+        console.log('update ',vdom.nodeName)
+        if (this.readyState > 1) {
+            var comVm = this.comVm
+            if (!this.useWatchOk) {
+                for (var i in value) {
+                    if (comVm.hasOwnProperty(i)) {
+                        if (!/function|window|error|date|regexp/.test(value[i])) {
+                            comVm[i] = value[i]
+                        }
+                    }
+                }
+            }
+            fireComponentHook(comVm, vdom, 'ViewChange')
 
+        } else if (this.readyState === 0) {
+            this.init()
+        } else {
+            this.readyState++
+        }
+        delete this.updating
+    },
     destory: function () {
-        this.comBoss.destory()
+        this.boss.destory()
     }
 })
+
+function fireComponentHook(vm, vdom, name) {
+    vm.$fire('on' + name, {
+        type: name.toLowerCase(),
+        target: vdom.dom,
+        vmodel: vm
+    })
+}
+function syncComponentVm(topVm, comVm, object) {
+    var _name, name
+    for (name in topVm) {
+        if (topVm[name] === object) {
+            _name = name
+            break
+        }
+    }
+    if (_name) {
+        for (name in object) {
+            topVm.$watch(_name + '.' + name, (function (key) {
+                return function (val) {
+                    comVm[key] = val
+                }
+            })(name))
+        }
+    }
+}
+
 
 export function createComponentVm(component, value, is) {
     var hooks = {
@@ -122,7 +207,7 @@ function collectHooks(a, hooks) {
     for (var i in a) {
         if (componentEvents[i]) {
             if (typeof a[i] === 'function') {
-                hooks[i].unshift(a[i])
+                hooks[i].unshift({ callback: a[i] })
             }
             delete a[i]
         }
@@ -139,6 +224,7 @@ function insertArraySlot(nodes, arr) {
         }
     }
 }
+
 function insertObjectSlot(nodes, obj) {
     for (var i = 0, el; el = nodes[i]; i++) {
         if (el.nodeName === 'slot') {

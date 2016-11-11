@@ -13,14 +13,7 @@ var cssDir = avalon.directive('css', {
                 newVal = b
                 avalon.warn(this.type,'指令的值不建议使用数组形式了！')
             }
-            var props = this.node.props
-            for(var i in newVal){
-                if(!!newVal[i] === false){
-                   delete props[i]
-                }else{
-                   props[i] = newVal[i]
-                }
-            }
+           
             var hasChange = false
             var patch = {}
             if (!oldVal) {//如果一开始为空
@@ -49,6 +42,7 @@ var cssDir = avalon.directive('css', {
         return false
     },
     update: function (vdom, value) {
+         
         var dom = vdom.dom
         if (dom && dom.nodeType === 1) {
             var wrap = avalon(dom)

@@ -154,6 +154,9 @@ cp.getBinding = function (node, scope, childNodes) {
                     break
                 }
             }
+            if(/^ms\-/.test(node.nodeName)){
+                attrs.is = node.nodeName
+            }
 
             if (attrs['is']) {
                 if (!dirs['ms-widget']) {
