@@ -26,6 +26,7 @@ avalon.directive('widget', {
         //外部VM与内部VM
         // ＝＝＝创建组件的VM＝＝BEGIN＝＝＝
         var is = vdom.props.is || value.is
+        this.is = is
         var component = avalon.components[is]
         //外部传入的总大于内部
         if (!('fragment' in this)) {
@@ -126,18 +127,17 @@ avalon.directive('widget', {
         }
     },
     update: function (vdom, value) {
-        this.oldValue = value //防止递归进入
+        this.oldValue = value //★★防止递归
         if (this.readyState > 1) {
             var comVm = this.comVm
             if (!this.useWatchOk) {
                 for (var i in value) {
                     if (comVm.hasOwnProperty(i)) {
-                        if (!/function|window|error|date|regexp/.test(value[i])) {
-                            comVm[i] = value[i]
-                        }
+                        comVm[i] = value[i]
                     }
                 }
             }
+            //要保证要先触发孩子的ViewChange 然后再到它自己的ViewChange
             fireComponentHook(comVm, vdom, 'ViewChange')
 
         } else if (this.readyState === 0) {
