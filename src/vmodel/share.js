@@ -101,7 +101,7 @@ function createObservable(target, dd) {
         }
         var vm
         if (Array.isArray(target)) {
-                vm = listFactory(target, dd)
+                vm = listFactory(target, false, dd)
         } else if (isObject(target)) {
                 vm = modelFactory(target, dd)
         }
@@ -116,15 +116,12 @@ function createAccessor(key, val, pd) {
         var selfDep = new Depend(key, pd) //当前值对象的Depend
         var childOb = createObservable(val, selfDep)
         var hash = childOb && childOb.$hashcode
-console.log('create ',key)
         return {
                 get: function Getter() {
                         var ret = priVal
                         if (Depend.target) {
-                                selfDep.collect()
-                              //  parent.__dep__.collect()
+                            selfDep.collect()
                         }
-                        console.log('get ',key)
                         Getter.dd = selfDep
 
                         if (childOb && childOb.$events) {
@@ -153,14 +150,12 @@ console.log('create ',key)
                         }
                         selfDep.beforeNotify()
                         console.log('set ', key)
-                      //  parent.__dep__.beforeNotify()
                         priVal = newValue
                         childOb = createObservable(newValue, selfDep)
                         if (childOb && hash) {
                                 childOb.$hashcode = hash
                         }
                         selfDep.notify()
-                       // parent.__dep__.notify()
                 },
                 enumerable: true,
                 configurable: true

@@ -41,8 +41,7 @@ dp.removeSub = function (sub) {
  */
 dp.collect = function () {
     if (Depend.target) {
-        Depend.target.addDepend(this)
-       
+        Depend.target.addDepend(this) 
     }
 }
 
@@ -53,7 +52,6 @@ dp.beforeNotify = function () {
     this.subs.forEach(function (sub) {
         sub.beforeUpdate()
     })
-     
 }
 
 /**
@@ -66,7 +64,6 @@ dp.notify = function (args) {
         sub.update()
        // scheduling(sub)
     })
-    
 }
 
 
