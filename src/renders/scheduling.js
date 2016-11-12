@@ -1,25 +1,24 @@
 import { avalon } from '../seed/core'
-import { byPriority } from '../parser/attributes'
 
 var rendering = null
-var fibers = []
-export function scheduling(sub) {
-    if (sub === void 0) {
-        var go = fibers.length
+var tasks = []
+/**
+ * 任务调度系统，用不着数据变动后立即更新变图
+ */
+export function scheduling(job) {
+    if (rendering) {
+        avalon.Array.ensure(tasks, job)
     } else {
-        if (rendering) {
-            avalon.Array.ensure(fibers, sub)
-            fibers.sort(byPriority)
-        } else {
-            fibers.push(sub)
-            go = true
-        }
-    }
-    if (go) {
-        rendering = fibers[0]
-        fibers[0].update()
-        avalon.Array.remove(fibers, rendering)
-        rendering = null
-        scheduling()
+        tasks.push(job)
+        rendering = true
+        setTimeout(function () {
+            var list = tasks.splice(0, tasks.length)
+            list.sort(function (a, b) {
+                return a.priority - b.priority
+            }).forEach(function (el) {
+                el.update()
+            })
+            rendering = false
+        })
     }
 }

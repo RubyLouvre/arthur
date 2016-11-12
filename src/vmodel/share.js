@@ -25,22 +25,21 @@ avalon.define = function (definition) {
         if (avalon.vmodels[$id]) {
                 throw Error('error:[' + $id + '] had defined!')
         }
-        var vm = modelFactory(definition, true)
+        var vm = modelFactory(definition)
         return avalon.vmodels[$id] = vm
 }
 
-export function modelFactory(definition, byUser) {
-
-
+export function modelFactory(definition, dd) {
+        var byUser = dd === void 0
         var state = {}
         var hash = avalon.makeHashCode('$')
         var keys = {
                 $id: definition.$id || hash,
                 $hashcode: hash
         }
-
+        
         var core = {
-                __dep__: new Depend(keys.$id)
+                __dep__: dd || new Depend(keys.$id)
         }
 
         for (var key in definition) {
@@ -48,7 +47,7 @@ export function modelFactory(definition, byUser) {
                         continue
                 var val = keys[key] = definition[key]
                 if (isObservable(key, val)) {
-                        state[key] = createAccessor(key, val, core)
+                        state[key] = createAccessor(key, val, core.__dep__)
                 }
         }
         //往keys中添加系统API
@@ -61,19 +60,20 @@ export function modelFactory(definition, byUser) {
 }
 
 function Observable() { }
-function listFactory(array, rewrite) {
-        if (!rewrite) {
+function listFactory(array, stop, dd) {
+        if (!stop) {
                 rewriteArrayMethods(array)
                 if (modern) {
                         Object.defineProperty(array, '$model', platform.modelAccessor)
                 }
                 platform.hideProperty(array, '$hashcode', avalon.makeHashCode('$'))
-                platform.hideProperty(array, '$events', { __dep__: new Depend })
+                platform.hideProperty(array, '$events', { __dep__: dd || new Depend })
         }
+        var _dd = array.$events && array.$events.__dep__
         for (var i = 0, n = array.length; i < n; i++) {
                 var item = array[i]
                 if (isObject(item)) {
-                        array[i] = createObservable(item)
+                        array[i] = createObservable(item, _dd)
                 }
         }
         return array
@@ -101,12 +101,9 @@ function createObservable(target, dd) {
         }
         var vm
         if (Array.isArray(target)) {
-                vm = listFactory(target)
+                vm = listFactory(target, dd)
         } else if (isObject(target)) {
-                vm = modelFactory(target)
-        }
-        if (vm) {
-                vm.$events.__dep__ = dd || new Depend()
+                vm = modelFactory(target, dd)
         }
         return vm
 }
@@ -114,19 +111,20 @@ function createObservable(target, dd) {
 // 在计算前，将自己放到DepStack中
 // 然后开始计算，在Getter方法里，
 
-function createAccessor(key, val, parent) {
+function createAccessor(key, val, pd) {
         var priVal = val
-        var selfDep = new Depend(key) //当前值对象的Depend
+        var selfDep = new Depend(key, pd) //当前值对象的Depend
         var childOb = createObservable(val, selfDep)
         var hash = childOb && childOb.$hashcode
-
+console.log('create ',key)
         return {
                 get: function Getter() {
                         var ret = priVal
                         if (Depend.target) {
                                 selfDep.collect()
-                                parent.__dep__.collect()
+                              //  parent.__dep__.collect()
                         }
+                        console.log('get ',key)
                         Getter.dd = selfDep
 
                         if (childOb && childOb.$events) {
@@ -137,14 +135,11 @@ function createAccessor(key, val, parent) {
                                                 }
                                         })
                                 } else if (avalon.deepCollect) {
-                                        //  var exit = avalon.deepIds.indexOf(childOb.$id)
-                                        //   if (exit === -1) {
-                                        //         avalon.deepIds.push(childOb.$id)
+                                     
                                         for (var i in childOb) {
                                                 if (childOb.hasOwnProperty(i))
                                                         var e = childOb[i]
                                         }
-                                        // }
                                 }
                                 return childOb
                         }
@@ -157,14 +152,15 @@ function createAccessor(key, val, parent) {
                                 return
                         }
                         selfDep.beforeNotify()
-                        parent.__dep__.beforeNotify()
+                        console.log('set ', key)
+                      //  parent.__dep__.beforeNotify()
                         priVal = newValue
                         childOb = createObservable(newValue, selfDep)
                         if (childOb && hash) {
                                 childOb.$hashcode = hash
                         }
                         selfDep.notify()
-                        parent.__dep__.notify()
+                       // parent.__dep__.notify()
                 },
                 enumerable: true,
                 configurable: true

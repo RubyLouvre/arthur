@@ -1,4 +1,4 @@
-//import { scheduling } from '../renders/scheduling'
+import { scheduling } from '../renders/scheduling'
 var depId = 0
 /**
  * 依赖收集类 用于联结 VM 与 Watcher
@@ -42,6 +42,7 @@ dp.removeSub = function (sub) {
 dp.collect = function () {
     if (Depend.target) {
         Depend.target.addDepend(this)
+       
     }
 }
 
@@ -52,6 +53,7 @@ dp.beforeNotify = function () {
     this.subs.forEach(function (sub) {
         sub.beforeUpdate()
     })
+     
 }
 
 /**
@@ -64,6 +66,7 @@ dp.notify = function (args) {
         sub.update()
        // scheduling(sub)
     })
+    
 }
 
 
