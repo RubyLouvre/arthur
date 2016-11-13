@@ -62,27 +62,17 @@ avalon.directive('widget', {
                 if (hasCache) {
                         comVm = hasCache
                         this.comVm = comVm
-                        var boss = this.boss = comVm.$render
-                        var root = boss.root
-                        for (var i in root) {
-                                vdom[i] = root[i]
-                        }
-                        boss.root = vdom
-                        boss.vnodes[0] = vdom
+                        replaceRoot(this, comVm.$render)
                        
                 } else {
                         var comVm = createComponentVm(component, value, is)
                         fireComponentHook(comVm, vdom, 'Init')
                         this.comVm = comVm
-
                         // ＝＝＝创建组件的VM＝＝END＝＝＝
-                        var boss = this.boss =  comVm.$render = avalon.scan(component.template, comVm)
-                        var root = boss.root
-                        for (var i in root) {
-                                vdom[i] = root[i]
-                        }
-                        boss.root = vdom
-                        boss.vnodes[0] = vdom
+                        var boss = avalon.scan(component.template, comVm)
+                        comVm.$render = boss
+                        replaceRoot(instance, boss)
+
                         var nodesWithSlot = []
                         var directives = []
                         if (this.fragment || component.soleSlot) {
@@ -137,16 +127,15 @@ avalon.directive('widget', {
                 groupTree(vdom.dom, vdom.children)
 
                 fireComponentHook(comVm, vdom, 'Ready')
-              
+
                 this.beforeDestroy = function () {
                         if (!this.cacheVm) {
                                 fireComponentHook(comVm, vdom, 'Dispose')
                                 comVm.$hashcode = false
                                 delete avalon.vmodels[comVm.$id]
                                 this.boss.destroy()
-
                         }
-                       
+
                 }
 
         },
@@ -176,7 +165,16 @@ avalon.directive('widget', {
                 }
         }
 })
-
+function replaceRoot(instance, boss) {
+        instance.boss = boss
+        var root = boss.root
+        var vdom = instance.vdom
+        for (var i in root) {
+                vdom[i] = root[i]
+        }
+        boss.root = vdom
+        boss.vnodes[0] = vdom
+}
 function fireComponentHook(vm, vdom, name) {
         vm.$fire('on' + name, {
                 type: name.toLowerCase(),
