@@ -217,7 +217,7 @@ function createAction(action) {
 
 avalon.applyEffect = function (node, vdom, opts) {
     var cb = opts.cb
-    var curEffect = vnode.effect
+    var curEffect = vdom.effect
     if (curEffect && node && node.nodeType === 1) {
         var hook = opts.hook
         var old = curEffect[hook]

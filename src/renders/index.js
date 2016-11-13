@@ -84,9 +84,9 @@ cp.getBindings = function (dom, isRoot, scope, children) {
             //推算出用户定义时属性名,是使用ms-属性还是:属性
             var name = ('ms-' + type) in dom.props ? 'ms-' + type : ':' + type
             var dir = directives[type]
-            scope = dir.getScope(expr, scope)
-            delete dirs['ms-' + type]
             var render = this
+            scope = dir.getScope.call(this, expr, scope)
+            delete dirs['ms-' + type]
             this.callbacks.push(function () {
                 dir.update.call(render, dom, scope, name)
             })
@@ -154,7 +154,7 @@ cp.getBinding = function (node, scope, childNodes) {
                     break
                 }
             }
-            if(/^ms\-/.test(node.nodeName)){
+            if (/^ms\-/.test(node.nodeName)) {
                 attrs.is = node.nodeName
             }
 
@@ -250,18 +250,34 @@ cp.destroy = function () {
  * @param {type} childNodes
  * @returns {undefined}
  */
+
 cp.getForBinding = function (node, scope, childNodes) {
-    var nodes = []
-    var deep = 1
-    var begin = node, end
+
+    var begin = node
     var expr = node.nodeValue.replace('ms-for:', '')
     node.nodeValue = 'msfor:' + expr
+    var nodes = getRange(childNodes, begin)
+    var end = nodes.end
+    var f = new VFragment(nodes)
+    f.fragment = avalon.vdom(f, 'toHTML')
+    f.begin = begin
+    f.end = end
+    f.userCb = begin.userCb
+    delete begin.userCb
+    f.parentChildren = childNodes
+    f.props = {}//冒充元素节点
+    childNodes.splice(nodes.start, nodes.length)
+    this.bindings.push([
+        f, scope, { 'ms-for': expr }
+    ])
+}
 
+export function getRange(childNodes, node) {
     var i = childNodes.indexOf(node) + 1
-    var start = i
+    var deep = 1, nodes = [], end
+    nodes.start = i
     while (node = childNodes[i++]) {
         nodes.push(node)
-
         if (node.nodeName === '#comment') {
             if (startWith(node.nodeValue, 'ms-for:')) {
                 deep++
@@ -277,19 +293,8 @@ cp.getForBinding = function (node, scope, childNodes) {
         }
 
     }
-
-    var f = new VFragment(nodes)
-    f.fragment = avalon.vdom(f, 'toHTML')
-    f.begin = begin
-    f.end = end
-    f.userCb = begin.userCb
-    delete begin.userCb
-    f.parentChildren = childNodes
-    f.props = {}//冒充元素节点
-    childNodes.splice(start, nodes.length)
-    this.bindings.push([
-        f, scope, { 'ms-for': expr }
-    ])
+    nodes.end = end
+    return nodes
 }
 /**
  * 在带ms-for元素节点旁添加两个注释节点,组成循环区域
@@ -306,6 +311,10 @@ cp.getForBindingByElement = function (node, scope, childNodes, value) {
         nodeName: '#comment',
         nodeValue: 'ms-for:' + value,
         userCb: node.props['data-for-rendered']
+    }
+    if (node.props.slot) {
+        begin.slot = node.props.slot
+        delete node.props.slot
     }
     var end = {
         nodeName: '#comment',
@@ -325,6 +334,8 @@ function startWith(long, short) {
 var rhasChildren = /1/
 export function groupTree(parent, children) {
     children.forEach(function (vdom) {
+        if (!vdom)
+            return
         if (vdom.nodeName === '#document-fragment') {
             var dom = createFragment()
         } else {

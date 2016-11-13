@@ -9,7 +9,7 @@ avalon.component('ms-button', {
     soleSlot: 'buttonText'
 })
 avalon.component('ms-panel', {
-    template: heredoc(function(){
+    template: heredoc(function () {
         /*
 <div>
     <div class="body">
@@ -29,7 +29,7 @@ avalon.component('ms-panel', {
 })
 
 describe('widget', function () {
-    var textProp = 'textContent' in document ? 'textContent': 'innerText' 
+    var textProp = 'textContent' in document ? 'textContent' : 'innerText'
 
     var body = document.body, div, vm
     beforeEach(function () {
@@ -75,8 +75,8 @@ describe('widget', function () {
 
 
     })
-    
-     it('通过更新配置对象修改组件界面(VM对象形式)', function (done) {
+
+    it('通过更新配置对象修改组件界面(VM对象形式)', function (done) {
         div.innerHTML = heredoc(function () {
             /*
              <div ms-controller='widget1' >
@@ -99,7 +99,7 @@ describe('widget', function () {
                 return el.querySelector('.body')
             } else {
                 return el.getElementsByTagName('div')[0].
-                        getElementsByTagName('div')[0]
+                    getElementsByTagName('div')[0]
             }
         }
         setTimeout(function () {
@@ -147,7 +147,7 @@ describe('widget', function () {
                 return el.querySelector('.body')
             } else {
                 return el.getElementsByTagName('div')[0].
-                        getElementsByTagName('div')[0]
+                    getElementsByTagName('div')[0]
             }
         }
         setTimeout(function () {
@@ -171,8 +171,8 @@ describe('widget', function () {
             }, 300)
         }, 300)
     })
-    
-    
+
+
     it('通过更新配置对象修改组件界面(字面量形式)', function (done) {
         div.innerHTML = heredoc(function () {
             /*
@@ -196,7 +196,7 @@ describe('widget', function () {
                 return el.querySelector('.body')
             } else {
                 return el.getElementsByTagName('div')[0].
-                        getElementsByTagName('div')[0]
+                    getElementsByTagName('div')[0]
             }
         }
         setTimeout(function () {
@@ -220,7 +220,7 @@ describe('widget', function () {
             }, 300)
         }, 300)
     })
-    
+
     it('确保都被扫描', function (done) {
         div.innerHTML = heredoc(function () {
             /*
@@ -301,7 +301,7 @@ describe('widget', function () {
         setTimeout(function () {
             var divs = div.getElementsByTagName('div')
             var successRender = false
-            for (var i = 0, el; el = divs[i++]; ) {
+            for (var i = 0, el; el = divs[i++];) {
                 if (el.nodeType === 1 && el.className === 'dialog') {
                     successRender = true
                     break
@@ -314,9 +314,9 @@ describe('widget', function () {
             setTimeout(function () {
                 var hasText = div.innerHTML.indexOf('弹窗2') > 0
                 expect(hasText).toBe(true)
-                 vm.$render.destroy()
+                vm.$render.destroy()
                 //div.innerHTML = ''
-              
+
                 setTimeout(function () {
                     expect(hookIndex).toBe(4)
                     done()
@@ -326,9 +326,9 @@ describe('widget', function () {
         })
 
     });
-    
-     it('lifecycle', function (done) {
-       
+
+    it('lifecycle', function (done) {
+
         div.innerHTML = heredoc(function () {
             /*
              <div ms-controller='widget4' >
@@ -374,7 +374,7 @@ describe('widget', function () {
             }, 120)
         }, 120)
     })
-    
+
     it('操作组件vm来更新组件的界面', function (done) {
         div.innerHTML = heredoc(function () {
             /*
@@ -412,7 +412,7 @@ describe('widget', function () {
         })
 
     })
-    
+
     it('使用顶层VM的子对象作配置对象', function (done) {
         div.innerHTML = heredoc(function () {
             /*
@@ -451,7 +451,7 @@ describe('widget', function () {
         }, 150)
 
     })
-    
+
     it('组件的最外层元素定义其他指令不生效的BUG', function (done) {
         div.innerHTML = heredoc(function () {
             /*
@@ -481,7 +481,7 @@ describe('widget', function () {
         }, 150)
 
     })
-    
+
     it('&nbsp;的解析问题', function (done) {
         div.innerHTML = heredoc(function () {
             /*
@@ -504,14 +504,14 @@ describe('widget', function () {
             var span = div.getElementsByTagName('kbd')[0]
             expect(span.firstChild.nodeValue.trim()).toBe('123')
             delete avalon.components['ms-time']
-            
+
             done()
 
         }, 250)
 
     })
-    
-     it('应该ms-widget没有cached,并且出现不规范的ms-if的情况', function (done) {
+
+    it('应该ms-widget没有cached,并且出现不规范的ms-if的情况', function (done) {
         //https://github.com/RubyLouvre/avalon/issues/1584
         div.innerHTML = heredoc(function () {
             /*
@@ -577,4 +577,223 @@ describe('widget', function () {
         }, 150)
 
     })
+
+
+    it('组件没有cached的情况不断切换里面的事件还能生效', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <div ms-controller="widget10" ms-html="@tpl"></div>
+             */
+        })
+        var v123 = heredoc(function () {
+            /*
+             <div ms-controller="widget10_1">
+             <p ms-click="@alert">123</p>
+             <wbr ms-widget="{is:'ms-remove',ddd: @ddd}"/>
+             </div>
+             */
+        })
+        var v456 = heredoc(function () {
+            /*
+             <div ms-controller="widget10_2">
+             <p ms-click="@alert">456</p>
+             <wbr ms-widget="{is:'ms-remove',ddd: @ddd}"/>
+             </div>
+             */
+        })
+        var clickIndex = 0
+        avalon.component('ms-remove', {
+            template: "<span ms-click='@click'>{{@ddd}}</span>",
+            defaults: {
+                ddd: '3333',
+                click: function () {
+                    ++clickIndex
+                }
+            }
+        });
+        vm = avalon.define({
+            $id: 'widget10',
+            tpl: v123,
+            switch1: function () {
+                vm.tpl = v123
+            },
+            switch2: function () {
+                vm.tpl = v456
+            }
+        })
+        avalon.define({
+            $id: 'widget10_1',
+            ddd: 'aaaa',
+            alert: function () {
+                avalon.log('????')
+            }
+        });
+
+        avalon.define({
+            $id: 'widget10_2',
+            ddd: 'bbbb',
+            alert: function () {
+                avalon.log('!!!!')
+            }
+        });
+        avalon.scan(div)
+        setTimeout(function () {
+            var spans = div.getElementsByTagName('span')
+            expect(spans.length).toBe(1)
+            expect(spans[0].innerHTML).toBe('aaaa')
+            vm.switch2()
+            setTimeout(function () {
+                var spans = div.getElementsByTagName('span')
+                expect(spans.length).toBe(1)
+                expect(spans[0].innerHTML).toBe('bbbb')
+                vm.switch1()
+                setTimeout(function () {
+                    var spans = div.getElementsByTagName('span')
+                    expect(spans.length).toBe(1)
+                    expect(spans[0].innerHTML).toBe('aaaa')
+                    fireClick(spans[0])
+                    setTimeout(function () {
+                        expect(clickIndex).toBe(1)
+                        delete avalon.components['ms-remove']
+
+                        delete avalon.vmodels['widget10_1']
+                        delete avalon.vmodels['widget10_2']
+                        done()
+                    }, 20)
+                }, 100)
+            }, 100)
+        }, 150)
+
+    })
+
+    it('skipContent导致组件渲染异常', function (done) {
+
+        div.innerHTML = heredoc(function () {
+            /*
+             <div :controller="widget11">
+             <xmp :widget='{is:"CoursePlanCard", id:"CoursePlanCard"}'></xmp>
+             </div>
+             */
+        })
+        avalon.component("CoursePlanCard", {
+            template: heredoc(function () {
+                /*
+                 <div class="CoursePlanCard" >
+                 <div class="CoursePlanCard-info">
+                 <p class="CoursePlanCard-tip" id='aass'>
+                 <span>计划类型:</span>{{''}}</p>
+                 <p class="CoursePlanCard-tip">
+                 <span>计划时间:</span>{{''}}</p>  
+                 <p class="CoursePlanCard-tip">
+                 <span>必修学分:</span>{{''}}</p>
+                 <p class="CoursePlanCard-tip">
+                 <span>选修学分:</span>{{''}}</p>
+                 </div>
+                 </div>
+                 */
+            }),
+            defaults: {
+                onInit: function (a) {
+                    console.log(a)
+                }
+            }
+        })
+
+        vm = avalon.define({
+            $id: "widget11"
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            expect(div.getElementsByTagName('span').length).toBe(4)
+            delete avalon.components['CoursePlanCard']
+
+            delete avalon.vmodels['widget11']
+            delete avalon.vmodels['CoursePlanCard']
+            done()
+        }, 150)
+
+    })
+    it('移动多个同名的slot元素到组件内部', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <div :controller="widget12">
+             <xmp :widget='{is:"Slots"}'>
+            <p slot='aaa' >1111</p>
+            <p slot='aaa' >2222</p>
+            <p slot='bbb' >3333</p>
+            <p slot='bbb' >4444</p>
+             </xmp>
+             </div>
+             */
+        })
+        avalon.component("Slots", {
+            template: heredoc(function () {
+                /*
+                 <div class="slots" >
+                 <div>
+                  <slot name='aaa'/>
+                 </div>
+                  <div>
+                  <slot name='bbb'/>
+                 </div>
+                 </div>
+                 */
+            }),
+            defaults: {
+
+            }
+        })
+
+        vm = avalon.define({
+            $id: "widget12",
+            arr: [1, 2, 3]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            expect(div.getElementsByTagName('p').length).toBe(4)
+
+            delete avalon.components.Slots
+            done()
+        }, 150)
+
+    })
+    it('slot+ms-for', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+             <div :controller="widget12">
+             <xmp :widget='{is:"Slots"}'>
+                <p slot='aaa' ms-for="el in @arr">{{el}}</p>
+             </xmp>
+             </div>
+             */
+        })
+        avalon.component("Slots", {
+            template: heredoc(function () {
+                /*
+                 <div class="slots" >
+                 <div>
+                  <slot name='aaa'/>
+                 </div>
+                 </div>
+                 */
+            }),
+            defaults: {
+
+            }
+        })
+
+        vm = avalon.define({
+            $id: "widget12",
+            arr: [111, 222, 333]
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            expect(div.getElementsByTagName('p').length).toBe(3)
+
+            delete avalon.components.Slots
+            done()
+        }, 150)
+
+    })
+
 })

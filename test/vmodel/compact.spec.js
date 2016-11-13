@@ -248,4 +248,6 @@ describe('Directive', function () {
         expect(args).toEqual([333, 11])
         delete avalon.vmodels.watcher
     })
+
+
 })

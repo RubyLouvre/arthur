@@ -58,6 +58,7 @@ avalon.directive('for', {
         })
         this.fragment = ['<div>', f.fragment, '<!--', this.signature, '--></div>'].join('')
         this.node = this.begin
+        this.node.forDir = this
         this.cache = {}
     },
     diff: function (newVal, oldVal) {

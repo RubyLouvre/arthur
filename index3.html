@@ -1,41 +1,119 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="dist/avalon.js"></script>
-        <script>
-            avalon.component('ms-button', {
-                template: '<button type="button"><span><slot /></span></button>',
-                defaults: {
-                    buttonText: "button"
-                },
-                soleSlot: 'buttonText'
+<head>
+	<title>TODO supply a title</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="dist/avalon.js"></script>
+	<script>
+
+            function heredoc(fn) {
+                return fn.toString().replace(/^[^\/]+\/\*!?\s?/, '').
+                        replace(/\*\/[^\/]+$/, '').trim().replace(/>\s*</g, '><')
+            }
+
+          function fireClick(el) {
+    if (el.click) {
+        el.click()
+    }else {
+//https://developer.mozilla.org/samples/domref/dispatchEvent.html
+        var evt = document.createEvent('MouseEvents')
+        evt.initMouseEvent('click', true, true, window,
+                0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        !el.dispatchEvent(evt);
+    }
+}
+
+function expect(a){
+    return {
+        toBe: function(b){
+            console.log(a, b, a===b)
+        }
+    }
+}
+        avalon.component('ms-hasha', {
+            template: '<div cached="true">{{@num}}<input type="text" ms-duplex-number="@num"/><button type="button" ms-on-click="@onPlus">+++</button></div>',
+            defaults: {
+                num: 1,
+                onPlus: function () {
+                    this.num++;
+                }
+            }
+        });
+        var tpl = '<div cached="true"><h4>{{@title}}</h4><button type="button" ms-on-click="@onChangeTitle">点击改变title</button></div>';
+        var time = 10
+        avalon.component('ms-hashb', {
+            template: tpl,
+            defaults: {
+                title: "这是标题",
+                random: 0,
+                onChangeTitle: function (e) {
+                    this.title = 'title' + (++time);
+                }
+            }
+        });
+        vm = avalon.define({
+            $id: 'router',
+            panel: '',
+            hash: ''
+        })
+        function changePanel(v) {
+            vm.panel = '<' + v + ' ms-widget="{id:\'' + v + '\'}"></' + v + '>'
+        }
+        vm.$watch('hash', changePanel)
+        vm.hash = 'ms-hasha'
+
+     
+        setTimeout(function () {
+            var div = document.body
+            var input = div.getElementsByTagName('input')[0]
+            var button = div.getElementsByTagName('button')[0]
+
+            expect(input.value).toBe('1')
+            fireClick(button)
+            expect(input.value).toBe('2')
+            fireClick(button)
+            expect(input.value).toBe('3')
+            fireClick(button)
+            expect(input.value).toBe('4')
+            vm.hash = 'ms-hashb'
+            setTimeout(function () {
+                return
+                var h4 = div.getElementsByTagName('h4')[0]
+                var button = div.getElementsByTagName('button')[0]
+                expect(h4.innerHTML).toBe('这是标题')
+                fireClick(button)
+                expect(h4.innerHTML).toBe('title11')
+                fireClick(button)
+                expect(h4.innerHTML).toBe('title12')
+                fireClick(button)
+                expect(h4.innerHTML).toBe('title13')
+                vm.hash = 'ms-hasha'
+                setTimeout(function () {
+                    var input = div.getElementsByTagName('input')[0]
+                    var button = div.getElementsByTagName('button')[0]
+
+                    expect(input.value).toBe('4')
+                    fireClick(button)
+                    expect(input.value).toBe('5')
+                    fireClick(button)
+                    expect(input.value).toBe('6')
+                    fireClick(button)
+                    expect(input.value).toBe('7')
+                })
             })
 
-            var vm = avalon.define({
-                $id: 'widget0',
-                aaa: 'btn'
-            })
-
+        },500)
         </script>
-        <style>
+	<style>
 
-        </style>
-    </head>
+	</style>
+</head>
 
-    <body>
-        <div ms-controller='widget0' >
-            <xmp is='ms-button'>{{@btn}}</xmp>
-            <ms-button>这是标签里面的TEXT</ms-button>
-            <ms-button ms-widget='{buttonText:"这是属性中的TEXT"}'></ms-button>
-            <ms-button></ms-button>
-        </div>
-        // 重新实现组件, 实现 controller的组合VM, 后端渲染, 
-        //内部的订阅机制 ,$watch的*支持
-    </body>
+<body>
+	<div ms-controller="router" ms-html="@panel">xxx</div>
+	// 重新实现组件, 后端渲染, //内部的订阅机制 ,$watch的*支持
+</body>
 
 </html>
-

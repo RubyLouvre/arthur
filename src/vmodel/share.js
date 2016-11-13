@@ -184,6 +184,20 @@ export function observeItemObject(before, after) {
         vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6)
         return vm
 }
+
+export function mediatorFactory(before, after){
+     var state = avalon.mix({}, before.$accessors,after.$accessors )//防止互相污染
+     var keys = avalon.mix({}, before.$model , after.$model)
+     var core = {}
+     core.__dep__ = new Depend()
+     platform.beforeCreate(core, state, keys, true)
+     var vm = new Observable()
+     //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+    vm = platform.createViewModel(vm, state, keys)
+    platform.afterCreate(core, vm, keys)
+    vm.$id =  vm.$hashcode = before.$hashcode + after.$hashcode
+    return vm
+}
 avalon.observeItemObject = observeItemObject
         /**
          * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
