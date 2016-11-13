@@ -123,7 +123,6 @@ function createAccessor(key, val, pd) {
                             selfDep.collect()
                         }
                         Getter.dd = selfDep
-
                         if (childOb && childOb.$events) {
                                 if (Array.isArray(childOb)) {
                                         childOb.forEach(function (item) {
@@ -149,7 +148,6 @@ function createAccessor(key, val, pd) {
                                 return
                         }
                         selfDep.beforeNotify()
-                        console.log('set ', key)
                         priVal = newValue
                         childOb = createObservable(newValue, selfDep)
                         if (childOb && hash) {

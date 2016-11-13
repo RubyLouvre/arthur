@@ -61,10 +61,7 @@ avalon.directive('widget', {
 
         this.comVm = comVm
 
-        if (oldValue && oldValue.$events) {
-            syncComponentVm(this.vm, comVm, oldValue)
-            this.useWatchOk = true
-        }
+       
 
         // ＝＝＝创建组件的VM＝＝END＝＝＝
         var boss = avalon.scan(component.template, comVm)
@@ -115,8 +112,10 @@ avalon.directive('widget', {
         groupTree(vdom.dom, vdom.children)
 
         fireComponentHook(comVm, vdom, 'Ready')
+       // detectRemoveTree(vdom.dom)
 
-        this.beforeDistory = function () {
+        this.beforeDestroy = function () {
+            this.boss.destroy()
             fireComponentHook(comVm, vdom, 'Dispose')
         }
 
@@ -146,14 +145,15 @@ avalon.directive('widget', {
             this.readyState++
         }
     },
-    destory: function () {
-        this.boss.destory()
-    }
+//    destory: function () {
+//        console.log('--XXX---')
+//        this.boss.destory()
+//    }
 })
 
 function fireComponentHook(vm, vdom, name) {
-    vm.$fire('on' + name, {
-        type: name.toLowerCase(),
+    vm.$fire('on'+name,{
+        type:name.toLowerCase(),
         target: vdom.dom,
         vmodel: vm
     })
@@ -179,12 +179,7 @@ function syncComponentVm(topVm, comVm, object) {
 
 
 export function createComponentVm(component, value, is) {
-    var hooks = {
-        onReady: [],
-        onDispose: [],
-        onViewChange: [],
-        onInit: []
-    }
+    var hooks = []
     var def = avalon.mix({}, component.defaults)
     collectHooks(def, hooks)
     collectHooks(value, hooks)
@@ -193,15 +188,20 @@ export function createComponentVm(component, value, is) {
     delete value.$id
     avalon.mix(def, value)
     var vm = avalon.define(def)
-    avalon.mix(vm.$events, hooks)
+    hooks.forEach(function(el){
+        vm.$watch(el.type, el.cb)
+    })
     return vm
 }
 
-function collectHooks(a, hooks) {
+function collectHooks(a, list) {
     for (var i in a) {
         if (componentEvents[i]) {
             if (typeof a[i] === 'function') {
-                hooks[i].unshift({ callback: a[i] })
+                list.unshift({
+                    type: i,
+                    cb: a[i]
+                })
             }
             delete a[i]
         }
@@ -226,7 +226,7 @@ function insertObjectSlot(nodes, obj) {
             nodes.splice.apply(nodes, [i, 1].concat(obj[name]))
             break
         } else if (el.children) {
-            insertObjectSlot(el.children, inner)
+            insertObjectSlot(el.children, obj)
         }
     }
 }

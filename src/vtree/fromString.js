@@ -84,7 +84,12 @@ function from(str) {
         if (!node) {
             var match = str.match(ropenTag)//处理元素节点开始部分
             if (match) {
-                var nodeName = match[1].toLowerCase()
+                var nodeName = match[1]
+                var props = {}
+                if(/^[A-Z]/.test(name) && avalon.components[nodeName]){
+                    props.is = nodeName
+                }
+                nodeName = nodeName.toLowerCase()
                 var isVoidTag = !!voidTag[nodeName] || match[3] === '\/'
                 node = {
                     nodeName: nodeName,
