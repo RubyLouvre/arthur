@@ -179,6 +179,7 @@ function getMessage() {
     })
 }
 valiDir.defaults = {
+    validate: valiDir.validate,
     addField: valiDir.addField, //供内部使用,收集此元素底下的所有ms-duplex的域对象
     onError: avalon.noop,
     onSuccess: avalon.noop,

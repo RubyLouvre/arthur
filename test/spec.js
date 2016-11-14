@@ -24,7 +24,7 @@ import './vtree/fromString.spec'
 import './vtree/fromDOM.spec'
 
 import './vmodel/compact.spec'
-/*
+
 import './directives/duplex.spec'
 
 import './directives/expr.spec'
@@ -33,6 +33,7 @@ import './directives/css.spec'
 import './directives/important.spec'
 
 import './directives/on.spec'
+import './directives/controller.spec'
 
 import './directives/text.spec'
 
@@ -47,7 +48,7 @@ import './directives/validate.spec'
 
 import './directives/rules.spec'
 import './directives/for.spec'
-*/
+
 import './directives/effect.spec'
 
 import './directives/widget.spec'

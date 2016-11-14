@@ -693,4 +693,110 @@ describe('for', function () {
         expect(obj.expr).toBe('@arr')
 
     })
+    it('对象数组', function (done) {
+        //https://github.com/RubyLouvre/avalon/issues/1786
+        div.innerHTML = heredoc(function () {
+            /*
+       <ul ms-controller="for17">
+            <li ms-for="key,el in @dataArray">
+                <span>{{el.brandName}}</span>
+                <span>{{el.gearType}}</span>
+            </li>
+        </ul>
+             */
+        })
+        vm = avalon.define({
+            $id: "for17",
+            dataArray: [
+                {
+                    brandName: "大众",
+                    gearType: "非自动",
+                }
+            ]
+        })
+        avalon.scan(div)
+
+        setTimeout(function () {
+            vm.dataArray = [
+                {
+                    brandName: "大众2",
+                    gearType: "手动|自动"
+
+                },
+                {
+                    brandName: "大众3",
+
+                    gearType: "手动|自动"
+
+                }
+            ]
+            var lis = div.getElementsByTagName('li')
+            expect(lis[0][textProp]).toBe('大众2手动|自动')
+            expect(lis[1][textProp]).toBe('大众3手动|自动')
+            done()
+        }, 200)
+    })
+    it('子项的绑定显示问题', function (done) {
+        //https://github.com/RubyLouvre/avalon/issues/1786
+        div.innerHTML = heredoc(function () {
+            /*
+              <ul ms-controller="for18">
+            <div ms-for="item in @list">
+                <p style="background:#f00;margin:10px;" 
+                   ms-click="@select(item)">{{ item.name }}</p>
+                <label style="background:#00f;margin:10px;" 
+                       ms-for="jel in item.child" ms-click="@select(jel)">
+                    {{ jel.name }}
+                </label>
+            </div>
+
+            <p>当前对象</p>
+            <form>
+                name:{{ @current.name }}
+                <br/>
+                child:
+                <span ms-for="j in @current.child">{{ j.name }}</span>
+            </from>
+        </ul>
+             */
+        })
+        function p(_name) {
+            this.name = _name;
+            this.child = [];
+        }
+        vm = avalon.define({
+            $id: "for18",
+            list: [],
+            current: null,
+            select: function (el) {
+                vm.current = el;
+            }
+        })
+        var arr = [];
+        var z = new p("张三");
+        z.child.push(new p("子1"));
+        z.child.push(new p("子2"));
+        arr.push(z);
+        arr.push(new p("李四"));
+        vm.list = arr;
+        avalon.scan(div)
+        var ps = div.getElementsByTagName('p')
+        var labels = div.getElementsByTagName('label')
+        function getData() {
+            var text = div.getElementsByTagName('form')[0][textProp]
+            return text.replace(/[\r\n\s]/g, '').trim()
+        }
+        setTimeout(function () {
+            fireClick(ps[0])
+            expect(getData()).toBe('name:张三child:子1子2')
+            fireClick(ps[1])
+            expect(getData()).toBe('name:李四child:')
+            fireClick(labels[0])
+            expect(getData()).toBe('name:子1child:')
+            fireClick(labels[1])
+            expect(getData()).toBe('name:子2child:')
+            done()
+        }, 200)
+    })
+
 })

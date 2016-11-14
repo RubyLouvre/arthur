@@ -2,7 +2,7 @@ function heredoc(fn) {
     return fn.toString().replace(/^[^\/]+\/\*!?\s?/, '').
             replace(/\*\/[^\/]+$/, '').trim().replace(/>\s*</g, '><')
 }
-
+var textProp = 'textContent' in document ? 'textContent': 'innerText'
 function fireClick(el) {
     if (el.click) {
         el.click()
