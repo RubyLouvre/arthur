@@ -1,6 +1,7 @@
 //safari5+是把contains方法放在Element.prototype上而不是Node.prototype
 import { avalon, document, window } from '../../seed/core'
 import { fixContains } from './fixContains'
+export { avalon }
 
 avalon.contains = fixContains
 

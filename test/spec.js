@@ -6,8 +6,8 @@ import './seed/lang.compact.spec'
 import './filters/index.spec'
 import './vdom/compact.spec'
 
+//DOM相关测试
 import './dom/shim.compact.spec'
-
 import './dom/ready.compact.spec'
 import './dom/val.compact.spec'
 import './dom/class.compact.spec'

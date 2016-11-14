@@ -12,7 +12,6 @@ describe('vdom', function () {
                 var circle = new VElement('circle', {}, [])
                 expect(circle.toDOM().nodeName).toBe('circle')
 
-
                 var template = new VElement('template', {}, [
                     new VText('111')
                 ])
@@ -20,29 +19,68 @@ describe('vdom', function () {
 
 
             }
-            var xmp = new VElement('xmp', { 'for': 'ddd', 'class': 'a b', style: 'border: 4px' }, [
+        })
+        it('xmp', function () {
+
+            var xmp = new VElement('xmp', { 'for': 'eee', 'class': 'a b', style: 'border: 4px' }, [
                 new VText('111')
             ])
             expect(xmp.toDOM().nodeName).toBe('XMP')
-            expect(xmp.toDOM().htmlFor).toBe('ddd')
+
             expect(xmp.toDOM().className).toBe('a b')
             expect(xmp.toDOM().style.borderWidth).toMatch(/4/i)
+        })
+        it('noscript', function () {
             var noscript = new VElement('noscript', {}, [
                 new VText('111')
             ])
 
             expect(noscript.toDOM().nodeName).toBe('NOSCRIPT')
-            expect(noscript.toDOM().innerText).toBe('111')
+            expect(noscript.toDOM().textContent).toBe('111')
+        })
+        it('label for', function () {
+            var label = new VElement('label', { 'for': 'ddd' }, [
+                new VText('111')
+            ])
+            expect(label.toDOM().getAttribute('for')).toBe('ddd')
+        })
+        it('option', function () {
+            var option = new VElement('option', { 'value': 'eee' }, [
+                new VText(' xxx ')
+            ])
+            expect(option.toDOM().text).toMatch('xxx')
+          var dom = option.toDOM()
+            if (avalon.modern) {
 
+                expect(dom.textContent).toMatch(' xxx ')
+            }
+            expect(dom.innerText).toMatch(/xx/)
+            expect(dom.innerHTML).toBe(' xxx ')
+            var option2 = new VElement('option', { 'value': 'eee' }, [
+                new VText('')
+            ])
+            expect(option2.toDOM().text).toBe('')
+
+            expect(option2.toDOM().innerText).toBe('')
+
+            expect(option2.toDOM().innerHTML).toBe('')
+        })
+        it('style', function () {
             var style = new VElement('style', {}, [
                 new VText('.blue{color:blue}')
             ])
             expect(style.toDOM().nodeName).toBe('STYLE')
+        })
+        it('script', function () {
             var script = new VElement('script', {}, [
                 new VText('var a = 1')
             ])
             expect(script.toDOM().nodeName).toBe('SCRIPT')
             expect(script.toDOM().text).toBe('var a = 1')
+
+        })
+
+        it('input', function () {
 
             var input = new VElement('input', { type: 'password' }, [
 
@@ -93,14 +131,18 @@ describe('vdom', function () {
             expect(el.toDOM().nodeType).toBe(11)
             expect(el.toHTML()).toBe('')
             expect(el.toDOM().nodeType).toBe(11)
+
+        })
+        it('test2', function () {
+
             var hasChildren = new VFragment([
                 new VElement('p', {}, [
                     new VText('ooooo')
                 ])
             ])
-            expect(hasChildren.toDOM().children.length).toBe(1)
+            expect(hasChildren.toDOM().childNodes.length).toBe(1)
             expect(hasChildren.toHTML()).toBe('<p>ooooo</p>')
-            expect(vdom(el, 'toDOM')).toBe(el.dom)
+
         })
     })
 
@@ -112,8 +154,13 @@ describe('vdom', function () {
             expect(el).toBe('')
             var el2 = vdom(null, 'toDOM')
             expect(el2.nodeType).toBe(11)
+            var f = {
+                nodeName: '#document-fragment',
+                children: []
+            }
+            var el = vdom(f, 'toHTML')
+            expect(el).toBe('')
 
-         
         })
     })
 

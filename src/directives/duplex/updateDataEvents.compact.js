@@ -169,7 +169,7 @@ var setCaret = function (target, cursorPosition) {
         }
     }
 }
-
+ /* istanbul ignore next*/
 var getCaret = function (target) {
     var start = 0
     var normalizedValue

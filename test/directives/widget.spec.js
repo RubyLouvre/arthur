@@ -795,7 +795,7 @@ describe('widget', function () {
         }, 150)
 
     })
-    it('cached', function(done){
+    it('cached', function (done) {
         div.innerHTML = heredoc(function () {
             /*
            <div ms-controller="widget13">
@@ -807,26 +807,26 @@ describe('widget', function () {
         })
         vm = avalon.define({
             $id: 'widget13',
-            aaa:true
-        })  
+            aaa: true
+        })
         avalon.scan(div)
         var button = div.getElementsByTagName('button')[0]
         var text = button[textProp]
         button.setAttribute('title', 'vvvv')
         vm.aaa = false
-        setTimeout(function(){
+        setTimeout(function () {
             vm.aaa = true
-            setTimeout(function(){
+            setTimeout(function () {
                 button = div.getElementsByTagName('button')[0]
                 expect(button[textProp]).toBe(text)
                 expect(button.getAttribute('title')).toBe('vvvv')
                 done()
-            },100)
-        },100)
-           
+            }, 100)
+        }, 100)
+
     })
 
-  it('路由组件', function (done) {
+    it('路由组件', function (done) {
         avalon.component('ms-hasha', {
             template: '<div>{{@num}}<input type="text" ms-duplex-number="@num"/><button type="button" ms-on-click="@onPlus">+++</button></div>',
             defaults: {
@@ -904,6 +904,64 @@ describe('widget', function () {
             })
 
         })
+
+    })
+
+    it('onviewChange', function () {
+        var onViewChangeCount = 0
+        avalon.component('ms-select', {
+            template: heredoc(function () {
+                /*
+                 <div>
+                 <select ms-duplex="@num">
+                 <option ms-for="el in @numList">{{el}}</option>
+                 </select>
+                 <p>{{@num}}</p>
+                 </div>
+                 */
+            }),
+            defaults: {
+                numList: [6, 12, 18, 24, 30],
+                num: 12,
+                onInit: function () {
+                    console.log('onInit')
+                },
+                onReady: function () {
+                    console.log('onReady')
+                },
+                onViewChange: function (e) {
+                    ++onViewChangeCount
+                }
+            }
+        })
+        div.innerHTML = heredoc(function () {
+            /*
+            <div ms-controller="widget14" ><ms-select :widget="{num: @aaa}" /></div>
+            */
+        })
+        vm = avalon.define({
+            $id: 'widget14',
+            aaa: 6
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var p = div.getElementsByTagName('p')[0]
+            expect(p.innerHTML).toBe('6')
+            vm.aaa = 12
+            setTimeout(function () {
+                expect(p.innerHTML).toBe('12')
+                vm.aaa = 18
+                setTimeout(function () {
+                    expect(p.innerHTML).toBe('18')
+                    setTimeout(function () {
+                        expect(onViewChangeCount).toBe(2)
+                        delete avalon.components['ms-select']
+                        done()
+                    }, 100)
+
+                }, 100)
+            }, 100)
+        }, 100)
 
     })
 

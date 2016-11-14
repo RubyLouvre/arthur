@@ -22,8 +22,10 @@ export function updateDataHandle(event) {
         var timestamp = new Date()
         var left = timestamp - field.time || 0
         field.time = timestamp
+        /* istanbul ignore if*/
         if (left >= field.debounceTime) {
             updateDataActions[field.dtype].call(field)
+         /* istanbul ignore else*/
         } else {
             clearTimeout(field.debounceID)
             field.debounceID = setTimeout(function () {
