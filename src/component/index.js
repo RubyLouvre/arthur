@@ -2,7 +2,7 @@ import { avalon, isObject, platform } from '../seed/core'
 import { cssDiff } from '../directives/css'
 import { dumpTree, groupTree, getRange } from '../renders/index'
 var legalTags = { wbr: 1, xmp: 1, template: 1 }
-var events = 'onInit,onReady,onViewChange,onDispose'
+var events = 'onInit,onReady,onViewChange,onDispose,onEnter,onLeave'
 var componentEvents = avalon.oneObject(events)
 function toObject(value) {
         var value = platform.toJson(value)
@@ -20,6 +20,7 @@ avalon.directive('widget', {
         priority: 4,
         deep: true,
         init: function () {
+                //cached属性必须定义在组件容器里面,不是template中
                 var vdom = this.node
                 this.cacheVm = !!vdom.props.cached
                 var oldValue = this.getValue()
@@ -59,20 +60,22 @@ avalon.directive('widget', {
                 //如果是非空元素，比如说xmp, ms-*, template
                 var id = value.id || value.$id
                 var hasCache = avalon.vmodels[id]
+                var fromCache = false
                 if (hasCache) {
                         comVm = hasCache
                         this.comVm = comVm
                         replaceRoot(this, comVm.$render)
+                        fromCache = true
                        
                 } else {
                         var comVm = createComponentVm(component, value, is)
                         fireComponentHook(comVm, vdom, 'Init')
                         this.comVm = comVm
+                        
                         // ＝＝＝创建组件的VM＝＝END＝＝＝
                         var boss = avalon.scan(component.template, comVm)
                         comVm.$render = boss
-                        replaceRoot(instance, boss)
-
+                        replaceRoot(this, boss)
                         var nodesWithSlot = []
                         var directives = []
                         if (this.fragment || component.soleSlot) {
@@ -125,15 +128,19 @@ avalon.directive('widget', {
                 //处理DOM节点
                 dumpTree(vdom.dom)
                 groupTree(vdom.dom, vdom.children)
-
-                fireComponentHook(comVm, vdom, 'Ready')
-
+                if(fromCache){
+                fireComponentHook(comVm, vdom, 'Enter')
+                }else{
+                fireComponentHook(comVm, vdom, 'Ready') 
+                }
                 this.beforeDestroy = function () {
                         if (!this.cacheVm) {
                                 fireComponentHook(comVm, vdom, 'Dispose')
                                 comVm.$hashcode = false
                                 delete avalon.vmodels[comVm.$id]
                                 this.boss.destroy()
+                        }else{
+                               fireComponentHook(comVm, vdom, 'Leave')
                         }
 
                 }
@@ -168,7 +175,7 @@ avalon.directive('widget', {
 function replaceRoot(instance, boss) {
         instance.boss = boss
         var root = boss.root
-        var vdom = instance.vdom
+        var vdom = instance.node
         for (var i in root) {
                 vdom[i] = root[i]
         }

@@ -188,7 +188,6 @@ function diffList(instance) {
     list.sort(function (a, b) {
         return a.index - b.index
     })
-
     instance.cache = newCache
 }
 function updateList(instance) {

@@ -172,7 +172,7 @@ export function observeItemObject(before, after) {
 
         for (var key in more) {
                 keys[key] = more[key]
-                if (isObservable(key, keys[key])) {
+                if (!$$skipArray[key]) {
                         state[key] = createAccessor(key, more[key], core)
                 }
         }
