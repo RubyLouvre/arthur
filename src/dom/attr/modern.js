@@ -2,7 +2,7 @@ import { avalon, window, document } from '../../seed/core'
 import { propMap } from './propMap'
 
 var rsvg = /^\[object SVG\w*Element\]$/
-export function updateAttr(node, attrs) {
+export function updateAttrs(node, attrs) {
     for (var attrName in attrs) {
         var val = attrs[attrName]
         /* istanbul ignore if*/
