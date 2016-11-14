@@ -218,6 +218,7 @@ cp.yieldDirectives = function () {
  * 修改指令的update与callback方法,让它们以后执行时更加高效
  * @returns {undefined}
  */
+var viewID
 cp.optimizeDirectives = function () {
     for (var i = 0, el; el = this.directives[i++];) {
         el.callback = directives[el.type].update
@@ -226,6 +227,26 @@ cp.optimizeDirectives = function () {
             var newVal = this.value = this.get()
             if (this.callback && this.diff(newVal, oldVal)) {
                 this.callback(this.node, this.value)
+                var vm = this.vm
+                var $render = vm.$render
+                var list = vm.$events['onViewChange']
+                if (list && $render && $render.root && !avalon.viewChanging) {
+                    if (viewID) {
+                        clearTimeout(viewID)
+                        viewID = null
+                    }
+                    viewID = setTimeout(function () {
+                        list.forEach(function (el) {
+                            el.callback.call(vm, {
+                                type: 'viewchange',
+                                target: $render.root,
+                                vmodel: vm
+                            })
+                        })
+                    })
+
+                }
+
             }
         }
     }

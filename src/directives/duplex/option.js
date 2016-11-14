@@ -1,10 +1,10 @@
 export function lookupOption(vdom, values) {
-    vdom.children.forEach(function (el) {
+   vdom.children && vdom.children.forEach(function (el) {
         if (el.nodeName === 'option') {
             setOption(el, values)
-        } else if (el.nodeName === 'optgroup') {
+        } else {
             lookupOption(el, values)
-        }
+        } 
     })
 }
 

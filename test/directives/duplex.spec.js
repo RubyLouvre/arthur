@@ -90,7 +90,7 @@ describe('duplex', function () {
         avalon.scan(div, vm)
         setTimeout(function () {
             var inputs = div.getElementsByTagName('input')
-            console.log(inputs[0].checked,inputs[1].checked, inputs[2].checked)
+            console.log(inputs[0].checked, inputs[1].checked, inputs[2].checked)
             expect(inputs[0].checked).toBe(false)
             expect(inputs[1].checked).toBe(false)
             expect(inputs[2].checked).toBe(true)
@@ -403,17 +403,45 @@ describe('duplex', function () {
                         }]
                     }
                 ]
-            },{
+            }, {
                 nodeName: 'option',
-                props:props2,
+                props: props2,
                 children: [{
-                        nodeName: '#text',
-                        nodeValue: 'zzz'
+                    nodeName: '#text',
+                    nodeValue: 'zzz'
                 }]
-                
+
             }]
-        },['xxx'])
+        }, ['xxx'])
         expect(props.selected).toBe(true)
         expect(props2.selected).toBe(false)
+    })
+
+    it('lookupOption2', function (done) {
+        div.innerHTML = heredoc(function () {
+            /*
+                 <div ms-controller='lookupOption2'>
+                 <select ms-duplex="@num">
+                 <option ms-for="el in @numList">{{el}}</option>
+                  </select>
+                   <p>{{@num}}</p>
+                   </div>
+               */
+        })
+        vm = avalon.define({
+            $id: 'lookupOption2',
+            num: '222',
+            numList: ['111', '222', '333']
+        })
+        avalon.scan(div)
+        setTimeout(function () {
+            var select = div.getElementsByTagName('select')[0]
+            expect(avalon(select).val()).toBe('222')
+            vm.num = '333'
+            setTimeout(function () {
+                expect(avalon(select).val()).toBe('333')
+                done()
+            }, 100)
+        }, 100)
     })
 })
