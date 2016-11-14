@@ -109,8 +109,11 @@ export function createGetter(expr, type) {
     }
     try {
         return new Function('__vmodel__', 'return ' + body + ';')
+          /* istanbul ignore next */
     } catch (e) {
+          /* istanbul ignore next */
         avalon.log('parse getter: [', expr, body, ']error')
+          /* istanbul ignore next */
         return avalon.noop
     }
 }
@@ -125,7 +128,9 @@ export function createSetter(expr, type) {
     try {
         return new Function('__vmodel__', '__value__', body + ';')
     } catch (e) {
+          /* istanbul ignore next */
         avalon.log('parse setter: ', expr, ' error')
+          /* istanbul ignore next */
         return avalon.noop
     }
 }

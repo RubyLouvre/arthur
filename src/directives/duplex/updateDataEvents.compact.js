@@ -22,9 +22,13 @@ export function updateDataEvents(dom, data) {
             events.change = updateModel
             break
         case 'contenteditable':
+            /* istanbul ignore if */
             if (data.isChanged) {
                 events.blur = updateModel
+                /* istanbul ignore else */
             } else {
+                /* istanbul ignore if*/
+
                 if (avalon.modern) {
                     if (window.webkitURL) {
                         // http://code.metager.de/source/xref/WebKit/LayoutTests/fast/events/
@@ -34,6 +38,7 @@ export function updateDataEvents(dom, data) {
                         events.DOMCharacterDataModified = updateModel
                     }
                     events.input = updateModel
+                    /* istanbul ignore else */
                 } else {
                     events.keydown = updateModelKeyDown
                     events.paste = updateModelDelay
@@ -45,9 +50,10 @@ export function updateDataEvents(dom, data) {
             }
             break
         case 'input':
-           
+            /* istanbul ignore if */
             if (data.isChanged) {
                 events.change = updateModel
+                /* istanbul ignore else */
             } else {
                 //http://www.cnblogs.com/rubylouvre/archive/2013/02/17/2914604.html
                 //http://www.matts411.com/post/internet-explorer-9-oninput/
@@ -62,11 +68,11 @@ export function updateDataEvents(dom, data) {
                 } else {
                     events.input = updateModel
                     events.compositionstart = openComposition
-                     //微软拼音输入法的BUG需要在compositionend事件中处理
+                    //微软拼音输入法的BUG需要在compositionend事件中处理
                     events.compositionend = closeComposition
-                      //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
+                    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
                     //处理低版本的标准浏览器,通过Int8Array进行区分
-                     if (!/\[native code\]/.test(window.Int8Array)) {
+                    if (!/\[native code\]/.test(window.Int8Array)) {
                         events.keydown = updateModelKeyDown //safari < 5 opera < 11
                         events.paste = updateModelDelay//safari < 5
                         events.cut = updateModelDelay//safari < 5 

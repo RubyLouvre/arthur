@@ -6,10 +6,29 @@ import { Directive } from
     '../../src/renders/Directive'
 describe('vmodel', function () {
     it('vmodel', function () {
+        try {
+            avalon.define({
+                aaa: 1
+            })
+        } catch (e) {
+            expect('error').toBe('error')
+        }
         var vm = avalon.define({
             $id: "aaa",
-            aaa: 1
+            aaa: 1,
+            bbb: null,
+            $render: 11
         })
+
+        try {
+            vm = avalon.define({
+                $id: "aaa",
+                aaa: 1
+            })
+        } catch (e) {
+            expect('has defined').toBe('has defined')
+        }
+
         var called = false
         var unwatch = vm.$watch('aaa', function (a) {
             called = a
@@ -19,7 +38,8 @@ describe('vmodel', function () {
         })
         expect(vm.$id).toBe("aaa")
         expect(vm.$model).toEqual({
-            aaa: 1
+            aaa: 1,
+            bbb: null
         })
         expect(vm.$hashcode).toMatch(/^\$\d+/)
         expect(vm.$fire).toA('function')

@@ -20,10 +20,10 @@ import { rewriteArrayMethods } from './List'
 avalon.define = function (definition) {
         var $id = definition.$id
         if (!$id) {
-                avalon.warn('vm.$id must be specified')
+             avalon.error('vm.$id must be specified')
         }
         if (avalon.vmodels[$id]) {
-                throw Error('error:[' + $id + '] had defined!')
+            avalon.error('error:[' + $id + '] had defined!')
         }
         var vm = modelFactory(definition)
         return avalon.vmodels[$id] = vm

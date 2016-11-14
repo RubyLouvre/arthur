@@ -13,6 +13,7 @@ export var updateDataActions = {
         field.setValue(parsedValue)
         duplexCb(field)
         var pos = field.pos
+          /* istanbul ignore if */
         if (dom.caret) {
             field.setCaret(dom, pos)
         }

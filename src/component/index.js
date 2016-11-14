@@ -197,24 +197,6 @@ function fireComponentHook(vm, vdom, name) {
         })
     }
 }
-function syncComponentVm(topVm, comVm, object) {
-    var _name, name
-    for (name in topVm) {
-        if (topVm[name] === object) {
-            _name = name
-            break
-        }
-    }
-    if (_name) {
-        for (name in object) {
-            topVm.$watch(_name + '.' + name, (function(key) {
-                return function(val) {
-                    comVm[key] = val
-                }
-            })(name))
-        }
-    }
-}
 
 
 export function createComponentVm(component, value, is) {

@@ -23,6 +23,7 @@ for (let name in checker) {
         tran = checker[name]
         break
     }
+      /* istanbul ignore next */
     try {
         let a = document.createEvent(name)
         tran = checker[name]
