@@ -8,21 +8,25 @@ function toObject(value) {
     var value = platform.toJson(value)
     if (Array.isArray(value)) {
         var v = {}
-        value.forEach(function(el) {
+        value.forEach(function (el) {
             el && avalon.shadowCopy(v, el)
         })
         return v
     }
     return value
 }
+var componentQueue = []
 avalon.directive('widget', {
     delay: true,
     priority: 4,
     deep: true,
-    init: function() {
+    init: function () {
         //cached属性必须定义在组件容器里面,不是template中
         var vdom = this.node
         this.cacheVm = !!vdom.props.cached
+        if (vdom.dom && vdom.nodeName === '#comment') {
+            var comment = vdom.dom
+        }
         var oldValue = this.getValue()
         var value = toObject(oldValue)
         //外部VM与内部VM
@@ -46,14 +50,8 @@ avalon.directive('widget', {
             this.readyState = 0
             vdom.nodeName = '#comment'
             vdom.nodeValue = 'unresolved component placeholder'
-            var oldDom = vdom.dom
-            if (oldDom) {
-                var p = oldDom.parentNode
-                if (p) {
-                    delete vdom.dom
-                    p.replaceChild(oldDom, avalon.vdom(vdom, 'toDOM'))
-                }
-            }
+            delete vdom.dom
+            avalon.Array.ensure(componentQueue, this)
             return
         }
         this.readyState = 1
@@ -61,6 +59,7 @@ avalon.directive('widget', {
         var id = value.id || value.$id
         var hasCache = avalon.vmodels[id]
         var fromCache = false
+
         if (hasCache) {
             comVm = hasCache
             this.comVm = comVm
@@ -81,7 +80,7 @@ avalon.directive('widget', {
             if (this.fragment || component.soleSlot) {
                 var curVM = this.fragment ? this.vm : comVm
                 var curText = this.fragment || '{{##' + component.soleSlot + '}}'
-                var childBoss = avalon.scan('<div>' + curText + '</div>', curVM, function() {
+                var childBoss = avalon.scan('<div>' + curText + '</div>', curVM, function () {
                     nodesWithSlot = this.root.children
                 })
                 directives = childBoss.directives
@@ -96,7 +95,7 @@ avalon.directive('widget', {
             if (component.soleSlot) {
                 arraySlot = nodesWithSlot
             } else {
-                nodesWithSlot.forEach(function(el, i) {//要求带slot属性
+                nodesWithSlot.forEach(function (el, i) {//要求带slot属性
                     if (el.props) {
                         var name = el.props.slot
                         if (name) {
@@ -124,6 +123,12 @@ avalon.directive('widget', {
             }
         }
 
+        if (comment) {
+            var dom = avalon.vdom(vdom, 'toDOM')
+            comment.parentNode.replaceChild(dom, comment)
+            comVm.$element = boss.root.dom = dom
+            delete this.reInit
+        }
 
         //处理DOM节点
         dumpTree(vdom.dom)
@@ -133,7 +138,7 @@ avalon.directive('widget', {
         } else {
             fireComponentHook(comVm, vdom, 'Ready')
         }
-        this.beforeDestroy = function() {
+        this.beforeDestroy = function () {
             if (!this.cacheVm) {
                 fireComponentHook(comVm, vdom, 'Dispose')
                 comVm.$hashcode = false
@@ -146,31 +151,36 @@ avalon.directive('widget', {
         }
 
     },
-    diff: function(newVal, oldVal) {
+    diff: function (newVal, oldVal) {
         if (cssDiff.call(this, newVal, oldVal)) {
             return true
         }
     },
-    update: function(vdom, value) {
+    update: function (vdom, value) {
         this.oldValue = value //★★防止递归
-
-        if (this.readyState > 1) {
-            var comVm = this.comVm
-            avalon.viewChanging = true
-            if (!this.useWatchOk) {
-                for (var i in value) {
-                    if (comVm.hasOwnProperty(i)) {
-                        comVm[i] = value[i]
+        switch (this.readyState) {
+            case 0:
+                if (this.reInit) {
+                    this.init()
+                }
+                break
+            case 1:
+                this.readyState++
+                break
+            default:
+                var comVm = this.comVm
+                avalon.viewChanging = true
+                if (!this.useWatchOk) {
+                    for (var i in value) {
+                        if (comVm.hasOwnProperty(i)) {
+                            comVm[i] = value[i]
+                        }
                     }
                 }
-            }
-            //要保证要先触发孩子的ViewChange 然后再到它自己的ViewChange
-            fireComponentHook(comVm, vdom, 'ViewChange')
-            delete avalon.viewChanging
-        } else if (this.readyState === 0) {
-            this.init()
-        } else {
-            this.readyState++
+                //要保证要先触发孩子的ViewChange 然后再到它自己的ViewChange
+                fireComponentHook(comVm, vdom, 'ViewChange')
+                delete avalon.viewChanging
+                break
         }
     }
 })
@@ -188,7 +198,7 @@ function replaceRoot(instance, boss) {
 function fireComponentHook(vm, vdom, name) {
     var list = vm.$events['on' + name]
     if (list) {
-        list.forEach(function(el) {
+        list.forEach(function (el) {
             el.callback.call(vm, {
                 type: name.toLowerCase(),
                 target: vdom.dom,
@@ -209,7 +219,7 @@ export function createComponentVm(component, value, is) {
     delete value.$id
     avalon.mix(def, value)
     var vm = avalon.define(def)
-    hooks.forEach(function(el) {
+    hooks.forEach(function (el) {
         vm.$watch(el.type, el.cb)
     })
     return vm
@@ -260,11 +270,20 @@ function insertObjectSlot(nodes, obj) {
 }
 
 avalon.components = {}
-avalon.component = function(name, component) {
+avalon.component = function (name, component) {
     /**
      * template: string
      * defaults: object
      * soleSlot: string
      */
     avalon.components[name] = component
+    for (var el, i = 0; el = componentQueue[i]; i++) {
+        if (el.is === name) {
+            componentQueue.splice(i, 1)
+            el.reInit = true
+            delete el.oldValue
+            el.update()
+            i--;
+        }
+    }
 }
