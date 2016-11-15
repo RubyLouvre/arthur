@@ -1,5 +1,5 @@
 import { avalon } from '../../src/seed/core'
-import '../../src/renders/index'
+
 describe('hover', function () {
     var body = document.body, div, vm
     beforeEach(function () {

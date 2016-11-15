@@ -1,5 +1,5 @@
 import { avalon, afterCreate, platform, observeItemObject } from
-    '../../src/vmodel/compact'
+    '../../src/vmodel/modern'
 import { Depend } from
     '../../src/vmodel/depend'
 import { Directive } from
@@ -161,7 +161,9 @@ describe('vmodel', function () {
             aaa: true,
             bbb: true
         })
-        expect(observer.hasOwnProperty).toMatch(/hasOwnKey/)
+        if (!avalon.modern) {
+            expect(observer.hasOwnProperty).toMatch(/hasOwnKey/)
+        }
         expect(observer.hasOwnProperty('aaa')).toBe(true)
         expect(observer.hasOwnProperty('ccc')).toBe(false)
         var testA = {
@@ -179,7 +181,6 @@ describe('vmodel', function () {
         expect($model).toA('object')
         expect($model.$id).toA('undefined')
         avalon.msie = oldIE
-
 
     })
 

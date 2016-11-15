@@ -1,4 +1,4 @@
-
+import { avalon } from '../../src/seed/core'
 
 describe('text', function () {
     var body = document.body, div, vm

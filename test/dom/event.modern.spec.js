@@ -28,9 +28,11 @@ describe('event', function () {
         expect(e.target).toBe(event.srcElement)
         expect(e.originalEvent).toBe(event)
         expect(e.type).toBe('click')
-        expect(e.pageX).toBe(11)
-        expect(e.pageY).toBe(118)
-        expect(e.wheelDelta).toBe(0)
+        if(!avalon.modern){
+            expect(e.pageX).toBe(11)
+            expect(e.pageY).toBe(118)
+            expect(e.wheelDelta).toBe(0)
+        }
         expect(e.preventDefault).toA('function')
         expect(e.stopPropagation).toA('function')
         expect(e.stopImmediatePropagation).toA('function')

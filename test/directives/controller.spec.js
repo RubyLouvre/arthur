@@ -1,5 +1,4 @@
 import { avalon } from '../../src/seed/core'
-import '../../src/renders/index'
 
 describe('controller', function () {
     var body = document.body, div, vm, h1, h2, h3, cdiv

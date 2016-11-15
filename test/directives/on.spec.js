@@ -1,5 +1,4 @@
 import { avalon } from '../../src/seed/core'
-import '../../src/renders/index'
 
 describe('on', function () {
     var body = document.body, div, vm

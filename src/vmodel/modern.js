@@ -54,7 +54,7 @@ var modelAccessor = {
 
 function $fire(expr, a) {
         var list = this.$events[expr]
-        if (Array(list)) {
+        if (Array.isArray(list)) {
                 for (var i = 0, w; w = list[i++];) {
                         w.callback.call(w.vm, a, w.value, w.expr)
                 }

@@ -1,6 +1,4 @@
-import { avalon } from
-    '../../src/seed/core'
-import '../../src/renders/index'
+import { avalon } from '../../src/seed/core'
 describe('validate', function () {
     var body = document.body, div, vm, originalTimeout;
     beforeEach(function () {

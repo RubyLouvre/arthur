@@ -1,5 +1,4 @@
 import { avalon } from '../../src/seed/core'
-import '../../src/renders/index'
 import { pollValue } from '../../src/directives/duplex/compact'
 import { lookupOption } from '../../src/directives/duplex/option'
 
