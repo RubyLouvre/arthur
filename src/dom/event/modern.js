@@ -18,7 +18,7 @@ avalon._nativeUnBind = function (el, type, fn) {
 avalon.fireDom = function (elem, type, opts) {
     /* istanbul ignore else */
     if (document.createEvent) {
-        var hackEvent = doc.createEvent('Events')
+        var hackEvent = document.createEvent('Events')
         hackEvent.initEvent(type, true, true, opts)
         avalon.shadowCopy(hackEvent, opts)
         elem.dispatchEvent(hackEvent)

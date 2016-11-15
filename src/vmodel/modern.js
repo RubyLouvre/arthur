@@ -1,7 +1,7 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Directive } from '../renders/Directive'
-import {observeItemObject} from './share'
+import { observeItemObject } from './share'
 
 export { avalon, platform, observeItemObject }
 
@@ -82,20 +82,21 @@ function $watch(expr, callback, deep) {
         }
 }
 
-function beforeCreate(core, state, keys, byUser) {
+export function beforeCreate(core, state, keys, byUser) {
         state.$model = platform.modelAccessor
         avalon.mix(keys, {
                 $events: core,
                 $element: 0,
+                $render: 0,
                 $accessors: state,
         }, byUser ? {
                 $watch: $watch,
-                $fire: $fire
+                $fire:  $fire
         } : {})
 }
 
 
-function afterCreate(core, observe, keys) {
+export function afterCreate(core, observe, keys) {
         var $accessors = keys.$accessors
         for (var key in keys) {
                 //对普通监控属性或访问器属性进行赋值
@@ -112,6 +113,7 @@ function afterCreate(core, observe, keys) {
         }
         core.__proxy__ = observe
 }
+
 
 platform.beforeCreate = beforeCreate
 platform.afterCreate = afterCreate

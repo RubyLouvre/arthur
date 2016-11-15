@@ -68,6 +68,67 @@ export function hideProperty(host, name, value) {
 
 
 
+function beforeCreate(core, state, keys, byUser) {
+    state.$model = platform.modelAccessor
+    avalon.mix(keys, {
+        $events: core,
+        $element: 0,
+        $render: 0,
+        $accessors: state,
+    }, byUser ? {
+        $watch: function $watch(expr, callback, deep) {
+            var w = new Directive(core.__proxy__, {
+                deep: deep,
+                type: 'user',
+                expr: expr
+            }, callback)
+            if (!core[expr]) {
+                core[expr] = [w]
+            } else {
+                core[expr].push(w)
+            }
+
+            return function () {
+                w.destroy()
+                avalon.Array.remove(core[expr], w)
+                if (core[expr].length === 0) {
+                    delete core[expr]
+                }
+            }
+        },
+        $fire: function $fire(expr, a) {
+            var list = core[expr]
+            if (Array.isArray(list)) {
+                for (var i = 0, w; w = list[i++];) {
+                    w.callback.call(w.vm, a, w.value, w.expr)
+                }
+            }
+        }
+    } : {})
+}
+
+export function afterCreate(core, observe, keys) {
+    var $accessors = keys.$accessors
+    for (var key in keys) {
+        //对普通监控属性或访问器属性进行赋值
+        //删除系统属性
+        if (key in $$skipArray) {
+            hideProperty(observe, key, keys[key])
+            delete keys[key]
+        } else {
+            if (!(key in $accessors)) {
+                observe[key] = keys[key]
+            }
+            keys[key] = true
+        }
+    }
+    function hasOwnKey(key) {
+        return keys[key] === true
+    }
+    if (avalon.msie < 9)
+        platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
+    core.__proxy__ = observe
+}
 
 var createViewModel = Object.defineProperties
 var defineProperty
@@ -190,66 +251,6 @@ if (!canHideProperty) {
 
 
 
-function beforeCreate(core, state, keys, byUser) {
-    state.$model = platform.modelAccessor
-    avalon.mix(keys, {
-        $events: core,
-        $element: 0,
-        $accessors: state,
-    }, byUser ? {
-        $watch: function $watch(expr, callback, deep) {
-            var w = new Directive(core.__proxy__, {
-                deep: deep,
-                type: 'user',
-                expr: expr
-            }, callback)
-            if (!core[expr]) {
-                core[expr] = [w]
-            } else {
-                core[expr].push(w)
-            }
-
-            return function () {
-                w.destroy()
-                avalon.Array.remove(core[expr], w)
-                if (core[expr].length === 0) {
-                    delete core[expr]
-                }
-            }
-        },
-        $fire: function $fire(expr, a) {
-            var list = core[expr]
-            if (Array.isArray(list)) {
-                for (var i = 0, w; w = list[i++];) {
-                    w.callback.call(w.vm, a, w.value, w.expr)
-                }
-            }
-        }
-    } : {})
-}
-
-export function afterCreate(core, observe, keys) {
-    var $accessors = keys.$accessors
-    for (var key in keys) {
-        //对普通监控属性或访问器属性进行赋值
-        //删除系统属性
-        if (key in $$skipArray) {
-            hideProperty(observe, key, keys[key])
-            delete keys[key]
-        } else {
-            if (!(key in $accessors)) {
-                observe[key] = keys[key]
-            }
-            keys[key] = true
-        }
-    }
-    function hasOwnKey(key) {
-        return keys[key] === true
-    }
-    if (avalon.msie < 9)
-        platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
-    core.__proxy__ = observe
-}
 
 platform.hideProperty = hideProperty
 platform.createViewModel = createViewModel
