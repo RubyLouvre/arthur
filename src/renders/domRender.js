@@ -229,6 +229,7 @@ cp.optimizeDirectives = function () {
                         clearTimeout(viewID)
                         viewID = null
                     }
+                     /* istanbul ignore next */
                     viewID = setTimeout(function () {
                         list.forEach(function (el) {
                             el.callback.call(vm, {
@@ -280,7 +281,6 @@ cp.getForBinding = function (node, scope, childNodes) {
     f.userCb = begin.userCb
     delete begin.userCb
     f.parentChildren = childNodes
-    f.props = {}//冒充元素节点
     childNodes.splice(nodes.start, nodes.length)
     this.bindings.push([
         f, scope, { 'ms-for': expr }

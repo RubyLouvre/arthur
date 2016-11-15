@@ -251,7 +251,6 @@ describe('on', function () {
             fn: function(e){
                 e.target.value = ++i
             }
-
         })
         function keyup(el, code){
             if(document.createEvent){
@@ -279,5 +278,41 @@ describe('on', function () {
             }, 100)
         }, 100)
     })
+    
+     it('三重循环+事件', function (done) {
+          div.innerHTML = heredoc(function () {
+            /*
+              <div ms-controller="on9">
+     <div ms-for="big in @bigs">
+      <div ms-for="cen in big.cens">
+        <ul>
+          <li ms-text="cen.msg" ms-click="@handle(cen)"></li>
+        </ul>
+      </div>
+    </div>
+             */
+        })
+        vm = avalon.define({
+            $id: 'on9',
+            bigs:[{
+              cens:[{
+                msg:11
+              },
+              {
+                msg:22
+              }]
+            }],
+            handle:function(cen){
+            }
+        })
+        avalon.scan(div)
+        setTimeout(function(){
+           var lis = div.getElementsByTagName('li')
+           expect(lis.length).toBe(2)
+           expect(lis[0].getAttribute('avalon-events')).toMatch(/click\:/)
+           expect(lis[1].getAttribute('avalon-events')).toMatch(/click\:/)
+           done()
+        }, 100)
+     })
 })
 

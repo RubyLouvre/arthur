@@ -15,7 +15,7 @@ export var skipMap = avalon.mix({
     $event: 1,
     window: 1,
     __vmodel__: 1,
-    avalon:1
+    avalon: 1
 }, keyMap)
 
 var rvmKey = /(^|[^\w\u00c0-\uFFFF_])(@|##)(?=[$\w])/g
@@ -48,7 +48,7 @@ export function addScope(expr, type) {
         return cache.slice(0)
     }
 
-    stringPool.map = {}                         
+    stringPool.map = {}
 
     var input = expr.replace(rregexp, dig)       //移除所有正则
     input = clearString(input)                   //移除所有字符串
@@ -64,7 +64,7 @@ export function addScope(expr, type) {
 
     var filters = input.split(rpipeline)         //根据管道符切割表达式
     var body = filters.shift().replace(rfill, fill).trim()
-    if(/\?\?\d/.test(body)){
+    if (/\?\?\d/.test(body)) {
         body = body.replace(rfill, fill)
     }
     if (filters.length) {
@@ -75,7 +75,7 @@ export function addScope(expr, type) {
                     bracketArgs += ',' + b        //还原字符串,正则,短路运算符
                 }
                 return ''
-            })//.replace(rfill, fill)
+            })
             var arg = '[' + avalon.quote(filter.trim()) + bracketArgs + ']'
             return arg
 
@@ -93,7 +93,8 @@ export function makeHandle(body) {
     if (rhandleName.test(body)) {
         body = body + '($event)'
     }
-    if(msie < 9){
+    /* istanbul ignore if */
+    if (msie < 9) {
         body = body.replace(rfixIE678, function (a, b, c) {
             return '__vmodel__.' + b + '.call(__vmodel__' + (/\S/.test(c) ? ',' + c : '') + ')'
         })
@@ -102,18 +103,16 @@ export function makeHandle(body) {
 }
 export function createGetter(expr, type) {
     var arr = addScope(expr, type), body
-    if(!arr[1]){
+    if (!arr[1]) {
         body = arr[0]
-    }else{
-        body = arr[1].replace(/__value__\)$/, arr[0]+')')
+    } else {
+        body = arr[1].replace(/__value__\)$/, arr[0] + ')')
     }
     try {
         return new Function('__vmodel__', 'return ' + body + ';')
-          /* istanbul ignore next */
+        /* istanbul ignore next */
     } catch (e) {
-          /* istanbul ignore next */
         avalon.log('parse getter: [', expr, body, ']error')
-          /* istanbul ignore next */
         return avalon.noop
     }
 }
@@ -127,10 +126,9 @@ export function createSetter(expr, type) {
     var body = 'try{ ' + arr[0] + ' = __value__}catch(e){}'
     try {
         return new Function('__vmodel__', '__value__', body + ';')
+        /* istanbul ignore next */
     } catch (e) {
-          /* istanbul ignore next */
         avalon.log('parse setter: ', expr, ' error')
-          /* istanbul ignore next */
         return avalon.noop
     }
 }

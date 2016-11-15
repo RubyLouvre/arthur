@@ -97,7 +97,6 @@ describe('duplex', function () {
             fireClick(inputs[1])
             fireClick(inputs[2])
             setTimeout(function () {
-                console.log(vm.aaa.concat())
                 expect(vm.aaa.concat()).toEqual([111, 222])
                 done()
             }, 100)

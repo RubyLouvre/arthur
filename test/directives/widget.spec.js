@@ -694,7 +694,6 @@ describe('widget', function () {
             }),
             defaults: {
                 onInit: function (a) {
-                    console.log(a)
                 }
             }
         })
