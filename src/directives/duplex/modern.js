@@ -1,6 +1,7 @@
 
 import { avalon } from '../../seed/core'
 import { duplexBeforeInit, duplexInit, duplexDiff, duplexValidate, valueHijack, updateView } from './share'
+import { updateModel } from './updateDataHandle'
 import { updateDataEvents } from './updateDataEvents.modern'
 
 

@@ -1,5 +1,4 @@
 import { avalon } from '../../src/seed/core'
-import { pollValue } from '../../src/directives/duplex/compact'
 import { lookupOption } from '../../src/directives/duplex/option'
 
 
@@ -360,6 +359,11 @@ describe('duplex', function () {
 
     })
     it('pollValue', function (done) {
+        var pollValue = avalon.__pollValue
+        if(!pollValue){
+            done()
+            return 
+        }
         var el = document.createElement('input')
         el.composing = true
         document.body.appendChild(el)

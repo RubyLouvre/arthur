@@ -243,7 +243,7 @@ describe('widget', function () {
                 text: 'default'
             }
         })
-        avalon.scan(div, vm)
+        avalon.scan(div)
         setTimeout(function () {
             var div1 = div.getElementsByTagName('div')
             expect(div1[0].innerHTML).toBe('test')
@@ -906,8 +906,30 @@ describe('widget', function () {
         })
 
     })
-
-    it('onviewChange', function () {
+ it('延迟初始化组件',function(done){
+        div.innerHTML = heredoc(function () {
+            /*
+            <div ms-controller="widget14" ><ms-kkk /></div>
+            */
+        })
+        vm = avalon.define({
+            $id: 'widget14'
+        })
+        avalon.scan(div)
+        setTimeout(function(){
+            expect(div.innerHTML).toMatch(/unresolved/)
+            avalon.component('ms-kkk',{
+                template: '<div>good</div>',
+                defaults: {}
+            })
+            setTimeout(function(){
+                expect(div.innerHTML).toMatch(/good/)
+                done()
+                delete avalon.components['ms-kkk']
+            },100)
+        },100)
+    })
+    it('onViewChange', function () {
         var onViewChangeCount = 0
         avalon.component('ms-select', {
             template: heredoc(function () {
@@ -936,11 +958,11 @@ describe('widget', function () {
         })
         div.innerHTML = heredoc(function () {
             /*
-            <div ms-controller="widget14" ><ms-select :widget="{num: @aaa}" /></div>
+            <div ms-controller="widget15" ><ms-select :widget="{num: @aaa}" /></div>
             */
         })
         vm = avalon.define({
-            $id: 'widget14',
+            $id: 'widget15',
             aaa: 6
         })
         avalon.scan(div)
@@ -964,5 +986,6 @@ describe('widget', function () {
         }, 100)
 
     })
-
+    
+   
 })

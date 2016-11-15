@@ -31,7 +31,7 @@ avalon.directive('duplex', {
     }
 })
 
-export function pollValue(isIE, valueHijack) {
+function pollValue(isIE, valueHijack) {
     var dom = this.dom
     if (this.isString
         && valueHijack
@@ -48,6 +48,7 @@ export function pollValue(isIE, valueHijack) {
         return intervalID
     }
 }
+avalon.__pollValue = pollValue //export to test
 /* istanbul ignore if */
 if (avalon.msie < 8) {
     var oldUpdate = updateView.updateChecked
