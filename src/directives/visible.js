@@ -1,4 +1,6 @@
 import { avalon } from '../seed/core'
+import '../effect/index'
+
 var none = 'none'
 function parseDisplay(elem, val) {
     //用于取得此类标签的默认display值

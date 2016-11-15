@@ -1,5 +1,4 @@
 import { avalon, window, document, root, inBrowser } from '../../seed/core'
-import { scan } from './scan'
 
 var readyList = []
 
@@ -9,7 +8,6 @@ export function fireReady(fn) {
         fn(avalon)
     }
 }
-//avalon.scan = scan
 
 avalon.ready = function (fn) {
     readyList.push(fn)

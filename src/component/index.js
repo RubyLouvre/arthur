@@ -1,6 +1,6 @@
 import { avalon, isObject, platform } from '../seed/core'
 import { cssDiff } from '../directives/css'
-import { dumpTree, groupTree, getRange } from '../renders/index'
+import { dumpTree, groupTree, getRange } from '../renders/share'
 var legalTags = { wbr: 1, xmp: 1, template: 1 }
 var events = 'onInit,onReady,onViewChange,onDispose,onEnter,onLeave'
 var componentEvents = avalon.oneObject(events)

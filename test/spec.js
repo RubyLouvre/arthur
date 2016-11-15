@@ -25,11 +25,11 @@ import './vtree/fromString.spec'
 import './vtree/fromDOM.spec'
 
 
-
 import './vmodel/compact.spec'
 
 //这不是测试，但下面的模块都依赖这个
-import '../src/renders/compact'
+import '../src/directives/compact'
+import '../src/renders/domRender'
 
 import './directives/attr.spec'
 import './directives/duplex.spec'

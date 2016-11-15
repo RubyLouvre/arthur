@@ -86,7 +86,7 @@ function from(str) {
             if (match) {
                 var nodeName = match[1]
                 var props = {}
-                if(/^[A-Z]/.test(name) && avalon.components[nodeName]){
+                if(/^[A-Z]/.test(nodeName) && avalon.components[nodeName]){
                     props.is = nodeName
                 }
                 nodeName = nodeName.toLowerCase()
