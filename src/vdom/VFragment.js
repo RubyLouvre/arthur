@@ -6,6 +6,7 @@ export function VFragment(children, key, val, index) {
     this.key = key
     this.val = val
     this.index = index
+    this.props = {}
 }
 
 VFragment.prototype = {

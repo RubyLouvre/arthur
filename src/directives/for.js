@@ -239,7 +239,7 @@ function FragmentDecorator(fragment, instance, index) {
     })
     fragment.index = index
 
-    fragment.boss = avalon.scan(instance.fragment, fragment.vm, function () {
+    fragment.boss = avalon.scan(instance.fragment, vm, function () {
         var oldRoot = this.root
         ap.push.apply(fragment.children, oldRoot.children)
         this.root = fragment

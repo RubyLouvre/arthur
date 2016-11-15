@@ -1,19 +1,20 @@
-import { avalon } from '../seed/core'
+import { avalon, inBrowser } from '../seed/core'
 
 
 avalon.directive('text', {
     delay: true,
     init: function () {
+        
         var node = this.node
         if (node.isVoidTag) {
             avalon.error('自闭合元素不能使用ms-text')
         }
         var child = { nodeName: '#text', nodeValue: this.getValue() }
         node.children.splice(0, node.children.length, child)
-        if(node.dom){
-            delete node.dom
+        if(inBrowser){
+           avalon.clearHTML(node.dom)
+           node.dom.appendChild( avalon.vdom(child,'toDOM'))
         }
-        avalon.vdom(child,'toDOM')
         this.node = child
         var type = 'nodeValue'
         this.type = this.name = type

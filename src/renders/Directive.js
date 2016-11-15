@@ -77,11 +77,11 @@ dp.get = function () {
     var uniq = {}
     for (var i in this.newDepends) {
         var el = this.newDepends[i]
-        uniq[el._uid] = el
+        uniq[el.uuid] = el
     }
     for (var i in this.depends) {
         var el = this.depends[i]
-        if (!uniq[el._uid]) {
+        if (!uniq[el.uuid]) {
             el.removeSub(this)
         }
     }
