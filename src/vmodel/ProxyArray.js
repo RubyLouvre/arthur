@@ -1,4 +1,6 @@
-import { avalon, ap, platform } from '../seed/core'
+import { avalon, ap, platform, modern, isObject } from '../seed/core'
+import { Depend } from './depend'
+
 var _splice = ap.splice
 var __array__ = {
     set: function (index, val) {
@@ -56,10 +58,8 @@ var __array__ = {
         platform.toModel(this)
         this.$events.__dep__.notify()
     }
-
-
 }
-export function rewriteArrayMethods(array) {
+export function hijackMethods(array) {
     for (var i in __array__) {
         platform.hideProperty(array, i, __array__[i])
     }
@@ -70,9 +70,7 @@ __method__.forEach(function (method) {
     var original = ap[method]
     __array__[method] = function () {
         // 继续尝试劫持数组元素的属性
-       
-        var size = this.length
-        var core = this.$events
+         var core = this.$events
       
         core.__dep__.beforeNotify()
         var args = platform.listFactory(arguments, true, core.__dep__)
@@ -83,3 +81,23 @@ __method__.forEach(function (method) {
         return result
     }
 })
+
+export function listFactory(array, stop, dd) {
+        if (!stop) {
+                hijackMethods(array)
+                if (modern) {
+                        Object.defineProperty(array, '$model', platform.modelAccessor)
+                }
+                platform.hideProperty(array, '$hashcode', avalon.makeHashCode('$'))
+                platform.hideProperty(array, '$events', { __dep__: dd || new Depend })
+        }
+        var _dd = array.$events && array.$events.__dep__
+        for (var i = 0, n = array.length; i < n; i++) {
+                var item = array[i]
+                if (isObject(item)) {
+                        array[i] = platform.createProxy(item, _dd)
+                }
+        }
+        return array
+}
+platform.listFactory = listFactory

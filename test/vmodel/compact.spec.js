@@ -1,10 +1,10 @@
-import { avalon, afterCreate, platform, observeItemObject } from
+import { avalon, afterCreate, platform, itemFactory } from
     '../../src/vmodel/compact'
 import { Depend } from
     '../../src/vmodel/depend'
 import { Directive } from
     '../../src/renders/Directive'
-import { isObservable } from
+import { canHijack as isObservable } from
     '../../src/vmodel/share'
 describe('vmodel', function () {
     it('isObservable', function () {
@@ -153,30 +153,32 @@ describe('vmodel', function () {
 
         var oldIE = avalon.msie
         avalon.msie = 6
-        var core = {}
-        var keys = {
+       
+        var vm = {
             $accessors: {
-                a: {
+                aa: {
                     get: function () { },
                     set: function () { },
                     enumerable: true,
                     configurable: true
                 }
             },
-            $id: 'test',
+            $events: {},
+            $id: 'test'
+           
+        }
+        var core = {
             aaa: 111,
             bbb: 111
         }
-        var observer = {}
-        afterCreate(core, observer, keys)
-        expect(core.__proxy__).toBe(observer)
-        expect(keys).toEqual({
-            aaa: true,
-            bbb: true
-        })
-        expect(observer.hasOwnProperty).toMatch(/hasOwnKey/)
-        expect(observer.hasOwnProperty('aaa')).toBe(true)
-        expect(observer.hasOwnProperty('ccc')).toBe(false)
+        var keys = ['aaa','bbb','aa']
+        
+        afterCreate(vm, core, keys)
+        expect(vm.$events.__proxy__).toBe(vm)
+        expect(vm.$track.length > 8).toBe(true)
+        expect(vm.hasOwnProperty).toMatch(/hasOwnKey/)
+        expect(vm.hasOwnProperty('aaa')).toBe(true)
+        expect(vm.hasOwnProperty('ccc')).toBe(false)
         var testA = {
             $id: 'aaa',
             arr: [1, 2, 3],
@@ -184,7 +186,8 @@ describe('vmodel', function () {
                 a: 1,
                 b: 2
             },
-            c: 88
+            c: 88,
+            $track: 'arrȢobjȢc'
         }
         var method = avalon.modern ? platform.toJson : platform.toModel
         method(testA)
@@ -200,7 +203,7 @@ describe('vmodel', function () {
 })
 
 
-describe('observeItemObject', function () {
+describe('itemFactory', function () {
     it('test', function () {
         var vm = avalon.define({
             $id: 'xcvdsfdsf',
@@ -211,7 +214,7 @@ describe('observeItemObject', function () {
             d: function () { },
             $e: 33
         })
-        var vm2 = observeItemObject(vm, {
+        var vm2 = itemFactory(vm, {
             data: {
                 dd: 11,
                 $cc: 22
@@ -225,12 +228,12 @@ describe('observeItemObject', function () {
             $id: 'xxx32',
             kkk: 232
         })
-        var vm2 = observeItemObject(vm, {
+        var vm2 = itemFactory(vm, {
             data: {
                 value: 111
             }
         })
-        var vm3 = observeItemObject(vm, {
+        var vm3 = itemFactory(vm, {
             data: {
                 value: 444
             }

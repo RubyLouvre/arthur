@@ -169,7 +169,7 @@ function $watch(expr, callback, deep) {
         }
 }
 
-export function observeItemObject(before, after) {
+export function itemFactory(before, after) {
     var vm = masterFactory(before)
     vm.$hashcode = before.$hashcode + 
             String(after.hashcode || Math.random()).slice(6)

@@ -2372,6 +2372,54 @@
         }
     }
 
+    function validateDOMNesting(parent, child) {
+
+        var parentTag = parent.nodeName;
+        var tag = child.nodeName;
+        var parentChild = nestObject[parentTag];
+        if (parentChild) {
+            if (parentTag === 'p') {
+                if (pNestChild[tag]) {
+                    avalon.warn('P element can not  add these childlren:\n' + Object.keys(pNestChild));
+                    return false;
+                }
+            } else if (!parentChild[tag]) {
+                avalon.warn(parentTag.toUpperCase() + 'element only add these children:\n' + Object.keys(parentChild) + '\nbut you add ' + tag.toUpperCase() + ' !!');
+                return false;
+            }
+        }
+        return true;
+    }
+    var pNestChild = oneObject('div,ul,ol,dl,table,h1,h2,h3,h4,h5,h6,form,fieldset');
+    var tNestChild = oneObject('tr,style,script,template,#document-fragment');
+    var nestObject = {
+        p: pNestChild,
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-inselect
+        select: oneObject('option,optgroup,#text,#document-fragment'),
+        optgroup: oneObject('option,#text,#document-fragment'),
+        option: oneObject('#text,#document-fragment'),
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intd
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-incaption
+        // No special behavior since these rules fall back to "in body" mode for
+        // all except special table nodes which cause bad parsing behavior anyway.
+
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intr
+        tr: oneObject('th,td,style,script,template,#document-fragment'),
+
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intbody
+        tbody: tNestChild,
+        tfoot: tNestChild,
+        thead: tNestChild,
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-incolgroup
+        colgroup: oneObject('col,template,#document-fragment'),
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-intable
+        table: oneObject('caption,colgroup,tbody,thead,tfoot,style,script,template,#document-fragment'),
+        // https://html.spec.whatwg.org/multipage/syntax.html#parsing-main-inhead
+        head: oneObject('base,basefont,bgsound,link,style,script,meta,title,noscript,noframes,template,#document-fragment'),
+        // https://html.spec.whatwg.org/multipage/semantics.html#the-html-element
+        html: oneObject('head,body')
+    };
+
     /**
      * ------------------------------------------------------------
      * avalon2.1.1的新式lexer
@@ -2519,6 +2567,8 @@
     function makeChildren(node, stack, ret) {
         var p = stack.last();
         if (p) {
+
+            validateDOMNesting(p, node);
             p.children.push(node);
         } else {
             ret.push(node);
@@ -3378,19 +3428,19 @@
      $skipArray被hasOwnProperty后返回true
      */
     var $$skipArray = {
-        $id: true,
-        $render: true,
-        $track: true,
-        $element: true,
-        $watch: true,
-        $fire: true,
-        $events: true,
-        $skipArray: true,
-        $accessors: true,
-        $hashcode: true,
-        __proxy__: true,
-        __data__: true,
-        __const__: true
+        $id: void 0,
+        $render: void 0,
+        $track: void 0,
+        $element: void 0,
+        $watch: void 0,
+        $fire: void 0,
+        $events: void 0,
+        $skipArray: void 0,
+        $accessors: void 0,
+        $hashcode: void 0,
+        __proxy__: void 0,
+        __data__: void 0,
+        __const__: void 0
     };
 
     var rendering = null;
@@ -3769,6 +3819,186 @@
         destroy: 1
     };
 
+    /**
+     * 这里放置ViewModel模块的共用方法
+     * avalon.define: 全框架最重要的方法,生成用户VM
+     * IProxy, 基本用户数据产生的一个数据对象,基于$model与vmodel之间的形态
+     * modelFactory: 生成用户VM
+     * canHijack: 判定此属性是否该被劫持,加入数据监听与分发的的逻辑
+     * createProxy: listFactory与modelFactory的封装
+     * createAccessor: 实现数据监听与分发的重要对象
+     * itemFactory: ms-for循环中产生的代理VM的生成工厂
+     * mediatorFactory: 两个ms-controller间产生的代理VM的生成工厂
+     */
+
+    avalon.define = function (definition) {
+        var $id = definition.$id;
+        if (!$id) {
+            avalon.error('vm.$id must be specified');
+        }
+        if (avalon.vmodels[$id]) {
+            avalon.warn('error:[' + $id + '] had defined!');
+        }
+        var vm = modelFactory(definition);
+        return avalon.vmodels[$id] = vm;
+    };
+    /**
+     * 在末来的版本,avalon改用Proxy来创建VM,因此
+     */
+    function IProxy(definition, dd) {
+        avalon.mix(this, definition);
+        avalon.mix(this, $$skipArray);
+        this.$hashcode = avalon.makeHashCode('$');
+        this.$id = this.$id || this.$hashcode;
+        this.$events = {
+            __dep__: dd || new Depend(this.$id)
+        };
+        this.$accessors = {
+            $model: platform.modelAccessor
+        };
+        if (dd === void 0) {
+            this.$watch = platform.watchFactory(this.$events);
+            this.$fire = platform.fireFactory(this.$events);
+        } else {
+            delete this.$watch;
+            delete this.$fire;
+        }
+    }
+
+    function modelFactory(definition, dd) {
+        var core = new IProxy(definition, dd);
+        var $accessors = core.$accessors;
+        var keys = [];
+        for (var key in definition) {
+            if (key in $$skipArray) continue;
+            var val = definition[key];
+            keys.push(key);
+            if (canHijack(key, val)) {
+                $accessors[key] = createAccessor(key, val);
+            }
+        }
+        //将系统API以unenumerable形式加入vm,
+        //添加用户的其他不可监听属性或方法
+        //重写$track
+        //并在IE6-8中增添加不存在的hasOwnPropert方法
+        var vm = platform.createViewModel(core, $accessors, core);
+        platform.afterCreate(vm, core, keys);
+        return vm;
+    }
+
+    function canHijack(key, val, inItem) {
+        if (key in $$skipArray) return false;
+        if (key.charAt(0) === '$' && !inItem) return false;
+        if (val == null) {
+            avalon.warn('定义vmodel时属性值不能为null undefine');
+            return true;
+        }
+        if (/error|date|function|regexp/.test(avalon.type(val))) {
+            return false;
+        }
+        return !(val && val.nodeName && val.nodeType);
+    }
+
+    function createProxy(target, dd) {
+        if (target && target.$events) {
+            return target;
+        }
+        var vm;
+        if (Array.isArray(target)) {
+            vm = platform.listFactory(target, false, dd);
+        } else if (isObject(target)) {
+            vm = modelFactory(target, dd);
+        }
+        return vm;
+    }
+
+    platform.createProxy = createProxy;
+
+    // 指令需要计算自己的值，来刷新
+    // 在计算前，将自己放到DepStack中
+    // 然后开始计算，在Getter方法里，
+
+    function createAccessor(key, val) {
+        var priVal = val;
+        var selfDep = new Depend(key); //当前值对象的Depend
+        var childOb = createProxy(val, selfDep);
+        var hash = childOb && childOb.$hashcode;
+        return {
+            get: function Getter() {
+                var ret = priVal;
+                if (Depend.target) {
+                    selfDep.collect();
+                }
+                Getter.dd = selfDep;
+                if (childOb && childOb.$events) {
+                    if (Array.isArray(childOb)) {
+                        childOb.forEach(function (item) {
+                            if (item && item.$events) {
+                                item.$events.__dep__.collect();
+                            }
+                        });
+                    } else if (avalon.deepCollect) {
+
+                        for (var i in childOb) {
+                            if (childOb.hasOwnProperty(i)) var e = childOb[i];
+                        }
+                    }
+                    return childOb;
+                }
+
+                return ret;
+            },
+            set: function Setter(newValue) {
+                var oldValue = priVal;
+                if (newValue === oldValue) {
+                    return;
+                }
+                selfDep.beforeNotify();
+                priVal = newValue;
+                childOb = createProxy(newValue, selfDep);
+                if (childOb && hash) {
+                    childOb.$hashcode = hash;
+                }
+                selfDep.notify();
+            },
+            enumerable: true,
+            configurable: true
+        };
+    }
+
+    function itemFactory(before, after) {
+        var keyMap = before.$model;
+        var core = new IProxy(keyMap);
+        var state = avalon.shadowCopy(core.$accessors, before.$accessors); //防止互相污染
+        var data = after.data;
+        //core是包含系统属性的对象
+        //keyMap是不包含系统属性的对象, keys
+        for (var key in data) {
+            var val = keyMap[key] = core[key] = data[key];
+            state[key] = createAccessor(key, val);
+        }
+        var keys = Object.keys(keyMap);
+        var vm = platform.createViewModel(core, state, core);
+        platform.afterCreate(vm, core, keys);
+        return vm;
+    }
+    platform.itemFactory = itemFactory;
+
+    function mediatorFactory(before, after) {
+
+        var keyMap = avalon.mix(before.$model, after.$model);
+        var core = new IProxy(avalon.mix(keyMap, {
+            $id: before.$id + after.$id
+        }));
+        var state = avalon.mix(core.$accessors, before.$accessors, after.$accessors); //防止互相污染
+
+        var keys = Object.keys(keyMap);
+        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+        var vm = platform.createViewModel(core, state, core);
+        platform.afterCreate(vm, core, keys);
+        return vm;
+    }
+
     var _splice = ap.splice;
     var __array__ = {
         set: function set(index, val) {
@@ -3831,9 +4061,8 @@
             platform.toModel(this);
             this.$events.__dep__.notify();
         }
-
     };
-    function rewriteArrayMethods(array) {
+    function hijackMethods(array) {
         for (var i in __array__) {
             platform.hideProperty(array, i, __array__[i]);
         }
@@ -3844,8 +4073,6 @@
         var original = ap[method];
         __array__[method] = function () {
             // 继续尝试劫持数组元素的属性
-
-            var size = this.length;
             var core = this.$events;
 
             core.__dep__.beforeNotify();
@@ -3858,62 +4085,9 @@
         };
     });
 
-    /**
-     * 这里放置ViewModel模块的共用方法
-     * modelAccessor: $model属性的访问器定义对象
-     * modelFactory: 对象转ViewModel的工厂
-     * listFactory: 数组转ViewModel的工厂
-     * beforeCreate: modelFactory的内部方法，用于创建之前
-     * afterCreate: modelFactory的内部方法，用于创建之后
-     * isObservable: 判定此属性能否转换为访问器属性
-     * createObservable: ViewModel的适配方法，决定使用哪个工厂转换
-     */
-
-    avalon.define = function (definition) {
-        var $id = definition.$id;
-        if (!$id) {
-            avalon.error('vm.$id must be specified');
-        }
-        if (avalon.vmodels[$id]) {
-            avalon.error('error:[' + $id + '] had defined!');
-        }
-        var vm = modelFactory(definition);
-        return avalon.vmodels[$id] = vm;
-    };
-
-    function modelFactory(definition, dd) {
-        var byUser = dd === void 0;
-        var state = {};
-        var hash = avalon.makeHashCode('$');
-        var keys = {
-            $id: definition.$id || hash,
-            $hashcode: hash
-        };
-
-        var core = {
-            __dep__: dd || new Depend(keys.$id)
-        };
-
-        for (var key in definition) {
-            if ($$skipArray[key]) continue;
-            var val = keys[key] = definition[key];
-            if (isObservable(key, val)) {
-                state[key] = createAccessor(key, val, core.__dep__);
-            }
-        }
-        //往keys中添加系统API
-        platform.beforeCreate(core, state, keys, byUser);
-        var vm = new Observable();
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys);
-        platform.afterCreate(core, vm, keys);
-        return vm;
-    }
-
-    function Observable() {}
     function listFactory(array, stop, dd) {
         if (!stop) {
-            rewriteArrayMethods(array);
+            hijackMethods(array);
             if (modern) {
                 Object.defineProperty(array, '$model', platform.modelAccessor);
             }
@@ -3924,136 +4098,12 @@
         for (var i = 0, n = array.length; i < n; i++) {
             var item = array[i];
             if (isObject(item)) {
-                array[i] = createObservable(item, _dd);
+                array[i] = platform.createProxy(item, _dd);
             }
         }
         return array;
     }
-
-    function isObservable(key, val) {
-        if ($$skipArray[key]) return false;
-        if (key.charAt(0) === '$') return false;
-        if (typeof val == null) {
-            avalon.warn('定义vmodel时属性值不能为null undefine');
-            return true;
-        }
-        if (/error|date|function|regexp/.test(avalon.type(val))) {
-            return false;
-        }
-        return !(val && val.nodeName && val.nodeType);
-    }
-
-    function createObservable(target, dd) {
-        if (target && target.$events) {
-            return target;
-        }
-        var vm;
-        if (Array.isArray(target)) {
-            vm = listFactory(target, false, dd);
-        } else if (isObject(target)) {
-            vm = modelFactory(target, dd);
-        }
-        return vm;
-    }
-    // 指令需要计算自己的值，来刷新
-    // 在计算前，将自己放到DepStack中
-    // 然后开始计算，在Getter方法里，
-
-    function createAccessor(key, val, pd) {
-        var priVal = val;
-        var selfDep = new Depend(key, pd); //当前值对象的Depend
-        var childOb = createObservable(val, selfDep);
-        var hash = childOb && childOb.$hashcode;
-        return {
-            get: function Getter() {
-                var ret = priVal;
-                if (Depend.target) {
-                    selfDep.collect();
-                }
-                Getter.dd = selfDep;
-                if (childOb && childOb.$events) {
-                    if (Array.isArray(childOb)) {
-                        childOb.forEach(function (item) {
-                            if (item && item.$events) {
-                                item.$events.__dep__.collect();
-                            }
-                        });
-                    } else if (avalon.deepCollect) {
-
-                        for (var i in childOb) {
-                            if (childOb.hasOwnProperty(i)) var e = childOb[i];
-                        }
-                    }
-                    return childOb;
-                }
-
-                return ret;
-            },
-            set: function Setter(newValue) {
-                var oldValue = priVal;
-                if (newValue === oldValue) {
-                    return;
-                }
-                selfDep.beforeNotify();
-                priVal = newValue;
-                childOb = createObservable(newValue, selfDep);
-                if (childOb && hash) {
-                    childOb.$hashcode = hash;
-                }
-                selfDep.notify();
-            },
-            enumerable: true,
-            configurable: true
-        };
-    }
     platform.listFactory = listFactory;
-
-    function observeItemObject(before, after) {
-        var core = {};
-        core.__dep__ = new Depend();
-        var state = avalon.shadowCopy({}, before.$accessors); //防止互相污染
-        var keys = before.$model || {};
-        var more = after.data;
-        delete after.data;
-        var props = after;
-
-        for (var key in more) {
-            keys[key] = more[key];
-            if (!$$skipArray[key]) {
-                state[key] = createAccessor(key, more[key], core);
-            }
-        }
-        platform.beforeCreate(core, state, keys);
-        var vm = new Observable();
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys);
-        platform.afterCreate(core, vm, keys);
-        vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6);
-        return vm;
-    }
-
-    function mediatorFactory(before, after) {
-        var state = avalon.mix({}, before.$accessors, after.$accessors); //防止互相污染
-        var keys = avalon.mix({}, before.$model, after.$model);
-        var core = {};
-        core.__dep__ = new Depend();
-        platform.beforeCreate(core, state, keys, true);
-        var vm = new Observable();
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys);
-        platform.afterCreate(core, vm, keys);
-        vm.$id = vm.$hashcode = before.$hashcode + after.$hashcode;
-        return vm;
-    }
-    avalon.observeItemObject = observeItemObject;
-    /**
-     * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
-     * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
-     * 
-     * 什么是Observer？ Observer（观察者）是Observable（可观察对象）推送数据的消费者。
-     * 在RxJS中，Observer是一个由回调函数组成的对象，键名分别为next、error 和 complete，
-     * 以此接受Observable推送的不同类型的通知，下面的代码段是Observer的一个示例：
-     */
 
     //如果浏览器不支持ecma262v5的Object.defineProperties或者存在BUG，比如IE8
     //标准浏览器使用__defineGetter__, __defineSetter__实现
@@ -4077,26 +4127,24 @@
     };
 
     function toJson(val) {
-        switch (avalon.type(val)) {
-            case 'array':
-                var array = [];
-                for (var i = 0; i < val.length; i++) {
-                    array[i] = toJson(val[i]);
-                }
-                return array;
-            case 'object':
+        var xtype = avalon.type(val);
+        if (xtype === 'array') {
+            var array = [];
+            for (var i = 0; i < val.length; i++) {
+                array[i] = toJson(val[i]);
+            }
+            return array;
+        } else if (xtype === 'object') {
+            if (typeof val.$track === 'string') {
                 var obj = {};
-                for (i in val) {
-                    if ($$skipArray[i]) continue;
-                    if (val.hasOwnProperty(i)) {
-                        var value = val[i];
-                        obj[i] = value && value.$events ? toJson(value) : value;
-                    }
-                }
+                val.$track.split('Ȣ').forEach(function (i) {
+                    var value = val[i];
+                    obj[i] = value && value.$events ? toJson(value) : value;
+                });
                 return obj;
-            default:
-                return val;
+            }
         }
+        return val;
     }
 
     /* istanbul ignore next */
@@ -4114,66 +4162,76 @@
         }
     }
 
-    function beforeCreate(core, state, keys, byUser) {
-        state.$model = platform.modelAccessor;
-        avalon.mix(keys, {
-            $events: core,
-            $element: 0,
-            $render: 0,
-            $accessors: state
-        }, byUser ? {
-            $watch: function $watch(expr, callback, deep) {
-                var w = new Directive(core.__proxy__, {
-                    deep: deep,
-                    type: 'user',
-                    expr: expr
-                }, callback);
-                if (!core[expr]) {
-                    core[expr] = [w];
-                } else {
-                    core[expr].push(w);
-                }
-
-                return function () {
-                    w.destroy();
-                    avalon.Array.remove(core[expr], w);
-                    if (core[expr].length === 0) {
-                        delete core[expr];
-                    }
-                };
-            },
-            $fire: function $fire(expr, a) {
-                var list = core[expr];
-                if (Array.isArray(list)) {
-                    for (var i = 0, w; w = list[i++];) {
-                        w.callback.call(w.vm, a, w.value, w.expr);
-                    }
-                }
-            }
-        } : {});
-    }
-
-    function afterCreate(core, observe, keys) {
-        var $accessors = keys.$accessors;
-        for (var key in keys) {
-            //对普通监控属性或访问器属性进行赋值
-            //删除系统属性
-            if (key in $$skipArray) {
-                hideProperty(observe, key, keys[key]);
-                delete keys[key];
+    function watchFactory(core) {
+        return function $watch(expr, callback, deep) {
+            var w = new Directive(core.__proxy__, {
+                deep: deep,
+                type: 'user',
+                expr: expr
+            }, callback);
+            if (!core[expr]) {
+                core[expr] = [w];
             } else {
-                if (!(key in $accessors)) {
-                    observe[key] = keys[key];
+                core[expr].push(w);
+            }
+
+            return function () {
+                w.destroy();
+                avalon.Array.remove(core[expr], w);
+                if (core[expr].length === 0) {
+                    delete core[expr];
                 }
-                keys[key] = true;
+            };
+        };
+    }
+
+    function fireFactory(core) {
+        return function $fire(expr, a) {
+            var list = core[expr];
+            if (Array.isArray(list)) {
+                for (var i = 0, w; w = list[i++];) {
+                    w.callback.call(w.vm, a, w.value, w.expr);
+                }
+            }
+        };
+    }
+
+    function wrapIt(str) {
+        return 'Ȣ' + str + 'Ȣ';
+    }
+
+    function afterCreate(vm, core, keys) {
+        var $accessors = vm.$accessors;
+        //隐藏系统属性
+        for (var key in $$skipArray) {
+            hideProperty(vm, key, vm[key]);
+        }
+        //为不可监听的属性或方法赋值
+        for (var i = 0; i < keys.length; i++) {
+            key = keys[i];
+            if (!(key in $accessors)) {
+                vm[key] = core[key];
             }
         }
+        vm.$track = keys.join('Ȣ');
         function hasOwnKey(key) {
-            return keys[key] === true;
+            return wrapIt(vm.$track).indexOf(wrapIt(key)) > -1;
         }
-        if (avalon.msie < 9) platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey);
-        core.__proxy__ = observe;
+        if (avalon.msie < 9) hideProperty(vm, 'hasOwnProperty', hasOwnKey);
+        vm.$events.__proxy__ = vm;
     }
+
+    platform.hideProperty = hideProperty;
+    platform.fireFactory = fireFactory;
+    platform.watchFactory = watchFactory;
+    platform.afterCreate = afterCreate;
+    platform.modelAccessor = modelAccessor;
+    platform.toJson = toJson;
+    platform.toModel = function (obj) {
+        if (avalon.msie < 9) {
+            obj.$model = toJson(obj);
+        }
+    };
 
     var createViewModel = Object.defineProperties;
     var defineProperty;
@@ -4233,7 +4291,7 @@
 
                 //添加访问器属性 
                 for (name in accessors) {
-                    if (uniq[name] || $$skipArray[name]) {
+                    if (uniq[name] || name in $$skipArray) {
                         continue;
                     }
                     uniq[name] = true;
@@ -4245,18 +4303,19 @@
                     '\tOn Error Resume Next', //必须优先使用set语句,否则它会误将数组当字符串返回
                     '\t\tSet[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")', '\tIf Err.Number <> 0 Then', '\t\t[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")', '\tEnd If', '\tOn Error Goto 0', '\tEnd Property');
                 }
-                for (name in properties) {
-                    if (uniq[name] || $$skipArray[name]) {
-                        continue;
-                    }
-                    uniq[name] = true;
-                    buffer.push('\tPublic [' + name + ']');
-                }
                 for (name in $$skipArray) {
                     if (!uniq[name]) {
                         buffer.push('\tPublic [' + name + ']');
+                        uniq[name] = true;
                     }
                 }
+                for (name in properties) {
+                    if (!uniq[name]) {
+                        uniq[name] = true;
+                        buffer.push('\tPublic [' + name + ']');
+                    }
+                }
+
                 buffer.push('\tPublic [' + 'hasOwnProperty' + ']');
                 buffer.push('End Class');
                 var body = buffer.join('\r\n');
@@ -4274,17 +4333,7 @@
         }
     }
 
-    platform.hideProperty = hideProperty;
     platform.createViewModel = createViewModel;
-    platform.beforeCreate = beforeCreate;
-    platform.afterCreate = afterCreate;
-    platform.modelAccessor = modelAccessor;
-    platform.toJson = toJson;
-    platform.toModel = function (obj) {
-        if (avalon.msie < 9) {
-            obj.$model = toJson(obj);
-        }
-    };
 
     var impDir = avalon.directive('important', {
         priority: 1,
@@ -4401,7 +4450,7 @@
             res.push(key);
         }return res;
     }
-    /* istanbul ignore next */
+
     function deepEquals(a, b, level) {
         if (level === 0) return a === b;
         if (a === null && b === null) return true;
@@ -5057,17 +5106,16 @@
                 var body = makeHandle(arr[0]);
                 this.userCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body);
             }
-            this.node.forDir = this;
+            this.node.forDir = this; //暴露给component/index.js中的resetParentChildren方法使用
             this.fragment = ['<div>', this.fragment, '<!--', this.signature, '--></div>'].join('');
 
             this.cache = {};
         },
         diff: function diff(newVal, oldVal) {
-
+            /* istanbul ignore if */
             if (this.updating) {
                 return;
             }
-
             this.updating = true;
             var traceIds = createFragments(this, newVal);
             if (this.oldTrackIds === void 0) return true;
@@ -5224,7 +5272,7 @@
             data[instance.asName] = instance.value;
         }
 
-        var vm = fragment.vm = observeItemObject(instance.vm, {
+        var vm = fragment.vm = platform.itemFactory(instance.vm, {
             data: data
         });
         fragment.index = index;
@@ -5684,6 +5732,7 @@
                 array[method](val);
                 duplexCb(field);
             }
+            this.__test__ = array;
         },
         select: function select() {
             var field = this;
@@ -5862,19 +5911,20 @@
     function openCaret() {
         this.caret = true;
     }
-
+    /* istanbul ignore next */
     function closeCaret() {
         this.caret = false;
     }
+    /* istanbul ignore next */
     function openComposition() {
         this.composing = true;
     }
-
+    /* istanbul ignore next */
     function closeComposition(e) {
         this.composing = false;
         updateModelDelay.call(this, e);
     }
-
+    /* istanbul ignore next */
     function updateModelKeyDown(e) {
         var key = e.keyCode;
         // ignore
@@ -5896,7 +5946,8 @@
     var mayBeAsync = function mayBeAsync(fn) {
         setTimeout(fn, 0);
     };
-    var setCaret = function setCaret(target, cursorPosition) {
+    /* istanbul ignore next */
+    function setCaret(target, cursorPosition) {
         var range$$1;
         if (target.createTextRange) {
             mayBeAsync(function () {
@@ -5913,9 +5964,9 @@
                 target.setSelectionRange(cursorPosition, cursorPosition);
             }
         }
-    };
+    }
     /* istanbul ignore next*/
-    var getCaret = function getCaret(target) {
+    function getCaret(target) {
         var start = 0;
         var normalizedValue;
         var range$$1;
@@ -5948,7 +5999,7 @@
         }
 
         return start;
-    };
+    }
 
     avalon.directive('duplex', {
         priority: 9999999,
@@ -6776,12 +6827,12 @@
                     var vm = this.vm;
                     var $render = vm.$render;
                     var list = vm.$events['onViewChange'];
+                    /* istanbul ignore if */
                     if (list && $render && $render.root && !avalon.viewChanging) {
                         if (viewID) {
                             clearTimeout(viewID);
                             viewID = null;
                         }
-                        /* istanbul ignore next */
                         viewID = setTimeout(function () {
                             list.forEach(function (el) {
                                 el.callback.call(vm, {

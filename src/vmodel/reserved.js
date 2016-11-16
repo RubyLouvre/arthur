@@ -7,17 +7,17 @@ $skipArray: 是当前对象特有的不可监听属性
  $skipArray被hasOwnProperty后返回true
  */
 export var $$skipArray = {
-    $id: true,
-    $render: true,
-    $track: true,
-    $element: true,
-    $watch: true,
-    $fire: true,
-    $events: true,
-    $skipArray: true,
-    $accessors: true,
-    $hashcode: true,
-    __proxy__: true,
-    __data__: true,
-    __const__: true
+    $id: void 0,
+    $render: void 0,
+    $track: void 0,
+    $element: void 0,
+    $watch: void 0,
+    $fire: void 0,
+    $events: void 0,
+    $skipArray: void 0,
+    $accessors: void 0,
+    $hashcode: void 0,
+    __proxy__: void 0,
+    __data__: void 0,
+    __const__: void 0
 }

@@ -1,6 +1,5 @@
-import { avalon, createAnchor, createFragment, isObject, ap } from '../seed/core'
+import { avalon, createFragment,platform, isObject, ap } from '../seed/core'
 
-import { observeItemObject } from '../vmodel/share'
 import { VFragment } from '../vdom/VFragment'
 
 import { addScope, makeHandle } from '../parser/index'
@@ -225,7 +224,7 @@ function FragmentDecorator(fragment, instance, index) {
         data[instance.asName] = instance.value
     }
 
-    var vm = fragment.vm = observeItemObject(instance.vm, {
+    var vm = fragment.vm = platform.itemFactory(instance.vm, {
         data: data
     })
     fragment.index = index

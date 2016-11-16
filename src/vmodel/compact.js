@@ -1,9 +1,10 @@
 import { avalon, platform, modern, msie } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Directive } from '../renders/Directive'
-import {observeItemObject} from './share'
+import { itemFactory} from './share'
+import './ProxyArray'
 
-export { avalon, platform, observeItemObject }
+export { avalon, platform, itemFactory }
 
 //如果浏览器不支持ecma262v5的Object.defineProperties或者存在BUG，比如IE8
 //标准浏览器使用__defineGetter__, __defineSetter__实现
@@ -28,27 +29,24 @@ var modelAccessor = {
 }
 
 export function toJson(val) {
-    switch (avalon.type(val)) {
-        case 'array':
-            var array = []
-            for (var i = 0; i < val.length; i++) {
-                array[i] = toJson(val[i])
-            }
-            return array
-        case 'object':
+    var xtype = avalon.type(val)
+    if (xtype === 'array') {
+        var array = []
+        for (var i = 0; i < val.length; i++) {
+            array[i] = toJson(val[i])
+        }
+        return array
+    } else if (xtype === 'object') {
+        if(typeof val.$track === 'string'){
             var obj = {}
-            for (i in val) {
-                if ($$skipArray[i])
-                    continue
-                if (val.hasOwnProperty(i)) {
-                    var value = val[i]
-                    obj[i] = value && value.$events ? toJson(value) : value
-                }
-            }
+            val.$track.split('Ȣ').forEach(function (i) {
+                var value = val[i]
+                obj[i] = value && value.$events ? toJson(value): value
+            })
             return obj
-        default:
-            return val
+        }
     }
+    return val
 }
 
 /* istanbul ignore next */
@@ -67,16 +65,8 @@ export function hideProperty(host, name, value) {
 }
 
 
-
-function beforeCreate(core, state, keys, byUser) {
-    state.$model = platform.modelAccessor
-    avalon.mix(keys, {
-        $events: core,
-        $element: 0,
-        $render: 0,
-        $accessors: state,
-    }, byUser ? {
-        $watch: function $watch(expr, callback, deep) {
+export function watchFactory(core){
+    return function $watch(expr, callback, deep) {
             var w = new Directive(core.__proxy__, {
                 deep: deep,
                 type: 'user',
@@ -95,8 +85,11 @@ function beforeCreate(core, state, keys, byUser) {
                     delete core[expr]
                 }
             }
-        },
-        $fire: function $fire(expr, a) {
+        }
+}
+
+export function fireFactory(core){
+    return function $fire(expr, a) {
             var list = core[expr]
             if (Array.isArray(list)) {
                 for (var i = 0, w; w = list[i++];) {
@@ -104,31 +97,46 @@ function beforeCreate(core, state, keys, byUser) {
                 }
             }
         }
-    } : {})
 }
 
-export function afterCreate(core, observe, keys) {
-    var $accessors = keys.$accessors
-    for (var key in keys) {
-        //对普通监控属性或访问器属性进行赋值
-        //删除系统属性
-        if (key in $$skipArray) {
-            hideProperty(observe, key, keys[key])
-            delete keys[key]
-        } else {
-            if (!(key in $accessors)) {
-                observe[key] = keys[key]
-            }
-            keys[key] = true
+function wrapIt(str){
+    return 'Ȣ'+str+'Ȣ'
+}
+
+export function afterCreate(vm, core, keys) {
+    var $accessors = vm.$accessors
+    //隐藏系统属性
+    for (var key in $$skipArray) {
+        hideProperty(vm, key, vm[key])
+    }
+    //为不可监听的属性或方法赋值
+    for(var i = 0; i < keys.length; i ++ ){
+        key = keys[i]
+        if (!(key in $accessors)) {
+            vm[key] = core[key]
         }
     }
+    vm.$track = keys.join('Ȣ')
     function hasOwnKey(key) {
-        return keys[key] === true
+        return wrapIt(vm.$track).indexOf(wrapIt(key)) > -1
     }
     if (avalon.msie < 9)
-        platform.hideProperty(observe, 'hasOwnProperty', hasOwnKey)
-    core.__proxy__ = observe
+        hideProperty(vm, 'hasOwnProperty', hasOwnKey)
+    vm.$events.__proxy__ = vm
 }
+
+platform.hideProperty = hideProperty
+platform.fireFactory = fireFactory
+platform.watchFactory = watchFactory
+platform.afterCreate = afterCreate
+platform.modelAccessor = modelAccessor
+platform.toJson = toJson
+platform.toModel = function (obj) {
+    if (avalon.msie < 9) {
+        obj.$model = toJson(obj)
+    }
+}
+
 
 var createViewModel = Object.defineProperties
 var defineProperty
@@ -193,7 +201,7 @@ if (!canHideProperty) {
 
             //添加访问器属性 
             for (name in accessors) {
-                if (uniq[name] || $$skipArray[name]) {
+                if (uniq[name] || name in $$skipArray) {
                     continue
                 }
                 uniq[name] = true
@@ -215,18 +223,19 @@ if (!canHideProperty) {
                     '\tEnd Property')
 
             }
-            for (name in properties) {
-                if (uniq[name] || $$skipArray[name]) {
-                    continue
-                }
-                uniq[name] = true
-                buffer.push('\tPublic [' + name + ']')
-            }
             for (name in $$skipArray) {
                 if (!uniq[name]) {
                     buffer.push('\tPublic [' + name + ']')
+                    uniq[name] = true
                 }
             }
+            for (name in properties) {
+                if (!uniq[name]) {
+                   uniq[name] = true
+                   buffer.push('\tPublic [' + name + ']')
+                }
+            }
+            
             buffer.push('\tPublic [' + 'hasOwnProperty' + ']')
             buffer.push('End Class')
             var body = buffer.join('\r\n')
@@ -249,18 +258,8 @@ if (!canHideProperty) {
     }
 }
 
-
-
-
-platform.hideProperty = hideProperty
 platform.createViewModel = createViewModel
-platform.beforeCreate = beforeCreate
-platform.afterCreate = afterCreate
-platform.modelAccessor = modelAccessor
-platform.toJson = toJson
-platform.toModel = function (obj) {
-    if (avalon.msie < 9) {
-        obj.$model = toJson(obj)
-    }
-}
+
+
+
 

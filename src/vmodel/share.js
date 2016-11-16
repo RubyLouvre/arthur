@@ -2,18 +2,18 @@
 import { avalon, platform, isObject, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Depend } from './depend'
-import { rewriteArrayMethods } from './List'
 
 
 /**
  * 这里放置ViewModel模块的共用方法
- * modelAccessor: $model属性的访问器定义对象
- * modelFactory: 对象转ViewModel的工厂
- * listFactory: 数组转ViewModel的工厂
- * beforeCreate: modelFactory的内部方法，用于创建之前
- * afterCreate: modelFactory的内部方法，用于创建之后
- * isObservable: 判定此属性能否转换为访问器属性
- * createObservable: ViewModel的适配方法，决定使用哪个工厂转换
+ * avalon.define: 全框架最重要的方法,生成用户VM
+ * IProxy, 基本用户数据产生的一个数据对象,基于$model与vmodel之间的形态
+ * modelFactory: 生成用户VM
+ * canHijack: 判定此属性是否该被劫持,加入数据监听与分发的的逻辑
+ * createProxy: listFactory与modelFactory的封装
+ * createAccessor: 实现数据监听与分发的重要对象
+ * itemFactory: ms-for循环中产生的代理VM的生成工厂
+ * mediatorFactory: 两个ms-controller间产生的代理VM的生成工厂
  */
 
 
@@ -28,62 +28,56 @@ avalon.define = function (definition) {
         var vm = modelFactory(definition)
         return avalon.vmodels[$id] = vm
 }
+/**
+ * 在末来的版本,avalon改用Proxy来创建VM,因此
+ */
+function IProxy(definition, dd) {
+    avalon.mix(this, definition)
+    avalon.mix(this, $$skipArray)
+    this.$hashcode = avalon.makeHashCode('$')
+    this.$id  = this.$id || this.$hashcode
+    this.$events = {
+       __dep__: dd || new Depend(this.$id)
+    }
+    this.$accessors = {
+        $model: platform.modelAccessor
+    }
+    if(dd === void 0){
+       this.$watch = platform.watchFactory(this.$events)
+       this.$fire  = platform.fireFactory(this.$events)
+    }else{
+      delete this.$watch
+      delete this.$fire
+    }
+}
 
 export function modelFactory(definition, dd) {
-        var byUser = dd === void 0
-        var state = {}
-        var hash = avalon.makeHashCode('$')
-        var keys = {
-                $id: definition.$id || hash,
-                $hashcode: hash
-        }
-        
-        var core = {
-                __dep__: dd || new Depend(keys.$id)
-        }
-
+        var core = new IProxy(definition, dd)
+        var $accessors = core.$accessors
+        var keys = []
         for (var key in definition) {
-                if ($$skipArray[key])
-                        continue
-                var val = keys[key] = definition[key]
-                if (isObservable(key, val)) {
-                        state[key] = createAccessor(key, val, core.__dep__)
-                }
+            if (key in $$skipArray)
+                continue
+            var val = definition[key]
+            keys.push(key)
+            if (canHijack(key, val)) {
+                $accessors[key] = createAccessor(key, val)
+            }
         }
-        //往keys中添加系统API
-        platform.beforeCreate(core, state, keys, byUser)
-        var vm = new Observable()
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys)
-        platform.afterCreate(core, vm, keys)
+        //将系统API以unenumerable形式加入vm,
+        //添加用户的其他不可监听属性或方法
+        //重写$track
+        //并在IE6-8中增添加不存在的hasOwnPropert方法
+        var vm = platform.createViewModel(core, $accessors, core)
+        platform.afterCreate(vm, core, keys)
         return vm
 }
 
-function Observable() { }
-function listFactory(array, stop, dd) {
-        if (!stop) {
-                rewriteArrayMethods(array)
-                if (modern) {
-                        Object.defineProperty(array, '$model', platform.modelAccessor)
-                }
-                platform.hideProperty(array, '$hashcode', avalon.makeHashCode('$'))
-                platform.hideProperty(array, '$events', { __dep__: dd || new Depend })
-        }
-        var _dd = array.$events && array.$events.__dep__
-        for (var i = 0, n = array.length; i < n; i++) {
-                var item = array[i]
-                if (isObject(item)) {
-                        array[i] = createObservable(item, _dd)
-                }
-        }
-        return array
-}
 
-
-export function isObservable(key, val) {
-        if ($$skipArray[key])
+export function canHijack(key, val, inItem) {
+        if (key in $$skipArray)
                 return false
-        if (key.charAt(0) === '$')
+        if (key.charAt(0) === '$' && !inItem)
                 return false
         if (val == null) {
                 avalon.warn('定义vmodel时属性值不能为null undefine')
@@ -95,26 +89,29 @@ export function isObservable(key, val) {
         return !(val && val.nodeName && val.nodeType)
 }
 
-function createObservable(target, dd) {
+function createProxy(target, dd) {
         if (target && target.$events) {
-                return target
+            return target
         }
         var vm
         if (Array.isArray(target)) {
-                vm = listFactory(target, false, dd)
+                vm = platform.listFactory(target, false, dd)
         } else if (isObject(target)) {
                 vm = modelFactory(target, dd)
         }
         return vm
 }
+
+platform.createProxy = createProxy
+
 // 指令需要计算自己的值，来刷新
 // 在计算前，将自己放到DepStack中
 // 然后开始计算，在Getter方法里，
 
-function createAccessor(key, val, pd) {
+function createAccessor(key, val) {
         var priVal = val
-        var selfDep = new Depend(key, pd) //当前值对象的Depend
-        var childOb = createObservable(val, selfDep)
+        var selfDep = new Depend(key) //当前值对象的Depend
+        var childOb = createProxy(val, selfDep)
         var hash = childOb && childOb.$hashcode
         return {
                 get: function Getter() {
@@ -149,7 +146,7 @@ function createAccessor(key, val, pd) {
                         }
                         selfDep.beforeNotify()
                         priVal = newValue
-                        childOb = createObservable(newValue, selfDep)
+                        childOb = createProxy(newValue, selfDep)
                         if (childOb && hash) {
                                 childOb.$hashcode = hash
                         }
@@ -159,51 +156,37 @@ function createAccessor(key, val, pd) {
                 configurable: true
         }
 }
-platform.listFactory = listFactory
 
-export function observeItemObject(before, after) {
-        var core = {}
-        core.__dep__ = new Depend()
-        var state = avalon.shadowCopy({}, before.$accessors)//防止互相污染
-        var keys = before.$model || {}
-        var more = after.data
-        delete after.data
-        var props = after
-
-        for (var key in more) {
-                keys[key] = more[key]
-                if (!$$skipArray[key]) {
-                        state[key] = createAccessor(key, more[key], core)
-                }
+export function itemFactory(before, after) {
+        var keyMap = before.$model
+        var core = new IProxy(keyMap)
+        var state = avalon.shadowCopy(core.$accessors, before.$accessors)//防止互相污染
+        var data = after.data
+       //core是包含系统属性的对象
+       //keyMap是不包含系统属性的对象, keys
+        for (var key in data) {
+            var val = keyMap[key] = core[key] = data[key]
+            state[key] = createAccessor(key, val)
         }
-        platform.beforeCreate(core, state, keys)
-        var vm = new Observable()
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys)
-        platform.afterCreate(core, vm, keys)
-        vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6)
+        var keys = Object.keys(keyMap)
+        var vm = platform.createViewModel(core, state, core)
+        platform.afterCreate(vm, core, keys)
         return vm
 }
+platform.itemFactory = itemFactory
 
 export function mediatorFactory(before, after){
-     var state = avalon.mix({}, before.$accessors,after.$accessors )//防止互相污染
-     var keys = avalon.mix({}, before.$model , after.$model)
-     var core = {}
-     core.__dep__ = new Depend()
-     platform.beforeCreate(core, state, keys, true)
-     var vm = new Observable()
+           
+    var keyMap = avalon.mix(before.$model , after.$model)
+    var core = new IProxy(avalon.mix(keyMap,{
+        $id: before.$id + after.$id
+     }))
+    var state = avalon.mix(core.$accessors, 
+        before.$accessors,after.$accessors )//防止互相污染
+    
+    var keys = Object.keys(keyMap)
      //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-    vm = platform.createViewModel(vm, state, keys)
-    platform.afterCreate(core, vm, keys)
-    vm.$id = vm.$hashcode = before.$hashcode + after.$hashcode
+    var vm = platform.createViewModel(core, state, core)
+    platform.afterCreate(vm, core, keys)
     return vm
 }
-avalon.observeItemObject = observeItemObject
-        /**
-         * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
-         * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
-         * 
-         * 什么是Observer？ Observer（观察者）是Observable（可观察对象）推送数据的消费者。
-         * 在RxJS中，Observer是一个由回调函数组成的对象，键名分别为next、error 和 complete，
-         * 以此接受Observable推送的不同类型的通知，下面的代码段是Observer的一个示例：
-         */
