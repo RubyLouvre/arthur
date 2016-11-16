@@ -195,7 +195,7 @@ export function mediatorFactory(before, after){
      //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
     vm = platform.createViewModel(vm, state, keys)
     platform.afterCreate(core, vm, keys)
-    vm.$id =  vm.$hashcode = before.$hashcode + after.$hashcode
+    vm.$id = vm.$hashcode = before.$hashcode + after.$hashcode
     return vm
 }
 avalon.observeItemObject = observeItemObject
