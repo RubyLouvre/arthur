@@ -18,7 +18,7 @@ module.exports = function (config) {
              './promise.js',
             './matchers.js',
             './beforeIt.js',
-            './dist/avalon.test.js'
+            './dist/avalon.modern.test.js'
         ],
 
 
