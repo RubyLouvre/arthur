@@ -33,12 +33,14 @@ import '../src/renders/domRender'
 
 import './directives/attr.spec'
 import './directives/duplex.spec'
+import './directives/controller.spec'
 
+/*
 import './directives/expr.spec'
 import './directives/css.spec'
 import './directives/important.spec'
 import './directives/on.spec'
-import './directives/controller.spec'
+
 import './directives/text.spec'
 import './directives/class.spec'
 import './directives/hover.spec'
@@ -50,3 +52,5 @@ import './directives/for.spec'
 import './directives/effect.spec'
 
 import './directives/widget.spec'
+
+*/

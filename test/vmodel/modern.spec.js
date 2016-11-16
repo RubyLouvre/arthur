@@ -52,8 +52,7 @@ describe('vmodel', function () {
         })
         expect(vm.$id).toBe("aaa")
         expect(vm.$model).toEqual({
-            aaa: 1,
-            bbb: null
+            aaa: 1
         })
         expect(vm.$hashcode).toMatch(/^\$\d+/)
         expect(vm.$fire).toA('function')

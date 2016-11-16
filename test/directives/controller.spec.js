@@ -98,4 +98,58 @@ describe('controller', function () {
 
 
     })
+    it('ms-controller 嵌套报错', function (done) {
+        //https://github.com/RubyLouvre/avalon/issues/1811
+        div.innerHTML = heredoc(function () {
+            /*
+              <div ms-controller="ctrl11">
+ <blockquote ms-html="@tpl"></blockquote>
+ <button ms-click="@switch1" type='button'>aaaa</button>
+</div>
+             */
+        })
+        var v123 = heredoc(function () {
+            /*
+            <div ms-controller="ctrl12">
+            <p ms-click="@alert">123</p>
+            {{@ggg.value}}
+            </div>
+            */
+        })
+        delete avalon.vmodels.ccc
+        vm = avalon.define({
+            $id: 'ctrl11',
+            tpl: "",
+            ggg: { value: 111 },
+            switch1: function () {
+
+                vm.tpl = v123
+            }
+        });
+
+        var vm2 = avalon.define({
+            $id: 'ctrl22',
+            ddd: 'aaaa',
+            alert: function () {
+                avalon.log('????')
+            }
+        });
+        avalon.scan(div)
+        setTimeout(function () {
+            var button = div.getElementsByTagName('button')[0]
+            fireClick(button)
+            console.log('33333')
+            setTimeout(function () {
+                var blockquote = div.getElementsByTagName('blockquote')[0]
+                console.log( blockquote[textProp], '111')
+                var text = blockquote[textProp].replace(/[\r\n\s]/g, '').trim()
+                expect(text).toBe('123111')
+                delete avalon.vmodels.ccc1
+                done()
+
+            }, 100)
+        }, 100)
+
+
+    })
 })

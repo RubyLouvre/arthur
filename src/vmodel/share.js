@@ -23,7 +23,7 @@ avalon.define = function (definition) {
              avalon.error('vm.$id must be specified')
         }
         if (avalon.vmodels[$id]) {
-            avalon.error('error:[' + $id + '] had defined!')
+            avalon.warn('error:[' + $id + '] had defined!')
         }
         var vm = modelFactory(definition)
         return avalon.vmodels[$id] = vm

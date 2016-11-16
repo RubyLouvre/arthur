@@ -11,6 +11,7 @@ import { voidTag } from "./voidTag"
 import { orphanTag } from "./orphanTag"
 import { makeOrphan } from "./makeOrphan"
 import { makeTbody } from "./makeTbody"
+import { validateDOMNesting } from "./validateDOMNesting"
 
 
 var ropenTag = /^<([-A-Za-z0-9_]+)\s*([^>]*?)(\/?)>/
@@ -157,6 +158,8 @@ function from(str) {
 function makeChildren(node, stack, ret) {
     var p = stack.last()
     if (p) {
+
+        validateDOMNesting(p, node)
         p.children.push(node)
     } else {
         ret.push(node)
