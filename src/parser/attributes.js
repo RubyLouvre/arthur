@@ -1,10 +1,9 @@
 
-import {avalon} from '../seed/core'
+import {avalon, directives} from '../seed/core'
 export var eventMap = avalon.oneObject('animationend,blur,change,input,click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit')
 export function parseAttributes(dirs, tuple ) {
-    var uniq = {}, bindings = []
-    var directives = avalon.directives
-    var node = tuple[0]
+    var node = tuple[0], uniq = {}, bindings = []
+   
     for (var name in dirs) {
         var value = dirs[name]
         var arr = name.split('-')
@@ -40,7 +39,7 @@ export function parseAttributes(dirs, tuple ) {
                 uniq[binding.name] = value
                 bindings.push(binding)
                 if (type === 'for') {
-                    bindings = [binding]
+                    bindings = [avalon.mix(binding, tuple[3])]
                     break
                 }
             }

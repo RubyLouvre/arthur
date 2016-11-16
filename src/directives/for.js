@@ -37,14 +37,10 @@ avalon.directive('for', {
         if (asName) {
             this.asName = asName
         }
+        delete this.param       
     },
     init: function () {
-        var f = this.node
-        var me = this
-        "begin,end,parentChildren,userCb".replace(avalon.rword, function (name) {
-            me[name] = f[name]
-            delete f[name]
-        })
+
         var cb = this.userCb
         if (typeof cb === 'string' && cb) {
             var arr = addScope(cb, 'for')
@@ -52,13 +48,8 @@ avalon.directive('for', {
             this.userCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
         }
 
-        f.children.push({
-            nodeName: '#comment',
-            nodeValue: this.signature
-        })
-        this.fragment = ['<div>', f.fragment, '<!--', this.signature, '--></div>'].join('')
-        this.node = this.begin
-        this.node.forDir = this
+        this.fragment = ['<div>', this.fragment, '<!--', this.signature, '--></div>'].join('')
+        
         this.cache = {}
     },
     diff: function (newVal, oldVal) {
@@ -223,7 +214,6 @@ function updateList(instance) {
  * @param {type} index
  * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
  */
-avalon.arr = []
 var beforeVM
 function FragmentDecorator(fragment, instance, index) {
 

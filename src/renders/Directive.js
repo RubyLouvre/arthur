@@ -19,7 +19,6 @@ export function Directive(vm, options, callback) {
     }
     this.vm = vm
     this.callback = callback
-
     // 依赖实例缓存
     this.depends = []
     this.newDepends = []
@@ -68,7 +67,6 @@ dp.get = function () {
     //当我们执行指令的getValue方法时，会调用vm.xxx的某个Getter，然后将指令放进它的depend.subs数组中
     //并且将收集到的depend放进newDepends中
     value = this.getValue()
-   
     popTarget()
     if(this.deep && avalon.deepCollect){
        delete avalon.deepCollect

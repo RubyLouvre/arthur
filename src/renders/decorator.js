@@ -6,16 +6,17 @@ import { Directive, protectedMenbers } from './Directive'
  * 一个directive装饰器
  * @returns {directive}
  */
-
-export function DirectiveDecorator(node, binding, scope, render) {
+// DirectiveDecorator(scope, binding, vdom, this)
+// Decorator(vm, options, callback)
+export function DirectiveDecorator(vm, binding, vdom, render) {
     var type = binding.type
     var decorator = avalon.directives[type]
     if (inBrowser) {
-        var dom = avalon.vdom(node, 'toDOM')
+        var dom = avalon.vdom(vdom, 'toDOM')
         if (dom.nodeType === 1) {
             dom.removeAttribute(binding.attrName)
         }
-        node.dom = dom
+        vdom.dom = dom
     }
     var callback = decorator.update ? function (value) {
         if (!render.mount && /css|visible|duplex/.test(type)) {
@@ -30,8 +31,8 @@ export function DirectiveDecorator(node, binding, scope, render) {
     for (var key in decorator) {
         binding[key] = decorator[key]
     }
-    binding.node = node
-    var directive = new Directive(scope, binding, callback)
+    binding.node = vdom
+    var directive = new Directive(vm, binding, callback)
     if(directive.init){
         //这里可能会重写node, callback, type, name
         directive.init()
