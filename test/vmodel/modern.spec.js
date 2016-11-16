@@ -176,7 +176,6 @@ describe('vmodel', function () {
         afterCreate(vm, core, keys)
         expect(vm.$events.__proxy__).toBe(vm)
         expect(vm.$track.length > 8).toBe(true)
-        expect(vm.hasOwnProperty).toMatch(/hasOwnKey/)
         expect(vm.hasOwnProperty('aaa')).toBe(true)
         expect(vm.hasOwnProperty('ccc')).toBe(false)
         var testA = {

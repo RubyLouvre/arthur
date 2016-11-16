@@ -1,34 +1,32 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Directive } from '../renders/Directive'
-import { observeItemObject } from './share'
-
-export { avalon, platform, observeItemObject }
-
+import { itemFactory} from './share'
+import './ProxyArray'
+export { avalon, platform, itemFactory }
+delete $$skipArray.__const__
+delete $$skipArray.__data__
+delete $$skipArray.__proxy__
 
 export function toJson(val) {
-        switch (avalon.type(val)) {
-                case 'array':
-                        var array = []
-                        for (var i = 0; i < val.length; i++) {
-                                array[i] = toJson(val[i])
-                        }
-                        return array
-                case 'object':
-                        var obj = {}
-                        for (i in val) {
-                                if ($$skipArray[i]) {
-                                        continue
-                                }
-                                if (val.hasOwnProperty(i)) {
-                                        var value = val[i]
-                                        obj[i] = value && value.$events ? toJson(value) : value
-                                }
-                        }
-                        return obj
-                default:
-                        return val
+    var xtype = avalon.type(val)
+    if (xtype === 'array') {
+        var array = []
+        for (var i = 0; i < val.length; i++) {
+            array[i] = toJson(val[i])
         }
+        return array
+    } else if (xtype === 'object') {
+        if(typeof val.$track === 'string'){
+            var obj = {}
+            val.$track.split('Ȣ').forEach(function (i) {
+                var value = val[i]
+                obj[i] = value && value.$events ? toJson(value): value
+            })
+            return obj
+        }
+    }
+    return val
 }
 
 
@@ -81,41 +79,34 @@ function $watch(expr, callback, deep) {
                 }
         }
 }
+export function watchFactory(core){
+    return $watch
+    }
 
-export function beforeCreate(core, state, keys, byUser) {
-        state.$model = platform.modelAccessor
-        avalon.mix(keys, {
-                $events: core,
-                $element: 0,
-                $render: 0,
-                $accessors: state,
-        }, byUser ? {
-                $watch: $watch,
-                $fire:  $fire
-        } : {})
+export function fireFactory(core){
+    return $fire
 }
 
 
-export function afterCreate(core, observe, keys) {
-        var $accessors = keys.$accessors
-        for (var key in keys) {
-                //对普通监控属性或访问器属性进行赋值
-                //删除系统属性
-                if (key in $$skipArray) {
-                        hideProperty(observe, key, keys[key])
-                        delete keys[key]
-                } else {
-                        if (!(key in $accessors)) {
-                                observe[key] = keys[key]
-                        }
-                        keys[key] = true
-                }
+export function afterCreate(vm, core, keys) {
+    var $accessors = vm.$accessors
+    //隐藏系统属性
+    for (var key in $$skipArray) {
+        hideProperty(vm, key, vm[key])
+    }
+    //为不可监听的属性或方法赋值
+    for(var i = 0; i < keys.length; i ++ ){
+        key = keys[i]
+        if (!(key in $accessors)) {
+            vm[key] = core[key]
         }
-        core.__proxy__ = observe
+    }
+    vm.$track = keys.join('Ȣ')
+    vm.$events.__proxy__ = vm
 }
 
-
-platform.beforeCreate = beforeCreate
+platform.fireFactory = fireFactory
+platform.watchFactory = watchFactory
 platform.afterCreate = afterCreate
 platform.modelAccessor = modelAccessor
 platform.hideProperty = hideProperty

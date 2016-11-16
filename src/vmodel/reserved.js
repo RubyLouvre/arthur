@@ -14,7 +14,6 @@ export var $$skipArray = {
     $watch: void 0,
     $fire: void 0,
     $events: void 0,
-    $skipArray: void 0,
     $accessors: void 0,
     $hashcode: void 0,
     __proxy__: void 0,
