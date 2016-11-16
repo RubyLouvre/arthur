@@ -61,7 +61,7 @@ export function updateDataEvents(dom, data) {
     }
 }
 
-
+/* istanbul ignore next */
 function updateModelKeyDown(e) {
     var key = e.keyCode
     // ignore
@@ -70,18 +70,18 @@ function updateModelKeyDown(e) {
         return
     updateModel.call(this, e)
 }
-
+/* istanbul ignore next */
 function openCaret() {
     this.caret = true
 }
-
+/* istanbul ignore next */
 function closeCaret() {
     this.caret = false
 }
 function openComposition() {
     this.composing = true
 }
-
+/* istanbul ignore next */
 function closeComposition(e) {
     this.composing = false
     var elem = this
@@ -99,7 +99,7 @@ markID(closeComposition)
 markID(updateModelKeyDown)
 markID(updateModel)
 
-
+/* istanbul ignore next */
 function getCaret(field) {
     var start = NaN
     if (field.setSelectionRange) {
@@ -107,7 +107,7 @@ function getCaret(field) {
     }
     return start
 }
-
+/* istanbul ignore next */
 function setCaret(field, pos) {
     if (!field.value || field.readOnly)
         return

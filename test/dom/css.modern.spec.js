@@ -28,5 +28,12 @@ describe('css', function () {
         expect( $root.css('top') ).toBe('0px')
         expect( $root.css('left') ).toBe('0px')
     })
-
+ it('offset', function () {
+       expect( avalon({}).offset() ).toEqual({left: 0, top: 0})
+ })
+  it('scrollTop/scrollLeft', function () {
+      avalon(document).scrollTop(100)
+      avalon(document).scrollLeft(100)
+      avalon(document.createElement('div')).scrollLeft(100)
+ })
 })

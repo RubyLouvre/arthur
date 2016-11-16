@@ -23,6 +23,9 @@ import './vtree/fromDOM.spec'
 
 import './vmodel/modern.spec'
 
+import './parser/index'
+
+
 //这不是测试，但下面的模块都依赖这个
 
 import '../src/directives/modern'

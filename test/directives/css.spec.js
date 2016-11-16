@@ -1,4 +1,5 @@
 import { avalon } from '../../src/seed/core'
+import { deepEquals } from '../../src/directives/css'
 
 describe('css', function () {
 
@@ -144,5 +145,56 @@ describe('css', function () {
         }, 100)
 
 
+    })
+
+    it('deepEquals', function () {
+        expect(deepEquals(
+            { a: [2, 3], b: [4] },
+            { a: [2, 3], b: [4] })).toBe(true)
+
+        expect(deepEquals(
+            { x: 5, y: [6] },
+            { x: 5, y: 6 })).toBe(false)
+        expect(deepEquals(
+            { x: 5, y: 4, z: 8 },
+            { x: 5, y: 6 })).toBe(false)
+        expect(deepEquals(
+            { x: 5, y: { a: 4 } },
+            { x: 5, y: { a: 4 } })).toBe(true)
+        expect(deepEquals(
+            [null, null, null], [null, null, null])).toBe(true)
+
+        expect(deepEquals(
+            [{ a: 3 }, { b: 4 }],
+            [{ a: '3' }, { b: '4' }])).toBe(false)
+
+        expect(deepEquals(3, 3)).toBe(true)
+        expect(deepEquals({ a: 1 }, { a: 1 }, 0)).toBe(false)
+        expect(deepEquals('aaa', 'aaa')).toBe(true)
+        expect(deepEquals(3, 3)).toBe(true)
+        expect(deepEquals(
+            (function () { return arguments })(1, 2, 3),
+            (function () { return arguments })(1, 2, 3))
+        ).toBe(true)
+        expect(deepEquals(
+            [1, 2, 3],
+            (function () { return arguments })(1, 2, 3))
+        ).toBe(false)
+
+        var d0 = new Date(1387585278000);
+        var d1 = new Date('Fri Dec 20 2013 16:21:18 GMT-0800 (PST)');
+
+        expect(deepEquals(d0, d1)).toBe(true)
+        expect(deepEquals(null, void 0)).toBe(false)
+        expect(deepEquals(void 0, void 0)).toBe(true)
+        expect(deepEquals(null, 111)).toBe(false)
+        expect(deepEquals([1, 2, 3], [4, 5, 6, 7, 8])).toBe(false)
+        expect(deepEquals([{ a: 1 }, { b: 1 }], [{ a: 1 }, { b: 1 }])).toBe(true)
+        expect(deepEquals([{ a: 1 }, { b: 1 }], [{ a: 1 }, { b: 2 }])).toBe(false)
+        expect(deepEquals([], true)).toBe(false)
+        expect(deepEquals({ a: 1 }, null)).toBe(false)
+        expect(deepEquals(null, null)).toBe(true)
+        expect(deepEquals({a:1,b:2}, {})).toBe(false)
+        expect(deepEquals({a:1,b:2}, {d:1,c:2})).toBe(false)
     })
 })

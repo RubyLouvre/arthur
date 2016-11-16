@@ -116,19 +116,20 @@ function updateModelDelay(e) {
 function openCaret() {
     this.caret = true
 }
-
+/* istanbul ignore next */
 function closeCaret() {
     this.caret = false
 }
+/* istanbul ignore next */
 function openComposition() {
     this.composing = true
 }
-
+/* istanbul ignore next */
 function closeComposition(e) {
     this.composing = false
     updateModelDelay.call(this, e)
 }
-
+/* istanbul ignore next */
 function updateModelKeyDown(e) {
     var key = e.keyCode
     // ignore
@@ -151,7 +152,8 @@ markID(updateModelKeyDown)
 var mayBeAsync = function (fn) {
     setTimeout(fn, 0)
 }
-var setCaret = function (target, cursorPosition) {
+/* istanbul ignore next */
+function setCaret(target, cursorPosition) {
     var range
     if (target.createTextRange) {
         mayBeAsync(function () {
@@ -170,7 +172,7 @@ var setCaret = function (target, cursorPosition) {
     }
 }
  /* istanbul ignore next*/
-var getCaret = function (target) {
+function getCaret(target) {
     var start = 0
     var normalizedValue
     var range

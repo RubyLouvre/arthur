@@ -1,5 +1,7 @@
 import { avalon } from '../../src/seed/core'
 import { lookupOption } from '../../src/directives/duplex/option'
+import { duplexBeforeInit } from '../../src/directives/duplex/share'
+import { updateDataActions } from '../../src/directives/duplex/updateDataActions'
 
 
 describe('duplex', function () {
@@ -446,4 +448,38 @@ describe('duplex', function () {
             }, 100)
         }, 100)
     })
+    
+    it('duplexBeforeInit', function(){
+        var obj1 = {
+            expr: '@aaa|change'
+        }
+        duplexBeforeInit.call(obj1)
+        expect(obj1.expr).toBe('@aaa')
+        expect(obj1.isChanged).toBe(true)
+         var obj2 = {
+            expr: '@aaa|debounce(33)'
+        }
+        duplexBeforeInit.call(obj2)
+        expect(obj2.expr).toBe('@aaa')
+        expect(obj2.debounceTime).toBe(33)
+         var obj3 = {
+            expr: '@aaa|debounce'
+        }
+        duplexBeforeInit.call(obj3)
+        expect(obj3.expr).toBe('@aaa')
+        expect(obj3.debounceTime).toBe(300)
+    })
+     it('updateDataActions', function(){
+         var obj1= {
+             value: '111',
+             dom: {
+                 value: '222',
+                 checked: true
+             }
+         }
+         updateDataActions.checkbox.call(obj1)
+         expect(obj1.__test__).toEqual(['111'])
+         
+     })
+    
 })

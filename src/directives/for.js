@@ -37,6 +37,7 @@ avalon.directive('for', {
         if (asName) {
             this.asName = asName
         }
+        
         delete this.param       
     },
     init: function () {
@@ -47,13 +48,13 @@ avalon.directive('for', {
             var body = makeHandle(arr[0])
             this.userCb = new Function('$event', 'var __vmodel__ = this\nreturn ' + body)
         }
-
+        this.node.forDir = this//暴露给component/index.js中的resetParentChildren方法使用
         this.fragment = ['<div>', this.fragment, '<!--', this.signature, '--></div>'].join('')
         
         this.cache = {}
     },
     diff: function (newVal, oldVal) {
-
+        /* istanbul ignore if */
         if (this.updating) {
             return
         }

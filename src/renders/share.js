@@ -44,14 +44,13 @@ export function getRange(childNodes, node) {
             } else if (node.nodeValue === 'ms-for-end:') {
                 deep--
                 if (deep === 0) {
-                    node.nodeValue = 'msfor-end:'
+                  //  node.nodeValue = 'msfor-end:'
                     end = node
                     nodes.pop()
                     break
                 }
             }
         }
-
     }
     nodes.end = end
     return nodes

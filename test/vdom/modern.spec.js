@@ -1,4 +1,4 @@
-import {avalon, vdom, VText, VComment,VElement, VFragment } from '../../src/vdom/modern'
+import { avalon, vdom, VText, VComment, VElement, VFragment } from '../../src/vdom/modern'
 describe('vdom', function () {
     describe('VElement', function () {
         it('test', function () {
@@ -49,7 +49,7 @@ describe('vdom', function () {
                 new VText(' xxx ')
             ])
             expect(option.toDOM().text).toMatch('xxx')
-          var dom = option.toDOM()
+            var dom = option.toDOM()
             if (avalon.modern) {
 
                 expect(dom.textContent).toMatch(' xxx ')
@@ -158,9 +158,14 @@ describe('vdom', function () {
                 nodeName: '#document-fragment',
                 children: []
             }
-            var el = vdom(f, 'toHTML')
-            expect(el).toBe('')
-
+            var el3 = vdom(f, 'toHTML')
+            expect(el3).toBe('')
+            var el4 = vdom([{
+                nodeName: '#text', nodeValue: '333'
+            }, {
+                nodeName: '#text', nodeValue: '444'
+            }], 'toHTML')
+            expect(el4).toBe('333444')
         })
     })
 

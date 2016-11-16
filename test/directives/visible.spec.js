@@ -18,9 +18,12 @@ describe('visible', function () {
              </table>
              <style>
              .ddd{display:none;color:rgb(211, 0, 200);}
+             kbd{display: none }
              </style>
              */
         })
+        var kbd = avalon.parseDisplay(document.createElement('kbd'))
+        expect(kbd).toBe('block')
         vm = avalon.define({
             $id: 'visible2',
             a: true

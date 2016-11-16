@@ -50,4 +50,23 @@ describe('text', function () {
         })
 
     })
+    
+     it('voidTag', function () {
+       
+        div.innerHTML = heredoc(function () {
+            /*
+            <br ms-controller="text3" ms-text='@aaa' />
+            */
+        })
+        vm = avalon.define({
+            $id: 'text3',
+            aaa: 'xxxxx',
+            bbb: 222
+        })
+        try{
+        avalon.scan(div)
+    }catch(e){
+        expect(div.innerHTML).not.toMatch(/xxxxx/i)
+    }
+    })
 })

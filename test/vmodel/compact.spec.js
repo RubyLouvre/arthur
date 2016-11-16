@@ -4,7 +4,21 @@ import { Depend } from
     '../../src/vmodel/depend'
 import { Directive } from
     '../../src/renders/Directive'
+import { isObservable } from
+    '../../src/vmodel/share'
 describe('vmodel', function () {
+    it('isObservable', function () {
+        expect(isObservable('aaa', 'ccc')).toBe(true)
+        expect(isObservable('$id', 'ccc')).toBe(false)
+        expect(isObservable('$render', 'ccc')).toBe(false)
+        expect(isObservable('$kkk', 'ccc')).toBe(false)
+        expect(isObservable('aaa', function () { })).toBe(false)
+        expect(isObservable('aaa', new Date)).toBe(false)
+        expect(isObservable('aaa', new Error(111))).toBe(false)
+        expect(isObservable('aaa', null)).toBe(true)
+        expect(isObservable('aaa', void 0)).toBe(true)
+        expect(isObservable('aaa', document.createTextNode('222'))).toBe(false)
+    })
     it('vmodel', function () {
         try {
             avalon.define({

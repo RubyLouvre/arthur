@@ -96,7 +96,12 @@ avalon.directive('widget', {
                 arraySlot = nodesWithSlot
             } else {
                 nodesWithSlot.forEach(function (el, i) {//要求带slot属性
-                    if (el.props) {
+                    if (el.slot) {
+                        var nodes = getRange(nodesWithSlot, el)
+                        nodes.push(nodes.end)
+                        nodes.unshift(el)
+                        objectSlot[el.slot] = nodes
+                    } else if (el.props) {
                         var name = el.props.slot
                         if (name) {
                             delete el.props.slot
@@ -106,11 +111,6 @@ avalon.directive('widget', {
                                 objectSlot[name] = [el]
                             }
                         }
-                    } else if (el.slot) {
-                        var nodes = getRange(nodesWithSlot, el)
-                        nodes.push(nodes.end)
-                        nodes.unshift(el)
-                        objectSlot[el.slot] = nodes
                     }
                 })
             }

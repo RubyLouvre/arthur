@@ -125,6 +125,16 @@ describe('validate', function () {
 
 
     })
+    
+    it('如果定义了立即返回', function () {
+          var valiDir = avalon.directives.validate
+          var ret = valiDir.diff.call({
+              node: {
+                  validator: 1
+              }
+          })
+          expect(ret).toBe(void 0)
+     })
     it('禁用目标规则', function (done) {
         var valiDir = avalon.directives.validate
         var elem = document.createElement('input')

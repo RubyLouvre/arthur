@@ -59,6 +59,7 @@ cp.init = function () {
         this.vnodes = vnodes
         this.scanChildren(vnodes, this.vm, true)
 }
+
 cp.scanChildren = function (children, scope, isRoot) {
         for (var i = 0; i < children.length; i++) {
                 var vdom = children[i]
@@ -78,11 +79,14 @@ cp.scanChildren = function (children, scope, isRoot) {
                 }
         }
         if (isRoot) {
-                this.complete()
+            this.complete()
         }
 }
 /**
  * 从文本节点获取指令
+ * @param {type} vdom 
+ * @param {type} scope
+ * @returns {undefined}
  */
 cp.scanText = function (vdom, scope) {
         if (config.rexpr.test(vdom.nodeValue)) {
@@ -93,9 +97,12 @@ cp.scanText = function (vdom, scope) {
 }
 /**
  * 从注释节点获取指令
+ * @param {type} vdom 
+ * @param {type} scope
+ * @param {type} parentChildren
+ * @returns {undefined}
  */
 cp.scanComment = function (vdom, scope, parentChildren) {
-       
     if (startWith(vdom.nodeValue, 'ms-for:')) {
             this.getForBinding(vdom, scope, parentChildren)
     }
@@ -103,6 +110,11 @@ cp.scanComment = function (vdom, scope, parentChildren) {
 }
 /**
  * 从元素节点的nodeName与属性中获取指令
+ * @param {type} vdom 
+ * @param {type} scope
+ * @param {type} parentChildren
+ * @param {type} isRoot 用于执行complete方法
+ * @returns {undefined}
  */
 cp.scanTag = function (vdom, scope, parentChildren, isRoot) {
         var dirs = {}, attrs = vdom.props, hasDir, hasFor
@@ -191,7 +203,6 @@ cp.complete = function () {
 
 /**
  * 将收集到的绑定属性进行深加工,最后转换指令
- * @param {tuple} tuple
  * @returns {Array<tuple>}
  */
 cp.yieldDirectives = function () {
@@ -230,12 +241,14 @@ cp.optimizeDirectives = function () {
                                 var vm = this.vm
                                 var $render = vm.$render
                                 var list = vm.$events['onViewChange']
-                                if (list && $render && $render.root && !avalon.viewChanging) {
+                                 /* istanbul ignore if */
+                                if (list && $render &&
+                                        $render.root && 
+                                        !avalon.viewChanging) {
                                         if (viewID) {
                                                 clearTimeout(viewID)
                                                 viewID = null
                                         }
-                                        /* istanbul ignore next */
                                         viewID = setTimeout(function () {
                                                 list.forEach(function (el) {
                                                         el.callback.call(vm, {
@@ -267,15 +280,16 @@ cp.destroy = function () {
 }
 /**
  * 将循环区域转换为for指令
- * @param {type} node
+ * @param {type} begin 注释节点
  * @param {type} scope
  * @param {type} parentChildren
+ * @param {type} userCb 循环结束回调
  * @returns {undefined}
  */
 
 cp.getForBinding = function (begin, scope, parentChildren, userCb) {
         var expr = begin.nodeValue.replace('ms-for:', '').trim()
-        begin.nodeValue = 'msfor:' + expr
+        begin.nodeValue = 'ms-for:' + expr
         var nodes = getRange(parentChildren, begin)
         var end = nodes.end
         var fragment = avalon.vdom(nodes, 'toHTML')
@@ -298,10 +312,10 @@ cp.getForBinding = function (begin, scope, parentChildren, userCb) {
 
 /**
  * 在带ms-for元素节点旁添加两个注释节点,组成循环区域
- * @param {type} node
+ * @param {type} vdom
  * @param {type} scope
  * @param {type} parentChildren
- * @param {type} value
+ * @param {type} expr
  * @returns {undefined}
  */
 cp.getForBindingByElement = function (vdom, scope, parentChildren, expr) {

@@ -27,6 +27,8 @@ import './vtree/fromDOM.spec'
 
 import './vmodel/compact.spec'
 
+import './parser/index'
+
 //这不是测试，但下面的模块都依赖这个
 import '../src/directives/compact'
 import '../src/renders/domRender'

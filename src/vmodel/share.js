@@ -85,7 +85,7 @@ export function isObservable(key, val) {
                 return false
         if (key.charAt(0) === '$')
                 return false
-        if (typeof val == null) {
+        if (val == null) {
                 avalon.warn('定义vmodel时属性值不能为null undefine')
                 return true
         }

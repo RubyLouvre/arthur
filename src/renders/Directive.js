@@ -11,7 +11,6 @@ import { createGetter, createSetter } from "../parser/index"
  */
 
 export function Directive(vm, options, callback) {
-
     for (var i in options) {
         if (protectedMenbers[i] !== 1) {
             this[i] = options[i]

@@ -44,6 +44,7 @@ export var updateDataActions = {
             array[method](val)
             duplexCb(field)
         }
+        this.__test__ = array
 
     },
     select: function () {

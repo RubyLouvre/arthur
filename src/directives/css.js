@@ -72,7 +72,7 @@ export function getEnumerableKeys(obj) {
         res.push(key);
     return res;
 }
-/* istanbul ignore next */
+
 export function deepEquals(a, b, level) {
     if(level === 0)
         return a === b

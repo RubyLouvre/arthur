@@ -49,4 +49,31 @@ describe('value', function () {
         avalon(e).val([])
         expect( e.children[1].selected ).toBe(false)
     })
+    
+     it('处理optgroup', function () {
+              var div = document.createElement('div')
+              div.innerHTML = heredoc(function(){
+                  /*
+                   <select multiple=true >
+                  <optgroup>
+                  <option selected>111</option>
+                   <option value='222' selected>2222</option>
+                   <option>333</option>
+                  </optgroup>
+                   <optgroup>
+                   <option selected='true' disabled='disabled' >444</option>
+                   <option value='fff' selected>hhh</option>
+                   <option>kkk</option>
+                  </optgroup>
+                   <optgroup disabled='disabled'>
+                   <option selected >5555</option>
+                   <option selected >6666</option>
+                   <option>777</option>
+                  </optgroup>
+                  </select>
+                   */
+              })
+             var el = div.getElementsByTagName('select')[0]
+             expect(avalon(el).val()).toEqual(['111','222','fff'])
+          })
 })
