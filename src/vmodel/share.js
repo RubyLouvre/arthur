@@ -38,7 +38,7 @@ export function IProxy(definition, dd) {
     this.$events = {
         __dep__: dd || new Depend(this.$id)
     }
-    if (avalon.inProxyModel) {
+    if (avalon.config.inProxyMode) {
         this.$accessors = this.$accessors || {}
     } else {
         this.$accessors = {
@@ -75,12 +75,20 @@ platform.modelFactory = function modelFactory(definition, dd) {
     platform.afterCreate(vm, core, keys)
     return vm
 }
-
-export function canHijack(key, val, inItem) {
+var $proxyItemBackdoorMap = {}
+export function canHijack(key, val, $proxyItemBackdoor) {
     if (key in $$skipArray)
         return false
-    if (key.charAt(0) === '$' && !inItem)
+    if (key.charAt(0) === '$' ){
+        if($proxyItemBackdoor){
+            if(!$proxyItemBackdoorMap[key]){
+              $proxyItemBackdoorMap[key] = 1
+               avalon.warn('ms-for中的变量不再建议以$为前缀')
+            }
+            return true
+        }
         return false
+    }
     if (val == null) {
         avalon.warn('定义vmodel时属性值不能为null undefine')
         return true

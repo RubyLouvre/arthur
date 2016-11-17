@@ -122,7 +122,6 @@ function createFragments(instance, obj) {
 
 
 function mountList(instance) {
-
     var args = instance.fragments.map(function(fragment, index) {
 
         FragmentDecorator(fragment, instance, index)
@@ -217,20 +216,27 @@ function updateList(instance) {
  * @param {type} index
  * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
  */
-var beforeVM
-
 function FragmentDecorator(fragment, instance, index) {
-
     var data = {}
     data[instance.keyName] = instance.isArray ? index : fragment.key
     data[instance.valName] = fragment.val
     if (instance.asName) {
         data[instance.asName] = instance.value
     }
-
     var vm = fragment.vm = platform.itemFactory(instance.vm, {
         data: data
     })
+    if(instance.isArray){
+        vm.$watch(instance.valName, function(a){
+            if(instance.value && instance.value.set){
+                instance.value.set(vm[instance.keyName], a)
+            }
+        })
+    }else{
+        vm.$watch(instance.valName, function(a){
+            instance.value[fragment.key] = a
+        })
+    }
     fragment.index = index
 
     fragment.boss = avalon.scan(instance.fragment, vm, function() {

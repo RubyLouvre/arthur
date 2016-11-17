@@ -16,8 +16,8 @@ import {
     canHijack,
     createProxy
 } from './share'
-if (typeof Proxy === 'function') {
-
+if (typeof Proxy === 'function2') {
+    avalon.config.inProxyMode = true
     platform.modelFactory = function modelFactory(definition, dd) {
         var clone = {}
         for (var i in definition) {
@@ -75,7 +75,7 @@ if (typeof Proxy === 'function') {
             }
             var oldValue = target[name]
             if (oldValue !== value) {
-                if (canHijack(name, value)) {
+                if (canHijack(name, value, target.$proxyItemBackdoor)) {
                     var ac = target.$accessors
                     //如果是新属性
                     if (!(name in $$skipArray) && !ac[name]) {
@@ -109,15 +109,15 @@ if (typeof Proxy === 'function') {
     }
 
     platform.itemFactory = function itemFactory(before, after) {
-        var vm = platform.modelFactory(before)
-        vm.$hashcode = before.$hashcode +
+        var definition =  before.$model
+        definition.$proxyItemBackdoor = true
+        definition.$id = before.$hashcode +
             String(after.hashcode || Math.random()).slice(6)
-        vm.$id = vm.hashcode
-        for (var i in after) {
+        definition.$accessors = avalon.mix({}, before.$accessors)
+        var vm = platform.modelFactory(definition)
+        for (var i in after.data) {
             vm[i] = after.data[i]
         }
-        delete vm.$fire
-        delete vm.$watch
         return vm
     }
 

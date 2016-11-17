@@ -3435,7 +3435,6 @@
         $watch: void 0,
         $fire: void 0,
         $events: void 0,
-        $skipArray: void 0,
         $accessors: void 0,
         $hashcode: void 0,
         __proxy__: void 0,
@@ -3828,7 +3827,7 @@
      * createProxy: listFactory与modelFactory的封装
      * createAccessor: 实现数据监听与分发的重要对象
      * itemFactory: ms-for循环中产生的代理VM的生成工厂
-     * mediatorFactory: 两个ms-controller间产生的代理VM的生成工厂
+     * fuseFactory: 两个ms-controller间产生的代理VM的生成工厂
      */
 
     avalon.define = function (definition) {
@@ -3839,7 +3838,7 @@
         if (avalon.vmodels[$id]) {
             avalon.warn('error:[' + $id + '] had defined!');
         }
-        var vm = modelFactory(definition);
+        var vm = platform.modelFactory(definition);
         return avalon.vmodels[$id] = vm;
     };
     /**
@@ -3853,9 +3852,13 @@
         this.$events = {
             __dep__: dd || new Depend(this.$id)
         };
-        this.$accessors = {
-            $model: platform.modelAccessor
-        };
+        if (avalon.config.inProxyMode) {
+            this.$accessors = this.$accessors || {};
+        } else {
+            this.$accessors = {
+                $model: platform.modelAccessor
+            };
+        }
         if (dd === void 0) {
             this.$watch = platform.watchFactory(this.$events);
             this.$fire = platform.fireFactory(this.$events);
@@ -3865,7 +3868,7 @@
         }
     }
 
-    function modelFactory(definition, dd) {
+    platform.modelFactory = function modelFactory(definition, dd) {
         var core = new IProxy(definition, dd);
         var $accessors = core.$accessors;
         var keys = [];
@@ -3884,11 +3887,20 @@
         var vm = platform.createViewModel(core, $accessors, core);
         platform.afterCreate(vm, core, keys);
         return vm;
-    }
-
-    function canHijack(key, val, inItem) {
+    };
+    var $proxyItemBackdoorMap = {};
+    function canHijack(key, val, $proxyItemBackdoor) {
         if (key in $$skipArray) return false;
-        if (key.charAt(0) === '$' && !inItem) return false;
+        if (key.charAt(0) === '$') {
+            if ($proxyItemBackdoor) {
+                if (!$proxyItemBackdoorMap[key]) {
+                    $proxyItemBackdoorMap[key] = 1;
+                    avalon.warn('ms-for中的变量不再建议以$为前缀');
+                }
+                return true;
+            }
+            return false;
+        }
         if (val == null) {
             avalon.warn('定义vmodel时属性值不能为null undefine');
             return true;
@@ -3907,7 +3919,7 @@
         if (Array.isArray(target)) {
             vm = platform.listFactory(target, false, dd);
         } else if (isObject(target)) {
-            vm = modelFactory(target, dd);
+            vm = platform.modelFactory(target, dd);
         }
         return vm;
     }
@@ -3917,6 +3929,26 @@
     // 指令需要计算自己的值，来刷新
     // 在计算前，将自己放到DepStack中
     // 然后开始计算，在Getter方法里，
+    function collectDeps(selfDep, childOb) {
+        if (Depend.target) {
+            selfDep.collect();
+        }
+        if (childOb && childOb.$events) {
+            if (Array.isArray(childOb)) {
+                childOb.forEach(function (item) {
+                    if (item && item.$events) {
+                        item.$events.__dep__.collect();
+                    }
+                });
+            } else if (avalon.deepCollect) {
+
+                for (var i in childOb) {
+                    if (childOb.hasOwnProperty(i)) var e = childOb[i];
+                }
+            }
+            return childOb;
+        }
+    }
 
     function createAccessor(key, val) {
         var priVal = val;
@@ -3926,26 +3958,11 @@
         return {
             get: function Getter() {
                 var ret = priVal;
-                if (Depend.target) {
-                    selfDep.collect();
-                }
                 Getter.dd = selfDep;
-                if (childOb && childOb.$events) {
-                    if (Array.isArray(childOb)) {
-                        childOb.forEach(function (item) {
-                            if (item && item.$events) {
-                                item.$events.__dep__.collect();
-                            }
-                        });
-                    } else if (avalon.deepCollect) {
-
-                        for (var i in childOb) {
-                            if (childOb.hasOwnProperty(i)) var e = childOb[i];
-                        }
-                    }
-                    return childOb;
+                var child = collectDeps(selfDep, childOb);
+                if (child) {
+                    return child;
                 }
-
                 return ret;
             },
             set: function Setter(newValue) {
@@ -3966,7 +3983,7 @@
         };
     }
 
-    function itemFactory(before, after) {
+    platform.itemFactory = function itemFactory(before, after) {
         var keyMap = before.$model;
         var core = new IProxy(keyMap);
         var state = avalon.shadowCopy(core.$accessors, before.$accessors); //防止互相污染
@@ -3981,10 +3998,9 @@
         var vm = platform.createViewModel(core, state, core);
         platform.afterCreate(vm, core, keys);
         return vm;
-    }
-    platform.itemFactory = itemFactory;
+    };
 
-    function mediatorFactory(before, after) {
+    platform.fuseFactory = function fuseFactory(before, after) {
 
         var keyMap = avalon.mix(before.$model, after.$model);
         var core = new IProxy(avalon.mix(keyMap, {
@@ -3997,7 +4013,7 @@
         var vm = platform.createViewModel(core, state, core);
         platform.afterCreate(vm, core, keys);
         return vm;
-    }
+    };
 
     var _splice = ap.splice;
     var __array__ = {
@@ -4214,6 +4230,7 @@
             }
         }
         vm.$track = keys.join('Ȣ');
+
         function hasOwnKey(key) {
             return wrapIt(vm.$track).indexOf(wrapIt(key)) > -1;
         }
@@ -4288,10 +4305,15 @@
                     __data__: true,
                     __const__: true
                 };
-
+                for (name in $$skipArray) {
+                    if (!uniq[name]) {
+                        buffer.push('\tPublic [' + name + ']');
+                        uniq[name] = true;
+                    }
+                }
                 //添加访问器属性 
                 for (name in accessors) {
-                    if (uniq[name] || name in $$skipArray) {
+                    if (uniq[name]) {
                         continue;
                     }
                     uniq[name] = true;
@@ -4303,12 +4325,7 @@
                     '\tOn Error Resume Next', //必须优先使用set语句,否则它会误将数组当字符串返回
                     '\t\tSet[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")', '\tIf Err.Number <> 0 Then', '\t\t[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")', '\tEnd If', '\tOn Error Goto 0', '\tEnd Property');
                 }
-                for (name in $$skipArray) {
-                    if (!uniq[name]) {
-                        buffer.push('\tPublic [' + name + ']');
-                        uniq[name] = true;
-                    }
-                }
+
                 for (name in properties) {
                     if (!uniq[name]) {
                         uniq[name] = true;
@@ -4362,7 +4379,7 @@
             if (v) {
                 v.$render = this;
                 if (scope) {
-                    return mediatorFactory(scope, v);
+                    return platform.fuseFactory(scope, v);
                 }
                 return v;
             }
@@ -5177,7 +5194,6 @@
     }
 
     function mountList(instance) {
-
         var args = instance.fragments.map(function (fragment, index) {
 
             FragmentDecorator(fragment, instance, index);
@@ -5238,6 +5254,7 @@
         });
         instance.cache = newCache;
     }
+
     function updateList(instance) {
         var before = instance.begin.dom;
         var parent = before.parentNode;
@@ -5263,18 +5280,34 @@
         list.splice.apply(ch, [startIndex + 1, endIndex - startIndex].concat(list));
     }
 
+    /**
+     * 
+     * @param {type} fragment
+     * @param {type} this
+     * @param {type} index
+     * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
+     */
     function FragmentDecorator(fragment, instance, index) {
-
         var data = {};
         data[instance.keyName] = instance.isArray ? index : fragment.key;
         data[instance.valName] = fragment.val;
         if (instance.asName) {
             data[instance.asName] = instance.value;
         }
-
         var vm = fragment.vm = platform.itemFactory(instance.vm, {
             data: data
         });
+        if (instance.isArray) {
+            vm.$watch(instance.valName, function (a) {
+                if (instance.value && instance.value.set) {
+                    instance.value.set(vm[instance.keyName], a);
+                }
+            });
+        } else {
+            vm.$watch(instance.valName, function (a) {
+                instance.value[fragment.key] = a;
+            });
+        }
         fragment.index = index;
 
         fragment.boss = avalon.scan(instance.fragment, vm, function () {
@@ -6611,10 +6644,12 @@
     avalon.scan = function (node, vm, beforeReady) {
         return new Render(node, vm, beforeReady || avalon.noop);
     };
+
     /**
      * avalon.scan 的内部实现
      */
     function Render(node, vm, beforeReady) {
+
         this.root = node; //如果传入的字符串,确保只有一个标签作为根节点
         this.vm = vm;
         this.beforeReady = beforeReady;
@@ -6625,6 +6660,7 @@
     }
 
     var cp$1 = Render.prototype;
+
     /**
      * 开始扫描指定区域
      * 收集绑定属性
@@ -6713,6 +6749,10 @@
             }
             if (startWith(attr, 'ms-')) {
                 dirs[attr] = value;
+                var type = attr.match(/\w+/g)[1];
+                if (!directives[type]) {
+                    avalon.warn(attr + ' has not registered!');
+                }
                 hasDir = true;
             }
             if (attr === 'ms-for') {
@@ -6766,7 +6806,6 @@
      * 执行各种回调与优化指令
      * @returns {undefined}
      */
-
     cp$1.complete = function () {
         this.yieldDirectives();
         this.beforeReady();
@@ -6868,7 +6907,6 @@
      * @param {type} userCb 循环结束回调
      * @returns {undefined}
      */
-
     cp$1.getForBinding = function (begin, scope, parentChildren, userCb) {
         var expr = begin.nodeValue.replace('ms-for:', '').trim();
         begin.nodeValue = 'ms-for:' + expr;

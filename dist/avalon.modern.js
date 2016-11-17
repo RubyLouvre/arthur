@@ -3151,7 +3151,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         this.$events = {
             __dep__: dd || new Depend(this.$id)
         };
-        if (avalon.inProxyModel) {
+        if (avalon.config.inProxyMode) {
             this.$accessors = this.$accessors || {};
         } else {
             this.$accessors = {
@@ -3187,10 +3187,19 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         platform.afterCreate(vm, core, keys);
         return vm;
     };
-
-    function canHijack(key, val, inItem) {
+    var $proxyItemBackdoorMap = {};
+    function canHijack(key, val, $proxyItemBackdoor) {
         if (key in $$skipArray) return false;
-        if (key.charAt(0) === '$' && !inItem) return false;
+        if (key.charAt(0) === '$') {
+            if ($proxyItemBackdoor) {
+                if (!$proxyItemBackdoorMap[key]) {
+                    $proxyItemBackdoorMap[key] = 1;
+                    avalon.warn('ms-for中的变量不再建议以$为前缀');
+                }
+                return true;
+            }
+            return false;
+        }
         if (val == null) {
             avalon.warn('定义vmodel时属性值不能为null undefine');
             return true;
@@ -3221,7 +3230,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     // 然后开始计算，在Getter方法里，
     function collectDeps(selfDep, childOb) {
         if (Depend.target) {
-            console.log(selfDep.key, 'collect');
             selfDep.collect();
         }
         if (childOb && childOb.$events) {
@@ -3518,7 +3526,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     platform.toModel = function () {};
     platform.createViewModel = Object.defineProperties;
 
-    if (typeof Proxy === 'function') {
+    if (typeof Proxy === 'function2') {
         var traps;
 
         (function () {
@@ -3532,6 +3540,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                 return 'Ȣ' + str + 'Ȣ';
             };
 
+            avalon.config.inProxyMode = true;
             platform.modelFactory = function modelFactory(definition, dd) {
                 var clone = {};
                 for (var i in definition) {
@@ -3577,7 +3586,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                     }
                     var oldValue = target[name];
                     if (oldValue !== value) {
-                        if (canHijack(name, value)) {
+                        if (canHijack(name, value, target.$proxyItemBackdoor)) {
                             var ac = target.$accessors;
                             //如果是新属性
                             if (!(name in $$skipArray) && !ac[name]) {
@@ -3612,14 +3621,14 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 
             platform.itemFactory = function itemFactory(before, after) {
-                var vm = platform.modelFactory(before);
-                vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6);
-                vm.$id = vm.hashcode;
-                for (var i in after) {
+                var definition = before.$model;
+                definition.$proxyItemBackdoor = true;
+                definition.$id = before.$hashcode + String(after.hashcode || Math.random()).slice(6);
+                definition.$accessors = avalon.mix({}, before.$accessors);
+                var vm = platform.modelFactory(definition);
+                for (var i in after.data) {
                     vm[i] = after.data[i];
                 }
-                delete vm.$fire;
-                delete vm.$watch;
                 return vm;
             };
 
@@ -4474,7 +4483,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     }
 
     function mountList(instance) {
-
         var args = instance.fragments.map(function (fragment, index) {
 
             FragmentDecorator(fragment, instance, index);
@@ -4561,18 +4569,34 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         list.splice.apply(ch, [startIndex + 1, endIndex - startIndex].concat(list));
     }
 
+    /**
+     * 
+     * @param {type} fragment
+     * @param {type} this
+     * @param {type} index
+     * @returns { key, val, index, oldIndex, this, dom, split, boss, vm}
+     */
     function FragmentDecorator(fragment, instance, index) {
-
         var data = {};
         data[instance.keyName] = instance.isArray ? index : fragment.key;
         data[instance.valName] = fragment.val;
         if (instance.asName) {
             data[instance.asName] = instance.value;
         }
-
         var vm = fragment.vm = platform.itemFactory(instance.vm, {
             data: data
         });
+        if (instance.isArray) {
+            vm.$watch(instance.valName, function (a) {
+                if (instance.value && instance.value.set) {
+                    instance.value.set(vm[instance.keyName], a);
+                }
+            });
+        } else {
+            vm.$watch(instance.valName, function (a) {
+                instance.value[fragment.key] = a;
+            });
+        }
         fragment.index = index;
 
         fragment.boss = avalon.scan(instance.fragment, vm, function () {
@@ -5786,6 +5810,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
      * avalon.scan 的内部实现
      */
     function Render(node, vm, beforeReady) {
+
         this.root = node; //如果传入的字符串,确保只有一个标签作为根节点
         this.vm = vm;
         this.beforeReady = beforeReady;
@@ -5885,6 +5910,10 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
             if (startWith(attr, 'ms-')) {
                 dirs[attr] = value;
+                var type = attr.match(/\w+/g)[1];
+                if (!directives[type]) {
+                    avalon.warn(attr + ' has not registered!');
+                }
                 hasDir = true;
             }
             if (attr === 'ms-for') {
