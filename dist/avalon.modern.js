@@ -3126,7 +3126,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
      * createProxy: listFactory与modelFactory的封装
      * createAccessor: 实现数据监听与分发的重要对象
      * itemFactory: ms-for循环中产生的代理VM的生成工厂
-     * mediatorFactory: 两个ms-controller间产生的代理VM的生成工厂
+     * fuseFactory: 两个ms-controller间产生的代理VM的生成工厂
      */
 
     avalon.define = function (definition) {
@@ -3167,7 +3167,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         }
     }
 
-    function modelFactory$1(definition, dd) {
+    platform.modelFactory = function modelFactory(definition, dd) {
         var core = new IProxy(definition, dd);
         var $accessors = core.$accessors;
         var keys = [];
@@ -3186,8 +3186,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         var vm = platform.createViewModel(core, $accessors, core);
         platform.afterCreate(vm, core, keys);
         return vm;
-    }
-    platform.modelFactory = modelFactory$1;
+    };
 
     function canHijack(key, val, inItem) {
         if (key in $$skipArray) return false;
@@ -3275,7 +3274,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         };
     }
 
-    function itemFactory$1(before, after) {
+    platform.itemFactory = function itemFactory(before, after) {
         var keyMap = before.$model;
         var core = new IProxy(keyMap);
         var state = avalon.shadowCopy(core.$accessors, before.$accessors); //防止互相污染
@@ -3290,8 +3289,22 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         var vm = platform.createViewModel(core, state, core);
         platform.afterCreate(vm, core, keys);
         return vm;
-    }
-    platform.itemFactory = itemFactory$1;
+    };
+
+    platform.fuseFactory = function fuseFactory(before, after) {
+
+        var keyMap = avalon.mix(before.$model, after.$model);
+        var core = new IProxy(avalon.mix(keyMap, {
+            $id: before.$id + after.$id
+        }));
+        var state = avalon.mix(core.$accessors, before.$accessors, after.$accessors); //防止互相污染
+
+        var keys = Object.keys(keyMap);
+        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+        var vm = platform.createViewModel(core, state, core);
+        platform.afterCreate(vm, core, keys);
+        return vm;
+    };
 
     var _splice = ap.splice;
     var __array__ = {
@@ -3610,7 +3623,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                 return vm;
             };
 
-            platform.mediatorFactory = function mediatorFactory(before, after) {
+            platform.fuseFactory = function fuseFactory(before, after) {
                 var definition = avalon.mix(before.$model, after.$model);
                 definition.$id = before.$hashcode + after.$hashcode;
                 definition.$accessors = avalon.mix({}, before.$accessors, after.$accessors);
@@ -3646,7 +3659,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             if (v) {
                 v.$render = this;
                 if (scope) {
-                    return platform.mediatorFactory(scope, v);
+                    return platform.fuseFactory(scope, v);
                 }
                 return v;
             }

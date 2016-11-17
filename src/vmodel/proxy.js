@@ -108,8 +108,6 @@ if (typeof Proxy === 'function') {
         }
     }
 
-
-
     platform.itemFactory = function itemFactory(before, after) {
         var vm = platform.modelFactory(before)
         vm.$hashcode = before.$hashcode +
@@ -123,7 +121,7 @@ if (typeof Proxy === 'function') {
         return vm
     }
 
-    platform.mediatorFactory = function mediatorFactory(before, after) {
+    platform.fuseFactory = function fuseFactory(before, after) {
         var definition = avalon.mix(before.$model, after.$model)
         definition.$id = before.$hashcode + after.$hashcode
         definition.$accessors = avalon.mix({},

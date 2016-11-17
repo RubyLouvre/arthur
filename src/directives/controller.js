@@ -7,7 +7,7 @@ avalon.directive('controller', {
         if (v){
             v.$render = this
             if(scope){
-               return platform.mediatorFactory(scope, v) 
+               return platform.fuseFactory(scope, v) 
             }
             return v
         }

@@ -12,7 +12,7 @@ import { Depend } from './depend'
  * createProxy: listFactory与modelFactory的封装
  * createAccessor: 实现数据监听与分发的重要对象
  * itemFactory: ms-for循环中产生的代理VM的生成工厂
- * mediatorFactory: 两个ms-controller间产生的代理VM的生成工厂
+ * fuseFactory: 两个ms-controller间产生的代理VM的生成工厂
  */
 
 
@@ -54,7 +54,7 @@ export function IProxy(definition, dd) {
     }
 }
 
-function modelFactory(definition, dd) {
+platform.modelFactory = function modelFactory(definition, dd) {
     var core = new IProxy(definition, dd)
     var $accessors = core.$accessors
     var keys = []
@@ -75,7 +75,6 @@ function modelFactory(definition, dd) {
     platform.afterCreate(vm, core, keys)
     return vm
 }
-platform.modelFactory = modelFactory
 
 export function canHijack(key, val, inItem) {
     if (key in $$skipArray)
@@ -166,7 +165,7 @@ function createAccessor(key, val) {
     }
 }
 
-function itemFactory(before, after) {
+platform.itemFactory = function itemFactory(before, after) {
     var keyMap = before.$model
     var core = new IProxy(keyMap)
     var state = avalon.shadowCopy(core.$accessors, before.$accessors) //防止互相污染
@@ -182,9 +181,8 @@ function itemFactory(before, after) {
     platform.afterCreate(vm, core, keys)
     return vm
 }
-platform.itemFactory = itemFactory
 
-export function mediatorFactory(before, after) {
+platform.fuseFactory = function fuseFactory(before, after) {
 
     var keyMap = avalon.mix(before.$model, after.$model)
     var core = new IProxy(avalon.mix(keyMap, {
@@ -199,3 +197,4 @@ export function mediatorFactory(before, after) {
     platform.afterCreate(vm, core, keys)
     return vm
 }
+
