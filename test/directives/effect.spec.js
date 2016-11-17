@@ -22,18 +22,20 @@ describe('effect', function () {
         delete avalon.vmodels[vm && vm.$id]
     })
     it('type', function () {
-        console.log({
-            css3,
-            animation,
-            transition,
-            animationEndEvent,
-            transitionEndEvent
-        })
-        expect(css3).toA('boolean')
-        expect(animation).toA('boolean')
-        expect(transition).toA('boolean')
-        expect(typeof animationEndEvent).toMatch(/undefined|string/)
-        expect(typeof transitionEndEvent).toMatch(/undefined|string/)
+        if (!avalon.msie || avalon.msie > 9) {
+            console.log({
+                css3,
+                animation,
+                transition,
+                animationEndEvent,
+                transitionEndEvent
+            })
+            expect(css3).toA('boolean')
+            expect(animation).toA('boolean')
+            expect(transition).toA('boolean')
+            expect(typeof animationEndEvent).toMatch(/undefined|string/)
+            expect(typeof transitionEndEvent).toMatch(/undefined|string/)
+        }
     })
     it('getAction', function () {
         expect(getAction({ hook: 'onEnterDone' })).toBe('enter')
@@ -61,7 +63,7 @@ describe('effect', function () {
     it('avalon.effect', function () {
         avalon.effect('fade')
         var fade = avalon.effects.fade
-        if (avalon.modern)
+        if (!avalon.msie || avalon.msie > 9)
             expect(fade).toEqual({
                 enterClass: 'fade-enter',
                 enterActiveClass: 'fade-enter-active',
@@ -99,19 +101,20 @@ describe('effect', function () {
     })
 
     it('getAnimationTime', function () {
-        var el = document.createElement('div')
-        el.style.cssText = 'color:red;transition:all 2s; -moz-transition: all 2s; -webkit-transition: all 2s; -o-transition:all 2s;'
-        var el2 = document.createElement('div')
-        el2.style.cssText = 'color:red; transition:all 300ms; -moz-transition: all 300ms; -webkit-transition: all 300ms; -o-transition:all 300ms;'
-        document.body.appendChild(el)
-        document.body.appendChild(el2)
-        if (avalon.modern) {
-            expect(getAnimationTime(el)).toBe(2000)
-            expect(getAnimationTime(el2)).toBe(300)
-            document.body.removeChild(el)
-            document.body.removeChild(el2)
+        if (!avalon.msie || avalon.msie > 9) {
+            var el = document.createElement('div')
+            el.style.cssText = 'color:red;transition:all 2s; -moz-transition: all 2s; -webkit-transition: all 2s; -o-transition:all 2s;'
+            var el2 = document.createElement('div')
+            el2.style.cssText = 'color:red; transition:all 300ms; -moz-transition: all 300ms; -webkit-transition: all 300ms; -o-transition:all 300ms;'
+            document.body.appendChild(el)
+            document.body.appendChild(el2)
+            if (avalon.modern) {
+                expect(getAnimationTime(el)).toBe(2000)
+                expect(getAnimationTime(el2)).toBe(300)
+                document.body.removeChild(el)
+                document.body.removeChild(el2)
+            }
         }
-
     })
 
     it('enter action', function (done) {
@@ -144,9 +147,9 @@ describe('effect', function () {
         }, 300)
 
     })
-    
-    
-     it('effect1', function (done) {
+
+
+    it('effect1', function (done) {
 
         div.innerHTML = heredoc(function () {
             /*
@@ -178,7 +181,7 @@ describe('effect', function () {
             template: '<div><p :for="el in @data" :effect="{is : \'animate\',action: el.action}"></p></div>',
             defaults: {
                 //这里不会报错
-                data: [{action: 'enter'}],
+                data: [{ action: 'enter' }],
                 add: function () {
                     //push的时候报错
                     this.data.push({
@@ -203,7 +206,7 @@ describe('effect', function () {
                 done()
                 setTimeout(function () {
                     delete avalon.vmodels['effxx']
-                 
+
                     delete avalon.component['ms-test']
                 })
             }, 500)

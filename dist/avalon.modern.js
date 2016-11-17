@@ -2,11 +2,13 @@
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
+    (typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
 })(this, function () {
 
-    var win = typeof window === 'object' ? window : typeof global === 'object' ? global : {};
+    var win = (typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' ? window : (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : {};
 
     var inBrowser = !!win.location && win.navigator;
     /* istanbul ignore if  */
@@ -28,7 +30,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         undefinedobject: NaN //Mobile Safari 8.0.0 (iOS 8.4.0) 
     };
     /* istanbul ignore next  */
-    var msie = document$1.documentMode || versions[typeof document$1.all + typeof XMLHttpRequest];
+    var msie = document$1.documentMode || versions[_typeof(document$1.all) + (typeof XMLHttpRequest === 'undefined' ? 'undefined' : _typeof(XMLHttpRequest))];
 
     var modern = /NaN/.test(msie) || msie > 8;
 
@@ -205,7 +207,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     var ohasOwn = op.hasOwnProperty;
     var ap = Array.prototype;
 
-    var hasConsole = typeof console === 'object';
+    var hasConsole = (typeof console === 'undefined' ? 'undefined' : _typeof(console)) === 'object';
     avalon.config = { debug: true };
     function log() {
         if (hasConsole && avalon.config.debug) {
@@ -224,7 +226,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     }
     function noop() {}
     function isObject(a) {
-        return a !== null && typeof a === 'object';
+        return a !== null && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object';
     }
 
     function range(start, end, step) {
@@ -457,7 +459,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             return String(obj);
         }
         // 早期的webkit内核浏览器实现了已废弃的ecma262v4标准，可以将正则字面量当作函数使用，因此typeof在判定正则时会返回function
-        return typeof obj === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj;
+        return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj === 'undefined' ? 'undefined' : _typeof(obj);
     };
 
     avalon._quote = JSON.stringify;
@@ -497,7 +499,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         }
 
         //确保接受方为一个复杂的数据类型
-        if (typeof target !== 'object' && typeof target !== 'function') {
+        if ((typeof target === 'undefined' ? 'undefined' : _typeof(target)) !== 'object' && typeof target !== 'function') {
             target = {};
         }
 
@@ -541,7 +543,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     /*判定是否类数组，如节点集合，纯数组，arguments与拥有非负整数的length属性的纯JS对象*/
     function isArrayLike(obj) {
         /* istanbul ignore if*/
-        if (obj && typeof obj === 'object') {
+        if (obj && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
             var n = obj.length,
                 str = inspect.call(obj);
             if (rarraylike.test(str)) {
@@ -3772,7 +3774,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             for (var i = a.length - 1; i >= 0; i--) {
                 if (!deepEquals(a[i], b[i], level - 1)) return false;
             }return true;
-        } else if (typeof a === "object" && typeof b === "object") {
+        } else if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) === "object" && (typeof b === 'undefined' ? 'undefined' : _typeof(b)) === "object") {
             if (a === null || b === null) return false;
             if (getEnumerableKeys(a).length !== getEnumerableKeys(b).length) return false;
             for (var prop in a) {
@@ -4456,7 +4458,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     });
 
     function getTraceKey(item) {
-        var type = typeof item;
+        var type = typeof item === 'undefined' ? 'undefined' : _typeof(item);
         return item && type === 'object' ? item.$hashcode : type + ':' + item;
     }
 
@@ -4655,7 +4657,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         var classes = [];
         for (var i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
-            var argType = typeof arg;
+            var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
             if (argType === 'string' || argType === 'number' || arg === true) {
                 classes.push(arg);
             } else if (Array.isArray(arg)) {
@@ -4692,7 +4694,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
             var className = classNames(newVal);
 
-            if (typeof oldVal === void 0 || oldVal !== className) {
+            if ((typeof oldVal === 'undefined' ? 'undefined' : _typeof(oldVal)) === void 0 || oldVal !== className) {
                 this.value = className;
 
                 vdom['change-' + type] = className;
@@ -5561,7 +5563,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             //如果promises不为空，说明经过验证拦截器
             return Promise.all(promises).then(function (array) {
                 var reasons = array.filter(function (el) {
-                    return typeof el === 'object';
+                    return (typeof el === 'undefined' ? 'undefined' : _typeof(el)) === 'object';
                 });
                 if (!isValidateAll) {
                     var validator = field.validator;

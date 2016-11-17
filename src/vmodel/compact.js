@@ -20,7 +20,7 @@ try {
 
 
 var modelAccessor = {
-    get: function() {
+    get: function () {
         return toJson(this)
     },
     set: avalon.noop,
@@ -39,7 +39,7 @@ export function toJson(val) {
     } else if (xtype === 'object') {
         if (typeof val.$track === 'string') {
             var obj = {}
-            val.$track.split('Ȣ').forEach(function(i) {
+            val.$track.split('Ȣ').forEach(function (i) {
                 var value = val[i]
                 obj[i] = value && value.$events ? toJson(value) : value
             })
@@ -48,7 +48,7 @@ export function toJson(val) {
     }
     return val
 }
-
+var protectedVB = { $vbthis: 1, $vbsetter: 1 }
 /* istanbul ignore next */
 export function hideProperty(host, name, value) {
     if (canHideProperty) {
@@ -58,7 +58,7 @@ export function hideProperty(host, name, value) {
             enumerable: false,
             configurable: true
         })
-    } else {
+    } else if (!protectedVB[name]) {
         /* istanbul ignore next */
         host[name] = value
     }
@@ -78,7 +78,7 @@ export function watchFactory(core) {
             core[expr].push(w)
         }
 
-        return function() {
+        return function () {
             w.destroy()
             avalon.Array.remove(core[expr], w)
             if (core[expr].length === 0) {
@@ -104,15 +104,17 @@ function wrapIt(str) {
 }
 
 export function afterCreate(vm, core, keys) {
-    var $accessors = vm.$accessors
-        //隐藏系统属性
+    var ac = vm.$accessors
+    //隐藏系统属性
     for (var key in $$skipArray) {
-        hideProperty(vm, key, vm[key])
+        if (avalon.msie < 9 && core[key] === void 0)
+            continue
+        hideProperty(vm, key, core[key])
     }
     //为不可监听的属性或方法赋值
     for (var i = 0; i < keys.length; i++) {
         key = keys[i]
-        if (!(key in $accessors)) {
+        if (!(key in ac)) {
             vm[key] = core[key]
         }
     }
@@ -121,8 +123,9 @@ export function afterCreate(vm, core, keys) {
     function hasOwnKey(key) {
         return wrapIt(vm.$track).indexOf(wrapIt(key)) > -1
     }
-    if (avalon.msie < 9)
-        hideProperty(vm, 'hasOwnProperty', hasOwnKey)
+    if (avalon.msie < 9) {
+        vm.hasOwnProperty = hasOwnKey
+    }
     vm.$events.__proxy__ = vm
 }
 
@@ -132,9 +135,9 @@ platform.watchFactory = watchFactory
 platform.afterCreate = afterCreate
 platform.modelAccessor = modelAccessor
 platform.toJson = toJson
-platform.toModel = function(obj) {
+platform.toModel = function (obj) {
     if (avalon.msie < 9) {
-        obj.$model = toJson(obj)
+        return obj.$model = toJson(obj)
     }
 }
 
@@ -143,10 +146,10 @@ var createViewModel = Object.defineProperties
 var defineProperty
 
 var timeBucket = new Date() - 0
-    /* istanbul ignore if*/
+/* istanbul ignore if*/
 if (!canHideProperty) {
     if ('__defineGetter__' in avalon) {
-        defineProperty = function(obj, prop, desc) {
+        defineProperty = function (obj, prop, desc) {
             if ('value' in desc) {
                 obj[prop] = desc.value
             }
@@ -158,7 +161,7 @@ if (!canHideProperty) {
             }
             return obj
         }
-        createViewModel = function(obj, descs) {
+        createViewModel = function (obj, descs) {
             for (var prop in descs) {
                 if (descs.hasOwnProperty(prop)) {
                     defineProperty(obj, prop, descs[prop])
@@ -176,7 +179,7 @@ if (!canHideProperty) {
             'End Function' //转换一段文本为VB代码
         ].join('\n'), 'VBScript');
 
-        var VBMediator = function(instance, accessors, name, value) { // jshint ignore:line
+        var VBMediator = function (instance, accessors, name, value) { // jshint ignore:line
             var accessor = accessors[name]
             if (arguments.length === 4) {
                 accessor.set.call(instance, value)
@@ -184,22 +187,23 @@ if (!canHideProperty) {
                 return accessor.get.call(instance)
             }
         }
-        createViewModel = function(name, accessors, properties) {
+        createViewModel = function (name, accessors, properties) {
             // jshint ignore:line
             var buffer = []
             buffer.push(
-                    '\r\n\tPrivate [__data__], [__proxy__]',
-                    '\tPublic Default Function [__const__](d' + timeBucket + ', p' + timeBucket + ')',
-                    '\t\tSet [__data__] = d' + timeBucket + ': set [__proxy__] = p' + timeBucket,
-                    '\t\tSet [__const__] = Me', //链式调用
-                    '\tEnd Function')
-                //添加普通属性,因为VBScript对象不能像JS那样随意增删属性，必须在这里预先定义好
+                '\tPrivate [$vbsetter]',
+                '\tPublic  [$accessors]',
+                '\tPublic Default Function [$vbthis](ac' + timeBucket + ', s' + timeBucket + ')',
+                '\t\tSet  [$accessors] = ac' + timeBucket + ': set [$vbsetter] = s' + timeBucket,
+                '\t\tSet  [$vbthis]    = Me', //链式调用
+                '\tEnd Function')
+            //添加普通属性,因为VBScript对象不能像JS那样随意增删属性，必须在这里预先定义好
             var uniq = {
-                __proxy__: true,
-                __data__: true,
-                __const__: true
+                $vbthis: true,
+                $vbsetter: true,
+                $accessors: true
             }
-           for (name in $$skipArray) {
+            for (name in $$skipArray) {
                 if (!uniq[name]) {
                     buffer.push('\tPublic [' + name + ']')
                     uniq[name] = true
@@ -214,22 +218,22 @@ if (!canHideProperty) {
                 buffer.push(
                     //由于不知对方会传入什么,因此set, let都用上
                     '\tPublic Property Let [' + name + '](val' + timeBucket + ')', //setter
-                    '\t\tCall [__proxy__](Me, [__data__], "' + name + '", val' + timeBucket + ')',
+                    '\t\tCall [$vbsetter](Me, [$accessors], "' + name + '", val' + timeBucket + ')',
                     '\tEnd Property',
                     '\tPublic Property Set [' + name + '](val' + timeBucket + ')', //setter
-                    '\t\tCall [__proxy__](Me, [__data__], "' + name + '", val' + timeBucket + ')',
+                    '\t\tCall [$vbsetter](Me, [$accessors], "' + name + '", val' + timeBucket + ')',
                     '\tEnd Property',
                     '\tPublic Property Get [' + name + ']', //getter
                     '\tOn Error Resume Next', //必须优先使用set语句,否则它会误将数组当字符串返回
-                    '\t\tSet[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")',
+                    '\t\tSet[' + name + '] = [$vbsetter](Me, [$accessors],"' + name + '")',
                     '\tIf Err.Number <> 0 Then',
-                    '\t\t[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")',
+                    '\t\t[' + name + '] = [$vbsetter](Me, [$accessors],"' + name + '")',
                     '\tEnd If',
                     '\tOn Error Goto 0',
                     '\tEnd Property')
 
             }
-           
+
             for (name in properties) {
                 if (!uniq[name]) {
                     uniq[name] = true
@@ -237,7 +241,7 @@ if (!canHideProperty) {
                 }
             }
 
-            buffer.push('\tPublic [' + 'hasOwnProperty' + ']')
+            buffer.push('\tPublic [hasOwnProperty]')
             buffer.push('End Class')
             var body = buffer.join('\r\n')
             var className = VBClassPool[body]
@@ -245,9 +249,9 @@ if (!canHideProperty) {
                 className = avalon.makeHashCode('VBClass')
                 window.parseVB('Class ' + className + body)
                 window.parseVB([
-                    'Function ' + className + 'Factory(a, b)', //创建实例并传入两个关键的参数
+                    'Function ' + className + 'Factory(acc, vbm)', //创建实例并传入两个关键的参数
                     '\tDim o',
-                    '\tSet o = (New ' + className + ')(a, b)',
+                    '\tSet o = (New ' + className + ')(acc, vbm)',
                     '\tSet ' + className + 'Factory = o',
                     'End Function'
                 ].join('\r\n'))

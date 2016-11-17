@@ -44,7 +44,7 @@ module.exports = rollup.rollup({
   
   code = result.code.replace(/\}\)\(undefined,/,'})(this,')
   fs.writeFileSync( './dist/avalon.modern.js', code );
-  fs.writeFileSync( '../avalon-server-render-example/dist/avalon2.2.js', code );
+  // fs.writeFileSync( '../avalon-server-render-example/dist/avalon2.2.js', code );
 
 }).catch(function(e){
    console.log('error',e)

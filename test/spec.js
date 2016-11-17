@@ -19,7 +19,6 @@ import './dom/event.compact.spec'
 import './dom/css.compact.spec'
 
 
-
 import './vtree/clearString.spec'
 import './vtree/fromString.spec'
 import './vtree/fromDOM.spec'
@@ -41,7 +40,9 @@ import './directives/expr.spec'
 import './directives/css.spec'
 import './directives/important.spec'
 import './directives/on.spec'
+
 import './directives/controller.spec'
+
 import './directives/text.spec'
 import './directives/class.spec'
 import './directives/hover.spec'

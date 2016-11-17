@@ -1,10 +1,14 @@
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
+    (typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
 })(this, function () {
 
-    var win = typeof window === 'object' ? window : typeof global === 'object' ? global : {};
+    var win = (typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' ? window : (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : {};
 
     var inBrowser = !!win.location && win.navigator;
     /* istanbul ignore if  */
@@ -26,7 +30,7 @@
         undefinedobject: NaN //Mobile Safari 8.0.0 (iOS 8.4.0) 
     };
     /* istanbul ignore next  */
-    var msie = document$1.documentMode || versions[typeof document$1.all + typeof XMLHttpRequest];
+    var msie = document$1.documentMode || versions[_typeof(document$1.all) + (typeof XMLHttpRequest === 'undefined' ? 'undefined' : _typeof(XMLHttpRequest))];
 
     var modern = /NaN/.test(msie) || msie > 8;
 
@@ -203,7 +207,7 @@
     var ohasOwn = op.hasOwnProperty;
     var ap = Array.prototype;
 
-    var hasConsole = typeof console === 'object';
+    var hasConsole = (typeof console === 'undefined' ? 'undefined' : _typeof(console)) === 'object';
     avalon.config = { debug: true };
     function log() {
         if (hasConsole && avalon.config.debug) {
@@ -222,7 +226,7 @@
     }
     function noop() {}
     function isObject(a) {
-        return a !== null && typeof a === 'object';
+        return a !== null && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object';
     }
 
     function range(start, end, step) {
@@ -674,12 +678,12 @@
             return String(obj);
         }
         // 早期的webkit内核浏览器实现了已废弃的ecma262v4标准，可以将正则字面量当作函数使用，因此typeof在判定正则时会返回function
-        return typeof obj === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj;
+        return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj === 'undefined' ? 'undefined' : _typeof(obj);
     };
 
     var rfunction = /^\s*\bfunction\b/;
 
-    avalon.isFunction = /* istanbul ignore if */typeof alert === 'object' ? function (fn) {
+    avalon.isFunction = /* istanbul ignore if */(typeof alert === 'undefined' ? 'undefined' : _typeof(alert)) === 'object' ? function (fn) {
         /* istanbul ignore next */
         try {
             /* istanbul ignore next */
@@ -773,7 +777,7 @@
         }
 
         //当参数为其他简单类型 ,改为空对象
-        if (typeof target !== 'object' && !avalon.isFunction(target)) {
+        if ((typeof target === 'undefined' ? 'undefined' : _typeof(target)) !== 'object' && !avalon.isFunction(target)) {
             target = {};
         }
 
@@ -867,7 +871,7 @@
     new function welcome() {
         var welcomeIntro = ["%cavalon.js %c" + avalon.version + " %cin debug mode, %cmore...", "color: rgb(114, 157, 52); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"];
         var welcomeMessage = "You're running avalon in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\n" + 'To disable debug mode, add this line at the start of your app:\n\n  avalon.config({debug: false});\n\n' + 'Debug mode also automatically shut down amicably when your app is minified.\n\n' + "Get help and support:\n  https://segmentfault.com/t/avalon\n  http://avalonjs.coding.me/\n  http://www.baidu-x.com/?q=avalonjs\n  http://www.avalon.org.cn/\n\nFound a bug? Raise an issue:\n  https://github.com/RubyLouvre/avalon/issues\n\n";
-        if (typeof console === 'object') {
+        if ((typeof console === 'undefined' ? 'undefined' : _typeof(console)) === 'object') {
             var con = console;
             var method = con.groupCollapsed || con.log;
             Function.apply.call(method, con, welcomeIntro);
@@ -1551,7 +1555,7 @@
         set: function set(cls) {
             cls = cls.trim();
             var node = this.node;
-            if (typeof node.className === 'object') {
+            if (_typeof(node.className) === 'object') {
                 //SVG元素的className是一个对象 SVGAnimatedString { baseVal='', animVal=''}，只能通过set/getAttribute操作
                 node.setAttribute('class', cls);
             } else {
@@ -3429,19 +3433,19 @@
      $$skipArray被hasOwnProperty后返回false
      $skipArray被hasOwnProperty后返回true
      */
+    var falsy;
     var $$skipArray = {
-        $id: void 0,
-        $render: void 0,
-        $track: void 0,
-        $element: void 0,
-        $watch: void 0,
-        $fire: void 0,
-        $events: void 0,
-        $accessors: void 0,
-        $hashcode: void 0,
-        __proxy__: void 0,
-        __data__: void 0,
-        __const__: void 0
+        $id: falsy,
+        $render: falsy,
+        $track: falsy,
+        $element: falsy,
+        $watch: falsy,
+        $fire: falsy,
+        $events: falsy,
+        $accessors: falsy,
+        $hashcode: falsy,
+        $vbthis: falsy,
+        $vbsetter: falsy
     };
 
     var rendering = null;
@@ -4165,7 +4169,7 @@
         }
         return val;
     }
-
+    var protectedVB = { $vbthis: 1, $vbsetter: 1 };
     /* istanbul ignore next */
     function hideProperty(host, name, value) {
         if (canHideProperty) {
@@ -4175,7 +4179,7 @@
                 enumerable: false,
                 configurable: true
             });
-        } else {
+        } else if (!protectedVB[name]) {
             /* istanbul ignore next */
             host[name] = value;
         }
@@ -4220,15 +4224,16 @@
     }
 
     function afterCreate(vm, core, keys) {
-        var $accessors = vm.$accessors;
+        var ac = vm.$accessors;
         //隐藏系统属性
         for (var key in $$skipArray) {
-            hideProperty(vm, key, vm[key]);
+            if (avalon.msie < 9 && core[key] === void 0) continue;
+            hideProperty(vm, key, core[key]);
         }
         //为不可监听的属性或方法赋值
         for (var i = 0; i < keys.length; i++) {
             key = keys[i];
-            if (!(key in $accessors)) {
+            if (!(key in ac)) {
                 vm[key] = core[key];
             }
         }
@@ -4237,7 +4242,9 @@
         function hasOwnKey(key) {
             return wrapIt(vm.$track).indexOf(wrapIt(key)) > -1;
         }
-        if (avalon.msie < 9) hideProperty(vm, 'hasOwnProperty', hasOwnKey);
+        if (avalon.msie < 9) {
+            vm.hasOwnProperty = hasOwnKey;
+        }
         vm.$events.__proxy__ = vm;
     }
 
@@ -4249,7 +4256,7 @@
     platform.toJson = toJson;
     platform.toModel = function (obj) {
         if (avalon.msie < 9) {
-            obj.$model = toJson(obj);
+            return obj.$model = toJson(obj);
         }
     };
 
@@ -4300,13 +4307,13 @@
             createViewModel = function createViewModel(name, accessors, properties) {
                 // jshint ignore:line
                 var buffer = [];
-                buffer.push('\r\n\tPrivate [__data__], [__proxy__]', '\tPublic Default Function [__const__](d' + timeBucket + ', p' + timeBucket + ')', '\t\tSet [__data__] = d' + timeBucket + ': set [__proxy__] = p' + timeBucket, '\t\tSet [__const__] = Me', //链式调用
+                buffer.push('\tPrivate [$vbsetter]', '\tPublic  [$accessors]', '\tPublic Default Function [$vbthis](ac' + timeBucket + ', s' + timeBucket + ')', '\t\tSet  [$accessors] = ac' + timeBucket + ': set [$vbsetter] = s' + timeBucket, '\t\tSet  [$vbthis]    = Me', //链式调用
                 '\tEnd Function');
                 //添加普通属性,因为VBScript对象不能像JS那样随意增删属性，必须在这里预先定义好
                 var uniq = {
-                    __proxy__: true,
-                    __data__: true,
-                    __const__: true
+                    $vbthis: true,
+                    $vbsetter: true,
+                    $accessors: true
                 };
                 for (name in $$skipArray) {
                     if (!uniq[name]) {
@@ -4323,10 +4330,10 @@
                     buffer.push(
                     //由于不知对方会传入什么,因此set, let都用上
                     '\tPublic Property Let [' + name + '](val' + timeBucket + ')', //setter
-                    '\t\tCall [__proxy__](Me, [__data__], "' + name + '", val' + timeBucket + ')', '\tEnd Property', '\tPublic Property Set [' + name + '](val' + timeBucket + ')', //setter
-                    '\t\tCall [__proxy__](Me, [__data__], "' + name + '", val' + timeBucket + ')', '\tEnd Property', '\tPublic Property Get [' + name + ']', //getter
+                    '\t\tCall [$vbsetter](Me, [$accessors], "' + name + '", val' + timeBucket + ')', '\tEnd Property', '\tPublic Property Set [' + name + '](val' + timeBucket + ')', //setter
+                    '\t\tCall [$vbsetter](Me, [$accessors], "' + name + '", val' + timeBucket + ')', '\tEnd Property', '\tPublic Property Get [' + name + ']', //getter
                     '\tOn Error Resume Next', //必须优先使用set语句,否则它会误将数组当字符串返回
-                    '\t\tSet[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")', '\tIf Err.Number <> 0 Then', '\t\t[' + name + '] = [__proxy__](Me, [__data__],"' + name + '")', '\tEnd If', '\tOn Error Goto 0', '\tEnd Property');
+                    '\t\tSet[' + name + '] = [$vbsetter](Me, [$accessors],"' + name + '")', '\tIf Err.Number <> 0 Then', '\t\t[' + name + '] = [$vbsetter](Me, [$accessors],"' + name + '")', '\tEnd If', '\tOn Error Goto 0', '\tEnd Property');
                 }
 
                 for (name in properties) {
@@ -4336,15 +4343,15 @@
                     }
                 }
 
-                buffer.push('\tPublic [' + 'hasOwnProperty' + ']');
+                buffer.push('\tPublic [hasOwnProperty]');
                 buffer.push('End Class');
                 var body = buffer.join('\r\n');
                 var className = VBClassPool[body];
                 if (!className) {
                     className = avalon.makeHashCode('VBClass');
                     window.parseVB('Class ' + className + body);
-                    window.parseVB(['Function ' + className + 'Factory(a, b)', //创建实例并传入两个关键的参数
-                    '\tDim o', '\tSet o = (New ' + className + ')(a, b)', '\tSet ' + className + 'Factory = o', 'End Function'].join('\r\n'));
+                    window.parseVB(['Function ' + className + 'Factory(acc, vbm)', //创建实例并传入两个关键的参数
+                    '\tDim o', '\tSet o = (New ' + className + ')(acc, vbm)', '\tSet ' + className + 'Factory = o', 'End Function'].join('\r\n'));
                     VBClassPool[body] = className;
                 }
                 var ret = window[className + 'Factory'](accessors, VBMediator); //得到其产品
@@ -4484,7 +4491,7 @@
             for (var i = a.length - 1; i >= 0; i--) {
                 if (!deepEquals(a[i], b[i], level - 1)) return false;
             }return true;
-        } else if (typeof a === "object" && typeof b === "object") {
+        } else if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) === "object" && (typeof b === 'undefined' ? 'undefined' : _typeof(b)) === "object") {
             if (a === null || b === null) return false;
             if (getEnumerableKeys(a).length !== getEnumerableKeys(b).length) return false;
             for (var prop in a) {
@@ -5168,7 +5175,7 @@
     });
 
     function getTraceKey(item) {
-        var type = typeof item;
+        var type = typeof item === 'undefined' ? 'undefined' : _typeof(item);
         return item && type === 'object' ? item.$hashcode : type + ':' + item;
     }
 
@@ -5367,7 +5374,7 @@
         var classes = [];
         for (var i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
-            var argType = typeof arg;
+            var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
             if (argType === 'string' || argType === 'number' || arg === true) {
                 classes.push(arg);
             } else if (Array.isArray(arg)) {
@@ -5404,7 +5411,7 @@
 
             var className = classNames(newVal);
 
-            if (typeof oldVal === void 0 || oldVal !== className) {
+            if ((typeof oldVal === 'undefined' ? 'undefined' : _typeof(oldVal)) === void 0 || oldVal !== className) {
                 this.value = className;
 
                 vdom['change-' + type] = className;
@@ -6401,7 +6408,7 @@
             //如果promises不为空，说明经过验证拦截器
             return Promise.all(promises).then(function (array) {
                 var reasons = array.filter(function (el) {
-                    return typeof el === 'object';
+                    return (typeof el === 'undefined' ? 'undefined' : _typeof(el)) === 'object';
                 });
                 if (!isValidateAll) {
                     var validator = field.validator;
@@ -6858,9 +6865,12 @@
         var tuple;
         while (tuple = this.bindings.shift()) {
             var _tuple = tuple;
-            var vdom = _tuple[0];
-            var scope = _tuple[1];
-            var dirs = _tuple[2];
+
+            var _tuple2 = _slicedToArray(_tuple, 3);
+
+            var vdom = _tuple2[0];
+            var scope = _tuple2[1];
+            var dirs = _tuple2[2];
 
             var bindings = [];
             if ('nodeValue' in dirs) {
