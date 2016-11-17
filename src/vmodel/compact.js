@@ -1,7 +1,7 @@
 import { avalon, platform, modern, msie } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Directive } from '../renders/Directive'
-import { itemFactory } from './share'
+import './share'
 import './ProxyArray'
 
 export { avalon, platform, itemFactory }
@@ -199,10 +199,15 @@ if (!canHideProperty) {
                 __data__: true,
                 __const__: true
             }
-
+           for (name in $$skipArray) {
+                if (!uniq[name]) {
+                    buffer.push('\tPublic [' + name + ']')
+                    uniq[name] = true
+                }
+            }
             //添加访问器属性 
             for (name in accessors) {
-                if (uniq[name] || name in $$skipArray) {
+                if (uniq[name]) {
                     continue
                 }
                 uniq[name] = true
@@ -224,12 +229,7 @@ if (!canHideProperty) {
                     '\tEnd Property')
 
             }
-            for (name in $$skipArray) {
-                if (!uniq[name]) {
-                    buffer.push('\tPublic [' + name + ']')
-                    uniq[name] = true
-                }
-            }
+           
             for (name in properties) {
                 if (!uniq[name]) {
                     uniq[name] = true

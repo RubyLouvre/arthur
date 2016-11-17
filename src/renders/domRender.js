@@ -12,7 +12,6 @@ import { parseInterpolate } from '../parser/interpolate'
 import { startWith, groupTree, dumpTree, getRange } from './share'
 
 
-
 /**
  * 生成一个渲染器,并作为它第一个遇到的ms-controller对应的VM的$render属性
  * @param {String|DOM} node
@@ -28,6 +27,7 @@ avalon.scan = function(node, vm, beforeReady) {
  * avalon.scan 的内部实现
  */
 function Render(node, vm, beforeReady) {
+   
     this.root = node //如果传入的字符串,确保只有一个标签作为根节点
     this.vm = vm
     this.beforeReady = beforeReady
@@ -127,6 +127,10 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
         }
         if (startWith(attr, 'ms-')) {
             dirs[attr] = value
+            var type = attr.match(/\w+/g)[1]
+            if(!directives[type]){
+                avalon.warn(attr+' has not registered!')
+            }
             hasDir = true
         }
         if (attr === 'ms-for') {
@@ -138,7 +142,7 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
     if (expr) {
         //推算出指令类型
         var type = dirs['ms-important'] === expr ? 'important' : 'controller'
-            //推算出用户定义时属性名,是使用ms-属性还是:属性
+         //推算出用户定义时属性名,是使用ms-属性还是:属性
         var name = ('ms-' + type) in attrs ? 'ms-' + type : ':' + type
         var dir = directives[type]
         var render = this

@@ -111,7 +111,6 @@ platform.createProxy = createProxy
 // 然后开始计算，在Getter方法里，
 export function collectDeps(selfDep, childOb) {
     if (Depend.target) {
-        console.log(selfDep.key, 'collect')
         selfDep.collect()
     }
     if (childOb && childOb.$events) {
