@@ -6,7 +6,7 @@ import { VFragment } from '../vdom/VFragment'
 import { DirectiveDecorator } from './decorator'
 
 import { orphanTag } from '../vtree/orphanTag'
-import { parseAttributes } from '../parser/attributes'
+import { parseAttributes, eventMap } from '../parser/attributes'
 import { parseInterpolate } from '../parser/interpolate'
 
 import { startWith, groupTree, dumpTree, getRange } from './share'
@@ -27,7 +27,7 @@ avalon.scan = function(node, vm, beforeReady) {
  * avalon.scan 的内部实现
  */
 function Render(node, vm, beforeReady) {
-   
+
     this.root = node //如果传入的字符串,确保只有一个标签作为根节点
     this.vm = vm
     this.beforeReady = beforeReady
@@ -116,6 +116,7 @@ cp.scanComment = function(vdom, scope, parentChildren) {
      * @returns {undefined}
      */
 cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
+   
     var dirs = {},
         attrs = vdom.props,
         hasDir, hasFor
@@ -128,8 +129,9 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
         if (startWith(attr, 'ms-')) {
             dirs[attr] = value
             var type = attr.match(/\w+/g)[1]
-            if(!directives[type]){
-                avalon.warn(attr+' has not registered!')
+            type = eventMap[type] || type
+            if (!directives[type]) {
+                avalon.warn(attr + ' has not registered!')
             }
             hasDir = true
         }
@@ -140,37 +142,37 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
     }
     var expr = dirs['ms-important'] || dirs['ms-controller']
     if (expr) {
-        //推算出指令类型
-        var type = dirs['ms-important'] === expr ? 'important' : 'controller'
-         //推算出用户定义时属性名,是使用ms-属性还是:属性
-        var name = ('ms-' + type) in attrs ? 'ms-' + type : ':' + type
-        var dir = directives[type]
-        var render = this
-        var oldScope = scope
-        scope = dir.getScope.call(this, expr, scope)
-        delete dirs['ms-' + type]
         /**
          * 后端渲染
          * serverTemplates后端给avalon添加的对象,里面都是模板,
          * 将原来后端渲染好的区域再还原成原始样子,再被扫描
          */
-        if (avalon.serverTemplates && avalon.serverTemplates[expr]) {
-        
-              var tmpl = avalon.serverTemplates[$id]
-              var node = fromString(tmpl)[0]
-              for(var i in node){
-                  vdom[i] = node
-              }
-              avalon.serverTemplates[$id] = null
-              this.scanTag(vdom, oldScope, parentChildren, isRoot)
-                 
-              return 
-        
+        var templateCaches = avalon.serverTemplates
+        if (templateCaches && templateCaches[expr]) {
+            avalon.log('前端再次渲染后端传过来的模板')
+            var tmpl = templateCaches[expr]
+            var node = fromString(tmpl)[0]
+            for (var i in node) {
+                vdom[i] = node[i]
+            }
+            delete templateCaches[expr]
+            this.scanTag(vdom, scope, parentChildren, isRoot)
+
+            return
+
         }
-        
-        this.callbacks.push(function() {
-            dir.update.call(render, vdom, scope, name)
-        })
+        //推算出指令类型
+        var type = dirs['ms-important'] === expr ? 'important' : 'controller'
+            //推算出用户定义时属性名,是使用ms-属性还是:属性
+        var name = ('ms-' + type) in attrs ? 'ms-' + type : ':' + type
+        var dir = directives[type]
+        var render = this
+            //用于删除ms-controller
+        scope = dir.getScope.call(this, expr, scope)
+        this.callbacks.push(function(){
+                 dir.update.call(render, vdom, scope, name)
+            })
+
     }
     if (hasFor) {
         if (vdom.dom) {
@@ -214,8 +216,10 @@ cp.complete = function() {
     this.beforeReady()
     if (inBrowser) {
         var root = this.root
-        var rootDom = avalon.vdom(root, 'toDOM')
-        groupTree(rootDom, root.children)
+        if (inBrowser) {
+            var rootDom = avalon.vdom(root, 'toDOM')
+            groupTree(rootDom, root.children)
+        }
     }
 
     this.mount = true
@@ -241,9 +245,13 @@ cp.yieldDirectives = function() {
             }
             for (var i = 0, binding; binding = bindings[i++];) {
                 var dir = directives[binding.type]
+                if (!inBrowser && /on|duplex|active|hover/.test(binding.type)) {
+                    continue
+                }
                 if (dir.beforeInit) {
                     dir.beforeInit.call(binding)
                 }
+
                 var directive = new DirectiveDecorator(scope, binding, vdom, this)
                 this.directives.push(directive)
             }

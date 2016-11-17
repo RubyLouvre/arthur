@@ -16,7 +16,7 @@ avalon.directive('text', {
            node.dom.appendChild( avalon.vdom(child,'toDOM'))
         }
         this.node = child
-        var type = 'nodeValue'
+        var type = 'expr'
         this.type = this.name = type
         var directive = avalon.directives[type]
         var me = this

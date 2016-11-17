@@ -11,14 +11,11 @@ let checker = {
     OTransitionEvent: 'oTransitionEnd',
     otransitionEvent: 'otransitionEnd'
 }
-let css3
-let tran
+let css3,tran,ani,name,animationEndEvent,transitionEndEvent
 let transition = false
 let animation = false
-let animationEndEvent
-let transitionEndEvent
 //有的浏览器同时支持私有实现与标准写法，比如webkit支持前两种，Opera支持1、3、4
-for (let name in checker) {
+for (name in checker) {
     if (window[name]) {
         tran = checker[name]
         break
@@ -48,7 +45,6 @@ checker = {
     'AnimationEvent': 'animationend',
     'WebKitAnimationEvent': 'webkitAnimationEnd'
 }
-let ani
 for (name in checker) {
     if (window[name]) {
         ani = checker[name]

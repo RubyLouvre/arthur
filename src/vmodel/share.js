@@ -147,7 +147,8 @@ function createAccessor(key, val) {
     return {
         get: function Getter() {
             var ret = priVal
-            Getter.dd = selfDep
+            //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
+            //     Getter.dd = selfDep
             var child = collectDeps(selfDep, childOb)
             if (child) {
                 return child

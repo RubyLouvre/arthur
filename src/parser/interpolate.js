@@ -31,7 +31,7 @@ export function parseInterpolate(dir) {
     } while (str.length)
     return [{
         expr: tokens.join('+'),
-        name: 'nodeValue',
-        type: 'nodeValue'
+        name: 'expr',
+        type: 'expr'
     }]
 }

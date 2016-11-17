@@ -50,7 +50,6 @@ avalon.directive('for', {
         }
         this.node.forDir = this //暴露给component/index.js中的resetParentChildren方法使用
         this.fragment = ['<div>', this.fragment, '<!--', this.signature, '--></div>'].join('')
-
         this.cache = {}
     },
     diff: function(newVal, oldVal) {
@@ -60,6 +59,7 @@ avalon.directive('for', {
         }
         this.updating = true
         var traceIds = createFragments(this, newVal)
+
         if (this.oldTrackIds === void 0)
             return true
 
@@ -70,7 +70,6 @@ avalon.directive('for', {
 
     },
     update: function() {
-
         if (!this.preFragments) {
             this.fragments = this.fragments || []
             mountList(this)
@@ -131,7 +130,6 @@ function mountList(instance) {
     var list = instance.parentChildren
     var i = list.indexOf(instance.begin)
     list.splice.apply(list, [i + 1, 0].concat(args))
-
 }
 
 function diffList(instance) {

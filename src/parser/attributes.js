@@ -1,6 +1,8 @@
 
 import {avalon, directives} from '../seed/core'
-export var eventMap = avalon.oneObject('animationend,blur,change,input,click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit')
+export var eventMap = avalon.oneObject('animationend,blur,change,input,'+
+        'click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,'+
+        'mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit','on')
 export function parseAttributes(dirs, tuple ) {
     var node = tuple[0], uniq = {}, bindings = []
    

@@ -1058,7 +1058,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         right: 39,
         down: 40
     };
-    for (var name$1 in keys) {
+    for (var name in keys) {
         (function (filter, key) {
             eventFilters[filter] = function (e) {
                 if (e.which !== key) {
@@ -1066,7 +1066,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                 }
                 return e;
             };
-        })(name$1, keys[name$1]);
+        })(name, keys[name]);
     }
 
     //https://github.com/teppeis/htmlspecialchars
@@ -3258,7 +3258,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         return {
             get: function Getter() {
                 var ret = priVal;
-                Getter.dd = selfDep;
+                //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
+                //     Getter.dd = selfDep
                 var child = collectDeps(selfDep, childOb);
                 if (child) {
                     return child;
@@ -3647,13 +3648,16 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         getScope: function getScope(name, scope) {
             var v = avalon.vmodels[name];
             if (v) return v;
-            throw 'error';
+            throw 'error! no vmodel called ' + name;
         },
         update: function update(node, scope, attrName) {
+            if (!avalon.inBrowser || !attrName) return;
             var dom = avalon.vdom(node, 'toDOM');
             dom.removeAttribute(attrName);
+            delete node.props[attrName];
             avalon(dom).removeClass('ms-controller');
             scope.$fire('onReady');
+
             scope.$element = node;
             scope.$render = this;
             delete scope.$events.onReady;
@@ -3796,20 +3800,22 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     };
     var css3 = void 0;
     var tran = void 0;
-    var transition = false;
-    var animation = false;
+    var ani = void 0;
+    var name$1 = void 0;
     var animationEndEvent = void 0;
     var transitionEndEvent = void 0;
+    var transition = false;
+    var animation = false;
     //有的浏览器同时支持私有实现与标准写法，比如webkit支持前两种，Opera支持1、3、4
-    for (var _name in checker) {
-        if (window$1[_name]) {
-            tran = checker[_name];
+    for (name$1 in checker) {
+        if (window$1[name$1]) {
+            tran = checker[name$1];
             break;
         }
         /* istanbul ignore next */
         try {
-            var a = document.createEvent(_name);
-            tran = checker[_name];
+            var a = document.createEvent(name$1);
+            tran = checker[name$1];
             break;
         } catch (e) {}
     }
@@ -3830,10 +3836,9 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         'AnimationEvent': 'animationend',
         'WebKitAnimationEvent': 'webkitAnimationEnd'
     };
-    var ani = void 0;
-    for (name in checker) {
-        if (window$1[name]) {
-            ani = checker[name];
+    for (name$1 in checker) {
+        if (window$1[name$1]) {
+            ani = checker[name$1];
             break;
         }
     }
@@ -4230,7 +4235,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
                 node.dom.appendChild(avalon.vdom(child, 'toDOM'));
             }
             this.node = child;
-            var type = 'nodeValue';
+            var type = 'expr';
             this.type = this.name = type;
             var directive$$1 = avalon.directives[type];
             var me = this;
@@ -4240,10 +4245,10 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         }
     });
 
-    avalon.directive('nodeValue', {
+    avalon.directive('expr', {
         update: function update(vdom, value) {
             vdom.nodeValue = value;
-            vdom.dom.nodeValue = value;
+            if (vdom.dom) vdom.dom.nodeValue = value;
         }
     });
 
@@ -4415,7 +4420,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
             this.node.forDir = this; //暴露给component/index.js中的resetParentChildren方法使用
             this.fragment = ['<div>', this.fragment, '<!--', this.signature, '--></div>'].join('');
-
             this.cache = {};
         },
         diff: function diff(newVal, oldVal) {
@@ -4425,6 +4429,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
             this.updating = true;
             var traceIds = createFragments(this, newVal);
+
             if (this.oldTrackIds === void 0) return true;
 
             if (this.oldTrackIds !== traceIds) {
@@ -4433,7 +4438,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
         },
         update: function update() {
-
             if (!this.preFragments) {
                 this.fragments = this.fragments || [];
                 mountList(this);
@@ -5637,7 +5641,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         return directive$$1;
     }
 
-    var eventMap = avalon.oneObject('animationend,blur,change,input,click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit');
+    var eventMap = avalon.oneObject('animationend,blur,change,input,' + 'click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,' + 'mouseleave,mousemove,mouseout,mouseover,mouseup,scan,scroll,submit', 'on');
     function parseAttributes(dirs, tuple) {
         var node = tuple[0],
             uniq = {},
@@ -5722,8 +5726,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         } while (str.length);
         return [{
             expr: tokens.join('+'),
-            name: 'nodeValue',
-            type: 'nodeValue'
+            name: 'expr',
+            type: 'expr'
         }];
     }
 
@@ -5899,6 +5903,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
      * @returns {undefined}
      */
     cp$1.scanTag = function (vdom, scope, parentChildren, isRoot) {
+
         var dirs = {},
             attrs = vdom.props,
             hasDir,
@@ -5912,6 +5917,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             if (startWith(attr, 'ms-')) {
                 dirs[attr] = value;
                 var type = attr.match(/\w+/g)[1];
+                type = eventMap[type] || type;
                 if (!directives[type]) {
                     avalon.warn(attr + ' has not registered!');
                 }
@@ -5924,33 +5930,32 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         }
         var expr = dirs['ms-important'] || dirs['ms-controller'];
         if (expr) {
+            /**
+             * 后端渲染
+             * serverTemplates后端给avalon添加的对象,里面都是模板,
+             * 将原来后端渲染好的区域再还原成原始样子,再被扫描
+             */
+            var templateCaches = avalon.serverTemplates;
+            if (templateCaches && templateCaches[expr]) {
+                avalon.log('前端再次渲染后端传过来的模板');
+                var tmpl = templateCaches[expr];
+                var node = fromString(tmpl)[0];
+                for (var i in node) {
+                    vdom[i] = node[i];
+                }
+                delete templateCaches[expr];
+                this.scanTag(vdom, scope, parentChildren, isRoot);
+
+                return;
+            }
             //推算出指令类型
             var type = dirs['ms-important'] === expr ? 'important' : 'controller';
             //推算出用户定义时属性名,是使用ms-属性还是:属性
             var name = 'ms-' + type in attrs ? 'ms-' + type : ':' + type;
             var dir = directives[type];
             var render = this;
-            var oldScope = scope;
+            //用于删除ms-controller
             scope = dir.getScope.call(this, expr, scope);
-            delete dirs['ms-' + type];
-            /**
-             * 后端渲染
-             * serverTemplates后端给avalon添加的对象,里面都是模板,
-             * 将原来后端渲染好的区域再还原成原始样子,再被扫描
-             */
-            if (avalon.serverTemplates && avalon.serverTemplates[expr]) {
-
-                var tmpl = avalon.serverTemplates[$id];
-                var node = fromString(tmpl)[0];
-                for (var i in node) {
-                    vdom[i] = node;
-                }
-                avalon.serverTemplates[$id] = null;
-                this.scanTag(vdom, oldScope, parentChildren, isRoot);
-
-                return;
-            }
-
             this.callbacks.push(function () {
                 dir.update.call(render, vdom, scope, name);
             });
@@ -5992,8 +5997,10 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         this.beforeReady();
         if (inBrowser) {
             var root$$1 = this.root;
-            var rootDom = avalon.vdom(root$$1, 'toDOM');
-            groupTree(rootDom, root$$1.children);
+            if (inBrowser) {
+                var rootDom = avalon.vdom(root$$1, 'toDOM');
+                groupTree(rootDom, root$$1.children);
+            }
         }
 
         this.mount = true;
@@ -6026,9 +6033,13 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
             for (var i = 0, binding; binding = bindings[i++];) {
                 var dir = directives[binding.type];
+                if (!inBrowser && /on|duplex|active|hover/.test(binding.type)) {
+                    continue;
+                }
                 if (dir.beforeInit) {
                     dir.beforeInit.call(binding);
                 }
+
                 var directive$$1 = new DirectiveDecorator(scope, binding, vdom, this);
                 this.directives.push(directive$$1);
             }
