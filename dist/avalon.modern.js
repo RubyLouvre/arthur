@@ -570,22 +570,18 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
         }
     };
-    /*
+
     new function welcome() {
         var welcomeIntro = ["%cavalon.js %c" + avalon.version + " %cin debug mode, %cmore...", "color: rgb(114, 157, 52); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"];
-        var welcomeMessage = "You're running avalon in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\n" +
-                'To disable debug mode, add this line at the start of your app:\n\n  avalon.config({debug: false});\n\n' +
-                'Debug mode also automatically shut down amicably when your app is minified.\n\n' +
-                "Get help and support:\n  https://segmentfault.com/t/avalon\n  http://avalonjs.coding.me/\n  http://www.baidu-x.com/?q=avalonjs\n http://www.avalon.org.cn/\n\nFound a bug? Raise an issue:\n  https://github.com/RubyLouvre/avalon/issues\n\n";
-    
-        var hasGroup = !!console.groupCollapsed 
-        console[hasGroup ? 'groupCollapsed': 'log'].apply(console, welcomeIntro)
-        console.log(welcomeMessage)
+        var welcomeMessage = "You're running avalon in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\n" + 'To disable debug mode, add this line at the start of your app:\n\n  avalon.config({debug: false});\n\n' + 'Debug mode also automatically shut down amicably when your app is minified.\n\n' + "Get help and support:\n  https://segmentfault.com/t/avalon\n  http://avalonjs.coding.me/\n  http://www.baidu-x.com/?q=avalonjs\n http://www.avalon.org.cn/\n\nFound a bug? Raise an issue:\n  https://github.com/RubyLouvre/avalon/issues\n\n";
+
+        var hasGroup = !!console.groupCollapsed;
+        console[hasGroup ? 'groupCollapsed' : 'log'].apply(console, welcomeIntro);
+        console.log(welcomeMessage);
         if (hasGroup) {
             console.groupEnd(welcomeIntro);
         }
-    }
-    */
+    }();
 
     function toFixedFix(n, prec) {
         var k = Math.pow(10, prec);
@@ -1860,6 +1856,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     function fromString(str) {
         return from(str);
     }
+    avalon.lexer = fromString;
     var rtagStart = /[\!\/a-z]/i; //闭标签的第一个字符,开标签的第一个英文,注释节点的!
     function from(str) {
         stringPool.map = {};
@@ -2695,23 +2692,27 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     /**
      * 虚拟DOM的4大构造器
      */
+    avalon.mix(avalon, {
+        VText: VText, VComment: VComment, VElement: VElement, VFragment: VFragment
+    });
+
+    var constNameMap = {
+        '#text': 'VText',
+        '#document-fragment': 'VFragment',
+        '#comment': 'VComment'
+    };
+
     var vdom = avalon.vdom = avalon.vdomAdaptor = function (obj, method) {
         if (!obj) {
             //obj在ms-for循环里面可能是null
             return method === "toHTML" ? '' : createFragment();
         }
-        switch (obj.nodeName) {
-            case '#text':
-                return VText.prototype[method].call(obj);
-            case '#comment':
-                return VComment.prototype[method].call(obj);
-            case '#document-fragment':
-                return VFragment.prototype[method].call(obj);
-            case void 0:
-                return new VFragment(obj)[method]();
-            default:
-                return VElement.prototype[method].call(obj);
+        var nodeName = obj.nodeName;
+        if (!nodeName) {
+            return new avalon.VFragment(obj)[method]();
         }
+        var constName = constNameMap[nodeName] || 'VElement';
+        return avalon[constName].prototype[method].call(obj);
     };
 
     avalon.domize = function (a) {
@@ -5929,8 +5930,27 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             var name = 'ms-' + type in attrs ? 'ms-' + type : ':' + type;
             var dir = directives[type];
             var render = this;
+            var oldScope = scope;
             scope = dir.getScope.call(this, expr, scope);
             delete dirs['ms-' + type];
+            /**
+             * 后端渲染
+             * serverTemplates后端给avalon添加的对象,里面都是模板,
+             * 将原来后端渲染好的区域再还原成原始样子,再被扫描
+             */
+            if (avalon.serverTemplates && avalon.serverTemplates[expr]) {
+
+                var tmpl = avalon.serverTemplates[$id];
+                var node = fromString(tmpl)[0];
+                for (var i in node) {
+                    vdom[i] = node;
+                }
+                avalon.serverTemplates[$id] = null;
+                this.scanTag(vdom, oldScope, parentChildren, isRoot);
+
+                return;
+            }
+
             this.callbacks.push(function () {
                 dir.update.call(render, vdom, scope, name);
             });

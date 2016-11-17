@@ -146,8 +146,28 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
         var name = ('ms-' + type) in attrs ? 'ms-' + type : ':' + type
         var dir = directives[type]
         var render = this
+        var oldScope = scope
         scope = dir.getScope.call(this, expr, scope)
         delete dirs['ms-' + type]
+        /**
+         * 后端渲染
+         * serverTemplates后端给avalon添加的对象,里面都是模板,
+         * 将原来后端渲染好的区域再还原成原始样子,再被扫描
+         */
+        if (avalon.serverTemplates && avalon.serverTemplates[expr]) {
+        
+              var tmpl = avalon.serverTemplates[$id]
+              var node = fromString(tmpl)[0]
+              for(var i in node){
+                  vdom[i] = node
+              }
+              avalon.serverTemplates[$id] = null
+              this.scanTag(vdom, oldScope, parentChildren, isRoot)
+                 
+              return 
+        
+        }
+        
         this.callbacks.push(function() {
             dir.update.call(render, vdom, scope, name)
         })

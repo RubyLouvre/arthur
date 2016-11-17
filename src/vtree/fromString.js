@@ -22,6 +22,7 @@ var rcontent = /\S/
 export function fromString(str) {
     return from(str)
 }
+avalon.lexer = fromString
 var rtagStart = /[\!\/a-z]/i //闭标签的第一个字符,开标签的第一个英文,注释节点的!
 function from(str) {
     stringPool.map = {}
