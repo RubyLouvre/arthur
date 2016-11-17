@@ -2727,19 +2727,18 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
      $skipArray被hasOwnProperty后返回true
      */
     var $$skipArray = {
-        $id: true,
-        $render: true,
-        $track: true,
-        $element: true,
-        $watch: true,
-        $fire: true,
-        $events: true,
-        $skipArray: true,
-        $accessors: true,
-        $hashcode: true,
-        __proxy__: true,
-        __data__: true,
-        __const__: true
+        $id: void 0,
+        $render: void 0,
+        $track: void 0,
+        $element: void 0,
+        $watch: void 0,
+        $fire: void 0,
+        $events: void 0,
+        $accessors: void 0,
+        $hashcode: void 0,
+        __proxy__: void 0,
+        __data__: void 0,
+        __const__: void 0
     };
 
     var rendering = null;
@@ -3118,6 +3117,182 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         destroy: 1
     };
 
+    /**
+     * 这里放置ViewModel模块的共用方法
+     * avalon.define: 全框架最重要的方法,生成用户VM
+     * IProxy, 基本用户数据产生的一个数据对象,基于$model与vmodel之间的形态
+     * modelFactory: 生成用户VM
+     * canHijack: 判定此属性是否该被劫持,加入数据监听与分发的的逻辑
+     * createProxy: listFactory与modelFactory的封装
+     * createAccessor: 实现数据监听与分发的重要对象
+     * itemFactory: ms-for循环中产生的代理VM的生成工厂
+     * mediatorFactory: 两个ms-controller间产生的代理VM的生成工厂
+     */
+
+    avalon.define = function (definition) {
+        var $id = definition.$id;
+        if (!$id) {
+            avalon.error('vm.$id must be specified');
+        }
+        if (avalon.vmodels[$id]) {
+            avalon.warn('error:[' + $id + '] had defined!');
+        }
+        var vm = platform.modelFactory(definition);
+        return avalon.vmodels[$id] = vm;
+    };
+    /**
+     * 在末来的版本,avalon改用Proxy来创建VM,因此
+     */
+    function IProxy(definition, dd) {
+        avalon.mix(this, definition);
+        avalon.mix(this, $$skipArray);
+        this.$hashcode = avalon.makeHashCode('$');
+        this.$id = this.$id || this.$hashcode;
+        this.$events = {
+            __dep__: dd || new Depend(this.$id)
+        };
+        if (avalon.inProxyModel) {
+            this.$accessors = this.$accessors || {};
+        } else {
+            this.$accessors = {
+                $model: platform.modelAccessor
+            };
+        }
+        if (dd === void 0) {
+            this.$watch = platform.watchFactory(this.$events);
+            this.$fire = platform.fireFactory(this.$events);
+        } else {
+            delete this.$watch;
+            delete this.$fire;
+        }
+    }
+
+    function modelFactory$1(definition, dd) {
+        var core = new IProxy(definition, dd);
+        var $accessors = core.$accessors;
+        var keys = [];
+        for (var key in definition) {
+            if (key in $$skipArray) continue;
+            var val = definition[key];
+            keys.push(key);
+            if (canHijack(key, val)) {
+                $accessors[key] = createAccessor(key, val);
+            }
+        }
+        //将系统API以unenumerable形式加入vm,
+        //添加用户的其他不可监听属性或方法
+        //重写$track
+        //并在IE6-8中增添加不存在的hasOwnPropert方法
+        var vm = platform.createViewModel(core, $accessors, core);
+        platform.afterCreate(vm, core, keys);
+        return vm;
+    }
+    platform.modelFactory = modelFactory$1;
+
+    function canHijack(key, val, inItem) {
+        if (key in $$skipArray) return false;
+        if (key.charAt(0) === '$' && !inItem) return false;
+        if (val == null) {
+            avalon.warn('定义vmodel时属性值不能为null undefine');
+            return true;
+        }
+        if (/error|date|function|regexp/.test(avalon.type(val))) {
+            return false;
+        }
+        return !(val && val.nodeName && val.nodeType);
+    }
+
+    function createProxy(target, dd) {
+        if (target && target.$events) {
+            return target;
+        }
+        var vm;
+        if (Array.isArray(target)) {
+            vm = platform.listFactory(target, false, dd);
+        } else if (isObject(target)) {
+            vm = platform.modelFactory(target, dd);
+        }
+        return vm;
+    }
+
+    platform.createProxy = createProxy;
+
+    // 指令需要计算自己的值，来刷新
+    // 在计算前，将自己放到DepStack中
+    // 然后开始计算，在Getter方法里，
+    function collectDeps(selfDep, childOb) {
+        if (Depend.target) {
+            console.log(selfDep.key, 'collect');
+            selfDep.collect();
+        }
+        if (childOb && childOb.$events) {
+            if (Array.isArray(childOb)) {
+                childOb.forEach(function (item) {
+                    if (item && item.$events) {
+                        item.$events.__dep__.collect();
+                    }
+                });
+            } else if (avalon.deepCollect) {
+
+                for (var i in childOb) {
+                    if (childOb.hasOwnProperty(i)) var e = childOb[i];
+                }
+            }
+            return childOb;
+        }
+    }
+
+    function createAccessor(key, val) {
+        var priVal = val;
+        var selfDep = new Depend(key); //当前值对象的Depend
+        var childOb = createProxy(val, selfDep);
+        var hash = childOb && childOb.$hashcode;
+        return {
+            get: function Getter() {
+                var ret = priVal;
+                Getter.dd = selfDep;
+                var child = collectDeps(selfDep, childOb);
+                if (child) {
+                    return child;
+                }
+                return ret;
+            },
+            set: function Setter(newValue) {
+                var oldValue = priVal;
+                if (newValue === oldValue) {
+                    return;
+                }
+                selfDep.beforeNotify();
+                priVal = newValue;
+                childOb = createProxy(newValue, selfDep);
+                if (childOb && hash) {
+                    childOb.$hashcode = hash;
+                }
+                selfDep.notify();
+            },
+            enumerable: true,
+            configurable: true
+        };
+    }
+
+    function itemFactory$1(before, after) {
+        var keyMap = before.$model;
+        var core = new IProxy(keyMap);
+        var state = avalon.shadowCopy(core.$accessors, before.$accessors); //防止互相污染
+        var data = after.data;
+        //core是包含系统属性的对象
+        //keyMap是不包含系统属性的对象, keys
+        for (var key in data) {
+            var val = keyMap[key] = core[key] = data[key];
+            state[key] = createAccessor(key, val);
+        }
+        var keys = Object.keys(keyMap);
+        var vm = platform.createViewModel(core, state, core);
+        platform.afterCreate(vm, core, keys);
+        return vm;
+    }
+    platform.itemFactory = itemFactory$1;
+
     var _splice = ap.splice;
     var __array__ = {
         set: function set(index, val) {
@@ -3180,9 +3355,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             platform.toModel(this);
             this.$events.__dep__.notify();
         }
-
     };
-    function rewriteArrayMethods(array) {
+    function hijackMethods(array) {
         for (var i in __array__) {
             platform.hideProperty(array, i, __array__[i]);
         }
@@ -3193,8 +3367,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         var original = ap[method];
         __array__[method] = function () {
             // 继续尝试劫持数组元素的属性
-
-            var size = this.length;
             var core = this.$events;
 
             core.__dep__.beforeNotify();
@@ -3207,62 +3379,9 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         };
     });
 
-    /**
-     * 这里放置ViewModel模块的共用方法
-     * modelAccessor: $model属性的访问器定义对象
-     * modelFactory: 对象转ViewModel的工厂
-     * listFactory: 数组转ViewModel的工厂
-     * beforeCreate: modelFactory的内部方法，用于创建之前
-     * afterCreate: modelFactory的内部方法，用于创建之后
-     * isObservable: 判定此属性能否转换为访问器属性
-     * createObservable: ViewModel的适配方法，决定使用哪个工厂转换
-     */
-
-    avalon.define = function (definition) {
-        var $id = definition.$id;
-        if (!$id) {
-            avalon.error('vm.$id must be specified');
-        }
-        if (avalon.vmodels[$id]) {
-            avalon.warn('error:[' + $id + '] had defined!');
-        }
-        var vm = modelFactory(definition);
-        return avalon.vmodels[$id] = vm;
-    };
-
-    function modelFactory(definition, dd) {
-        var byUser = dd === void 0;
-        var state = {};
-        var hash = avalon.makeHashCode('$');
-        var keys = {
-            $id: definition.$id || hash,
-            $hashcode: hash
-        };
-
-        var core = {
-            __dep__: dd || new Depend(keys.$id)
-        };
-
-        for (var key in definition) {
-            if ($$skipArray[key]) continue;
-            var val = keys[key] = definition[key];
-            if (isObservable(key, val)) {
-                state[key] = createAccessor(key, val, core.__dep__);
-            }
-        }
-        //往keys中添加系统API
-        platform.beforeCreate(core, state, keys, byUser);
-        var vm = new Observable();
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys);
-        platform.afterCreate(core, vm, keys);
-        return vm;
-    }
-
-    function Observable() {}
     function listFactory(array, stop, dd) {
         if (!stop) {
-            rewriteArrayMethods(array);
+            hijackMethods(array);
             if (modern) {
                 Object.defineProperty(array, '$model', platform.modelAccessor);
             }
@@ -3273,160 +3392,36 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         for (var i = 0, n = array.length; i < n; i++) {
             var item = array[i];
             if (isObject(item)) {
-                array[i] = createObservable(item, _dd);
+                array[i] = platform.createProxy(item, _dd);
             }
         }
         return array;
     }
-
-    function isObservable(key, val) {
-        if ($$skipArray[key]) return false;
-        if (key.charAt(0) === '$') return false;
-        if (val == null) {
-            avalon.warn('定义vmodel时属性值不能为null undefine');
-            return true;
-        }
-        if (/error|date|function|regexp/.test(avalon.type(val))) {
-            return false;
-        }
-        return !(val && val.nodeName && val.nodeType);
-    }
-
-    function createObservable(target, dd) {
-        if (target && target.$events) {
-            return target;
-        }
-        var vm;
-        if (Array.isArray(target)) {
-            vm = listFactory(target, false, dd);
-        } else if (isObject(target)) {
-            vm = modelFactory(target, dd);
-        }
-        return vm;
-    }
-    // 指令需要计算自己的值，来刷新
-    // 在计算前，将自己放到DepStack中
-    // 然后开始计算，在Getter方法里，
-
-    function createAccessor(key, val, pd) {
-        var priVal = val;
-        var selfDep = new Depend(key, pd); //当前值对象的Depend
-        var childOb = createObservable(val, selfDep);
-        var hash = childOb && childOb.$hashcode;
-        return {
-            get: function Getter() {
-                var ret = priVal;
-                if (Depend.target) {
-                    selfDep.collect();
-                }
-                Getter.dd = selfDep;
-                if (childOb && childOb.$events) {
-                    if (Array.isArray(childOb)) {
-                        childOb.forEach(function (item) {
-                            if (item && item.$events) {
-                                item.$events.__dep__.collect();
-                            }
-                        });
-                    } else if (avalon.deepCollect) {
-
-                        for (var i in childOb) {
-                            if (childOb.hasOwnProperty(i)) var e = childOb[i];
-                        }
-                    }
-                    return childOb;
-                }
-
-                return ret;
-            },
-            set: function Setter(newValue) {
-                var oldValue = priVal;
-                if (newValue === oldValue) {
-                    return;
-                }
-                selfDep.beforeNotify();
-                priVal = newValue;
-                childOb = createObservable(newValue, selfDep);
-                if (childOb && hash) {
-                    childOb.$hashcode = hash;
-                }
-                selfDep.notify();
-            },
-            enumerable: true,
-            configurable: true
-        };
-    }
     platform.listFactory = listFactory;
 
-    function observeItemObject(before, after) {
-        var core = {};
-        core.__dep__ = new Depend();
-        var state = avalon.shadowCopy({}, before.$accessors); //防止互相污染
-        var keys = before.$model || {};
-        var more = after.data;
-        delete after.data;
-        var props = after;
-
-        for (var key in more) {
-            keys[key] = more[key];
-            if (!$$skipArray[key]) {
-                state[key] = createAccessor(key, more[key], core);
-            }
-        }
-        platform.beforeCreate(core, state, keys);
-        var vm = new Observable();
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys);
-        platform.afterCreate(core, vm, keys);
-        vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6);
-        return vm;
-    }
-
-    function mediatorFactory(before, after) {
-        var state = avalon.mix({}, before.$accessors, after.$accessors); //防止互相污染
-        var keys = avalon.mix({}, before.$model, after.$model);
-        var core = {};
-        core.__dep__ = new Depend();
-        platform.beforeCreate(core, state, keys, true);
-        var vm = new Observable();
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
-        vm = platform.createViewModel(vm, state, keys);
-        platform.afterCreate(core, vm, keys);
-        vm.$id = vm.$hashcode = before.$hashcode + after.$hashcode;
-        return vm;
-    }
-    avalon.observeItemObject = observeItemObject;
-    /**
-     * 根据RxJS的理论vm.$watch是返回一个叫Subscription的东西，
-     * 而$watch返回的东西其实与扫描页面绑定生成的指令对象是同种东西
-     * 
-     * 什么是Observer？ Observer（观察者）是Observable（可观察对象）推送数据的消费者。
-     * 在RxJS中，Observer是一个由回调函数组成的对象，键名分别为next、error 和 complete，
-     * 以此接受Observable推送的不同类型的通知，下面的代码段是Observer的一个示例：
-     */
+    delete $$skipArray.__const__;
+    delete $$skipArray.__data__;
+    delete $$skipArray.__proxy__;
 
     function toJson(val) {
-        switch (avalon.type(val)) {
-            case 'array':
-                var array = [];
-                for (var i = 0; i < val.length; i++) {
-                    array[i] = toJson(val[i]);
-                }
-                return array;
-            case 'object':
+        var xtype = avalon.type(val);
+        if (xtype === 'array') {
+            var array = [];
+            for (var i = 0; i < val.length; i++) {
+                array[i] = toJson(val[i]);
+            }
+            return array;
+        } else if (xtype === 'object') {
+            if (typeof val.$track === 'string') {
                 var obj = {};
-                for (i in val) {
-                    if ($$skipArray[i]) {
-                        continue;
-                    }
-                    if (val.hasOwnProperty(i)) {
-                        var value = val[i];
-                        obj[i] = value && value.$events ? toJson(value) : value;
-                    }
-                }
+                val.$track.split('Ȣ').forEach(function (i) {
+                    var value = val[i];
+                    obj[i] = value && value.$events ? toJson(value) : value;
+                });
                 return obj;
-            default:
-                return val;
+            }
         }
+        return val;
     }
 
     function hideProperty(host, name, value) {
@@ -3476,45 +3471,153 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             }
         };
     }
-
-    function beforeCreate(core, state, keys, byUser) {
-        state.$model = platform.modelAccessor;
-        avalon.mix(keys, {
-            $events: core,
-            $element: 0,
-            $render: 0,
-            $accessors: state
-        }, byUser ? {
-            $watch: $watch,
-            $fire: $fire
-        } : {});
+    function watchFactory(core) {
+        return $watch;
     }
 
-    function afterCreate(core, observe, keys) {
-        var $accessors = keys.$accessors;
-        for (var key in keys) {
-            //对普通监控属性或访问器属性进行赋值
-            //删除系统属性
-            if (key in $$skipArray) {
-                hideProperty(observe, key, keys[key]);
-                delete keys[key];
-            } else {
-                if (!(key in $accessors)) {
-                    observe[key] = keys[key];
-                }
-                keys[key] = true;
+    function fireFactory(core) {
+        return $fire;
+    }
+
+    function afterCreate(vm, core, keys) {
+        var $accessors = vm.$accessors;
+        //隐藏系统属性
+        for (var key in $$skipArray) {
+            hideProperty(vm, key, vm[key]);
+        }
+        //为不可监听的属性或方法赋值
+        for (var i = 0; i < keys.length; i++) {
+            key = keys[i];
+            if (!(key in $accessors)) {
+                vm[key] = core[key];
             }
         }
-        core.__proxy__ = observe;
+        vm.$track = keys.join('Ȣ');
+        vm.$events.__proxy__ = vm;
     }
 
-    platform.beforeCreate = beforeCreate;
+    platform.fireFactory = fireFactory;
+    platform.watchFactory = watchFactory;
     platform.afterCreate = afterCreate;
     platform.modelAccessor = modelAccessor;
     platform.hideProperty = hideProperty;
     platform.toJson = toJson;
     platform.toModel = function () {};
     platform.createViewModel = Object.defineProperties;
+
+    if (typeof Proxy === 'function') {
+        var traps;
+
+        (function () {
+
+            //https://developer.mozilla.org/en-US/docs/Archive/Web/Old_Proxy_API
+            var toProxy = function toProxy(definition) {
+                return Proxy.create ? Proxy.create(definition, traps) : new Proxy(definition, traps);
+            };
+
+            var wrapIt = function wrapIt(str) {
+                return 'Ȣ' + str + 'Ȣ';
+            };
+
+            platform.modelFactory = function modelFactory(definition, dd) {
+                var clone = {};
+                for (var i in definition) {
+                    clone[i] = definition[i];
+                    delete definition[i];
+                }
+                definition.$id = clone.$id;
+                var proxy = new IProxy(definition, dd);
+                proxy.$track = '';
+
+                var vm = toProxy(proxy);
+                for (var i in clone) {
+
+                    vm[i] = clone[i];
+                }
+                return vm;
+            };traps = {
+                deleteProperty: function deleteProperty(target, name) {
+                    if (target.hasOwnProperty(name)) {
+                        //移除一个属性,分三昌:
+                        //1. 移除监听器
+                        //2. 移除真实对象的对应属性
+                        //3. 移除$track中的键名
+                        delete target.$accessors[name];
+                        delete target[name];
+                        target.$track = wrapIt(target.$track).replace(wrapIt(name), '').slice(1, -1);
+                    }
+                    return true;
+                },
+                get: function get(target, name) {
+                    if (name === '$model') {
+                        return platform.toJson(target);
+                    }
+                    //收集依赖
+                    var childObj = target[name];
+                    var selfDep = target.$accessors[name];
+                    selfDep && collectDeps(selfDep, childObj);
+                    return selfDep ? selfDep.value : childObj;
+                },
+                set: function set(target, name, value) {
+                    if (name === '$model') {
+                        return true;
+                    }
+                    var oldValue = target[name];
+                    if (oldValue !== value) {
+                        if (canHijack(name, value)) {
+                            var ac = target.$accessors;
+                            //如果是新属性
+                            if (!(name in $$skipArray) && !ac[name]) {
+                                var arr = target.$track.split('Ȣ');
+                                arr.push(name);
+                                ac[name] = new Depend(name);
+                                target.$track = arr.sort().join('Ȣ');
+                            }
+                            var selfDep = ac[name];
+                            selfDep && selfDep.beforeNotify();
+                            //创建子对象
+                            var hash = oldValue && oldValue.$hashcode;
+                            var childObj = createProxy(value, selfDep);
+                            if (childObj) {
+                                childObj.$hashcode = hash;
+                                value = childObj;
+                            }
+                            target[name] = selfDep.value = value; //必须修改才notify
+                            selfDep.notify();
+                        } else {
+                            target[name] = value;
+                        }
+                    }
+                    // set方法必须返回true, 告诉Proxy已经成功修改了这个值,否则会抛
+                    //'set' on proxy: trap returned falsish for property xxx 错误
+                    return true;
+                },
+                has: function has(target, name) {
+                    return target.hasOwnProperty(name);
+                }
+            };
+
+
+            platform.itemFactory = function itemFactory(before, after) {
+                var vm = platform.modelFactory(before);
+                vm.$hashcode = before.$hashcode + String(after.hashcode || Math.random()).slice(6);
+                vm.$id = vm.hashcode;
+                for (var i in after) {
+                    vm[i] = after.data[i];
+                }
+                delete vm.$fire;
+                delete vm.$watch;
+                return vm;
+            };
+
+            platform.mediatorFactory = function mediatorFactory(before, after) {
+                var definition = avalon.mix(before.$model, after.$model);
+                definition.$id = before.$hashcode + after.$hashcode;
+                definition.$accessors = avalon.mix({}, before.$accessors, after.$accessors);
+                return platform.modelFactory(definition);
+            };
+        })();
+    }
 
     var impDir = avalon.directive('important', {
         priority: 1,
@@ -3543,7 +3646,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             if (v) {
                 v.$render = this;
                 if (scope) {
-                    return mediatorFactory(scope, v);
+                    return platform.mediatorFactory(scope, v);
                 }
                 return v;
             }
@@ -4419,6 +4522,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
         });
         instance.cache = newCache;
     }
+
     function updateList(instance) {
         var before = instance.begin.dom;
         var parent = before.parentNode;
@@ -4453,7 +4557,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
             data[instance.asName] = instance.value;
         }
 
-        var vm = fragment.vm = observeItemObject(instance.vm, {
+        var vm = fragment.vm = platform.itemFactory(instance.vm, {
             data: data
         });
         fragment.index = index;
@@ -5664,6 +5768,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     avalon.scan = function (node, vm, beforeReady) {
         return new Render(node, vm, beforeReady || avalon.noop);
     };
+
     /**
      * avalon.scan 的内部实现
      */
@@ -5678,6 +5783,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
     }
 
     var cp$1 = Render.prototype;
+
     /**
      * 开始扫描指定区域
      * 收集绑定属性
@@ -5819,7 +5925,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
      * 执行各种回调与优化指令
      * @returns {undefined}
      */
-
     cp$1.complete = function () {
         this.yieldDirectives();
         this.beforeReady();
@@ -5924,7 +6029,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
      * @param {type} userCb 循环结束回调
      * @returns {undefined}
      */
-
     cp$1.getForBinding = function (begin, scope, parentChildren, userCb) {
         var expr = begin.nodeValue.replace('ms-for:', '').trim();
         begin.nodeValue = 'ms-for:' + expr;

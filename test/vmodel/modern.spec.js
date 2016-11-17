@@ -1,4 +1,4 @@
-import { avalon, afterCreate, platform, itemFactory } from
+import { avalon, afterCreate, platform } from
     '../../src/vmodel/modern'
 import { Depend } from
     '../../src/vmodel/depend'
@@ -215,7 +215,7 @@ describe('itemFactory', function () {
             d: function () { },
             $e: 33
         })
-        var vm2 = itemFactory(vm, {
+        var vm2 = platform.itemFactory(vm, {
             data: {
                 dd: 11,
                 $cc: 22
@@ -229,12 +229,12 @@ describe('itemFactory', function () {
             $id: 'xxx32',
             kkk: 232
         })
-        var vm2 = itemFactory(vm, {
+        var vm2 = platform.itemFactory(vm, {
             data: {
                 value: 111
             }
         })
-        var vm3 = itemFactory(vm, {
+        var vm3 = platform.itemFactory(vm, {
             data: {
                 value: 444
             }

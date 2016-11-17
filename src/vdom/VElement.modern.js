@@ -9,7 +9,7 @@ export function VElement(type, props, children, isVoidTag) {
 
 VElement.prototype = {
     constructor: VElement,
-    toDOM: function () {
+    toDOM: function() {
         if (this.dom)
             return this.dom
         var dom, tagName = this.nodeName
@@ -19,7 +19,7 @@ VElement.prototype = {
             dom = document.createElement(tagName)
         }
         var props = this.props || {}
-        
+
         for (var i in props) {
             var val = props[i]
             if (skipFalseAndFunction(val)) {
@@ -45,10 +45,10 @@ VElement.prototype = {
                 break
             default:
                 if (!this.isVoidTag) {
-                    if(! this.children){
+                    if (!this.children) {
                         return
                     }
-                    this.children.forEach(function (c) {
+                    this.children.forEach(function(c) {
                         c && dom.appendChild(avalon.vdom(c, 'toDOM'))
                     })
                 }
@@ -56,7 +56,7 @@ VElement.prototype = {
         }
         return this.dom = dom
     },
-    toHTML: function () {
+    toHTML: function() {
         var arr = []
         var props = this.props || {}
         for (var i in props) {
@@ -72,7 +72,7 @@ VElement.prototype = {
         }
         str += '>'
         if (this.children) {
-            str += this.children.map(function (c) {
+            str += this.children.map(function(c) {
                 return c ? avalon.vdom(c, 'toHTML') : ''
             }).join('')
         }

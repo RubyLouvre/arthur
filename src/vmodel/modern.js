@@ -1,9 +1,9 @@
 import { avalon, platform, modern } from '../seed/core'
 import { $$skipArray } from './reserved'
 import { Directive } from '../renders/Directive'
-import { itemFactory} from './share'
+import './share'
 import './ProxyArray'
-export { avalon, platform, itemFactory }
+export { avalon, platform }
 delete $$skipArray.__const__
 delete $$skipArray.__data__
 delete $$skipArray.__proxy__

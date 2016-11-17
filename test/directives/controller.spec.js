@@ -1,19 +1,20 @@
 import { avalon } from '../../src/seed/core'
 
-describe('controller', function () {
-    var body = document.body, div, vm, h1, h2, h3, cdiv
-    beforeEach(function () {
+describe('controller', function() {
+    var body = document.body,
+        div, vm, h1, h2, h3, cdiv
+    beforeEach(function() {
         div = document.createElement('div')
         body.appendChild(div)
     })
-    afterEach(function () {
+    afterEach(function() {
         body.removeChild(div)
         delete avalon.vmodels[vm && vm.$id]
     })
 
 
-    it('default', function (done) {
-        div.innerHTML = heredoc(function () {
+    it('default', function(done) {
+        div.innerHTML = heredoc(function() {
             /*
              <div ms-controller="root">
              <h1>{{@page}}</h1>
@@ -48,7 +49,7 @@ describe('controller', function () {
 
         avalon.scan(div)
 
-        setTimeout(function () {
+        setTimeout(function() {
             h1 = div.getElementsByTagName('h1')[0]
             h2 = div.getElementsByTagName('h2')[0]
             h3 = div.getElementsByTagName('h3')[0]
@@ -59,7 +60,7 @@ describe('controller', function () {
             expect(h3.innerHTML).toBe(second.page)
             expect(cdiv.innerHTML).toBe([root.level, second.page, first.kind].join('-'))
             first.page = 'A'
-            setTimeout(function () {
+            setTimeout(function() {
                 h1 = div.getElementsByTagName('h1')[0]
                 h2 = div.getElementsByTagName('h2')[0]
                 h3 = div.getElementsByTagName('h3')[0]
@@ -72,7 +73,7 @@ describe('controller', function () {
 
                 first.page = 'first'
                 second.page = 'B'
-                setTimeout(function () {
+                setTimeout(function() {
                     h1 = div.getElementsByTagName('h1')[0]
                     h2 = div.getElementsByTagName('h2')[0]
                     h3 = div.getElementsByTagName('h3')[0]
@@ -82,7 +83,7 @@ describe('controller', function () {
                     expect(h2.innerHTML + "!!").toBe(first.page + "!!")
                     expect(h3.innerHTML + "!!!").toBe(second.page + "!!!")
                     expect(!!cdiv).toBe(false)
-                    setTimeout(function () {
+                    setTimeout(function() {
                         delete avalon.vmodels.root
                         delete avalon.vmodels.first
                         delete avalon.vmodels.second
@@ -98,9 +99,9 @@ describe('controller', function () {
 
 
     })
-    it('ms-controller 嵌套报错', function (done) {
+    it('ms-controller 嵌套报错', function(done) {
         //https://github.com/RubyLouvre/avalon/issues/1811
-        div.innerHTML = heredoc(function () {
+        div.innerHTML = heredoc(function() {
             /*
               <div ms-controller="ctrl11">
  <blockquote ms-html="@tpl"></blockquote>
@@ -108,7 +109,7 @@ describe('controller', function () {
 </div>
              */
         })
-        var v123 = heredoc(function () {
+        var v123 = heredoc(function() {
             /*
             <div ms-controller="ctrl12">
             <p ms-click="@alert">123</p>
@@ -121,7 +122,7 @@ describe('controller', function () {
             $id: 'ctrl11',
             tpl: "",
             ggg: { value: 111 },
-            switch1: function () {
+            switch1: function() {
 
                 vm.tpl = v123
             }
@@ -130,18 +131,18 @@ describe('controller', function () {
         var vm2 = avalon.define({
             $id: 'ctrl22',
             ddd: 'aaaa',
-            alert: function () {
+            alert: function() {
                 avalon.log('????')
             }
         });
         avalon.scan(div)
-        setTimeout(function () {
+        setTimeout(function() {
             var button = div.getElementsByTagName('button')[0]
             fireClick(button)
             console.log('33333')
-            setTimeout(function () {
+            setTimeout(function() {
                 var blockquote = div.getElementsByTagName('blockquote')[0]
-                console.log( blockquote[textProp], '111')
+                console.log(blockquote[textProp], '111')
                 var text = blockquote[textProp].replace(/[\r\n\s]/g, '').trim()
                 expect(text).toBe('123111')
                 delete avalon.vmodels.ccc1

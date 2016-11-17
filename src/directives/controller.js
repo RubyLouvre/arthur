@@ -1,6 +1,5 @@
-import { avalon } from '../seed/core'
+import { avalon,platform } from '../seed/core'
 import { impCb } from './important'
-import {mediatorFactory} from '../vmodel/share'
 avalon.directive('controller', {
     priority: 2,
     getScope: function (name, scope) {
@@ -8,7 +7,7 @@ avalon.directive('controller', {
         if (v){
             v.$render = this
             if(scope){
-               return mediatorFactory(scope, v) 
+               return platform.mediatorFactory(scope, v) 
             }
             return v
         }
