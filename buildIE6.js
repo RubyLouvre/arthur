@@ -4,7 +4,8 @@ var babel = require("babel-core");
 var transform = require('es3ify').transform;
 // used to track the cache for subsequent bundles
 var cache;
-
+var json = require('./package.json')
+var v = 'version:'+JSON.stringify(json.version)
 var sourcemaps = require('rollup-plugin-sourcemaps')
 
 module.exports = rollup.rollup({
@@ -34,6 +35,7 @@ module.exports = rollup.rollup({
           /Object\.defineProperty\(exports,\s*'__esModule',\s*\{\s*value:\s*true\s*\}\);/,
           "exports.__esModule = true" ).
                   replace(/'use strict';?/,'').
+                  replace(/version\:\s*1/, v).
                   replace(/avalon\$1/g, 'avalon')
                   
   result = babel.transform(result.code, {

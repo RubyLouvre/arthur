@@ -258,7 +258,7 @@ shadowCopy(avalon, {
         inspect,
         ohasOwn,
         rword,
-
+        version: 1,
         vmodels: {},
         
         directives,

@@ -17,9 +17,9 @@ module.exports = rollup.rollup({
   cache: cache,
   
   plugins: [
-    istanbul({
-      exclude: ['test/**/*.js']
-    })
+   // istanbul({
+   //   exclude: ['test/**/*.js']
+   // })
   ]
 }).then( function ( bundle ) {
   // Generate bundle + sourcemap

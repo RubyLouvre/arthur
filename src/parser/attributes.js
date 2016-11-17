@@ -24,6 +24,8 @@ export function parseAttributes(dirs, tuple ) {
         }
 
         var type = arr[1]
+        if(type === 'controller' || type === 'important')
+            continue
         if (directives[type]) {
 
             var binding = {

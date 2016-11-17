@@ -27,7 +27,6 @@ avalon.scan = function(node, vm, beforeReady) {
  * avalon.scan 的内部实现
  */
 function Render(node, vm, beforeReady) {
-
     this.root = node //如果传入的字符串,确保只有一个标签作为根节点
     this.vm = vm
     this.beforeReady = beforeReady
@@ -115,8 +114,9 @@ cp.scanComment = function(vdom, scope, parentChildren) {
      * @param {type} isRoot 用于执行complete方法
      * @returns {undefined}
      */
-cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
-   
+    
+    
+cp.scanTag = function(vdom, scope, parentChildren, isRoot) {  
     var dirs = {},
         attrs = vdom.props,
         hasDir, hasFor
@@ -157,7 +157,6 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
             }
             delete templateCaches[expr]
             this.scanTag(vdom, scope, parentChildren, isRoot)
-
             return
 
         }
@@ -165,14 +164,17 @@ cp.scanTag = function(vdom, scope, parentChildren, isRoot) {
         var type = dirs['ms-important'] === expr ? 'important' : 'controller'
             //推算出用户定义时属性名,是使用ms-属性还是:属性
         var name = ('ms-' + type) in attrs ? 'ms-' + type : ':' + type
+        if(inBrowser){
+            delete attrs[name]
+        }
         var dir = directives[type]
-        var render = this
-            //用于删除ms-controller
-        scope = dir.getScope.call(this, expr, scope)
-        this.callbacks.push(function(){
-                 dir.update.call(render, vdom, scope, name)
-            })
-
+       scope = dir.getScope.call(this, expr, scope)
+       var render = this
+       this.callbacks.push(function(){
+          //用于删除ms-controller
+           dir.update.call(render, vdom, scope, name)
+       })
+      
     }
     if (hasFor) {
         if (vdom.dom) {

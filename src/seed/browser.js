@@ -1,7 +1,7 @@
 export let win = typeof window === 'object' ? window :
     typeof global === 'object' ? global : {}
     
-export let inBrowser = win.location && win.navigator
+export let inBrowser = !!win.location && win.navigator
 /* istanbul ignore if  */
 
 

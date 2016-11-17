@@ -1,6 +1,6 @@
 {
   "name": "mini-avalon",
-  "version": "0.0.0",
+  "version": "2.2.0",
   "description": "rollup es3ify babel ",
   "main": "karma.conf-ci.js",
   "scripts": {
