@@ -905,11 +905,20 @@ describe('widget', function () {
 
     })
  it('延迟初始化组件',function(done){
+       if(avalon.msie < 9){
         div.innerHTML = heredoc(function () {
+            /*
+            <div ms-controller="widget14" style="behavior: url(#default#VML)" ><v:ms-kkk/></div>
+            */
+        })
+    }else{
+          div.innerHTML = heredoc(function () {
             /*
             <div ms-controller="widget14" ><ms-kkk /></div>
             */
         })
+    }
+        console.log(div.innerHTML, '延迟初始化')
         vm = avalon.define({
             $id: 'widget14'
         })

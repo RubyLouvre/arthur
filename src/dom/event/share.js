@@ -171,25 +171,9 @@ function delegateEvent(type) {
 }
 
 var rconstant = /^[A-Z_]+$/
-export function avEvent(event) {
-    if (event.originalEvent) {
-        return event
-    }
-    for (var i in event) {
-        if (!rconstant.test(i) && typeof event[i] !== 'function') {
-            this[i] = event[i]
-        }
-    }
-    if (!this.target) {
-        this.target = event.srcElement
-    }
-    var target = this.target
-    this.fixEvent()
-    this.timeStamp = new Date() - 0
-    this.originalEvent = event
-}
-
-avEvent.prototype = {
+var eventProto = {
+    webkitMovementY:1,
+    webkitMovementX: 1,
     fixEvent: function () { },
     preventDefault: function () {
         var e = this.originalEvent || {}
@@ -213,6 +197,26 @@ avEvent.prototype = {
         return '[object Event]'//#1619
     }
 }
+
+export function avEvent(event) {
+    if (event.originalEvent) {
+        return event
+    }
+    for (var i in event) {
+        if (!rconstant.test(i) && !eventProto[i]) {
+            this[i] = event[i]
+        }
+    }
+    if (!this.target) {
+        this.target = event.srcElement
+    }
+    var target = this.target
+    this.fixEvent()
+    this.timeStamp = new Date() - 0
+    this.originalEvent = event
+}
+
+avEvent.prototype = eventProto
 
 
 //针对firefox, chrome修正mouseenter, mouseleave

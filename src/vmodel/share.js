@@ -67,6 +67,17 @@ platform.modelFactory = function modelFactory(definition, dd) {
             $accessors[key] = createAccessor(key, val)
         }
     }
+    var computed = definition.$computed
+    if(computed){
+         for (var key in computed) {
+          if (key in $$skipArray)
+              continue
+          avalon.Array.ensure(keys, key)
+          if(typeof computed[key] === 'function'){
+               $accessors[key] = createComputed(key, computed[key])
+          }
+      }
+    }
     //将系统API以unenumerable形式加入vm,
     //添加用户的其他不可监听属性或方法
     //重写$track
@@ -76,6 +87,7 @@ platform.modelFactory = function modelFactory(definition, dd) {
     return vm
 }
 var $proxyItemBackdoorMap = {}
+
 export function canHijack(key, val, $proxyItemBackdoor) {
     if (key in $$skipArray)
         return false
@@ -139,7 +151,27 @@ export function collectDeps(selfDep, childOb) {
         return childOb
     }
 }
-
+function createComputed(key, getter) {
+    var selfDep = new Depend(key) //当前值对象的Depend
+    return {
+        get: function Getter() {
+            var ret = getter.call(this)
+            //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
+            //     Getter.dd = selfDep
+            var child = collectDeps(selfDep, null)
+            if (child) {
+                return child
+            }
+            return ret
+        },
+        set: function Setter() {
+            selfDep.beforeNotify()
+            selfDep.notify()
+        },
+        enumerable: true,
+        configurable: true
+    }
+}
 function createAccessor(key, val) {
     var priVal = val
     var selfDep = new Depend(key) //当前值对象的Depend

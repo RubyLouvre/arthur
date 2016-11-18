@@ -2867,25 +2867,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     var rconstant = /^[A-Z_]+$/;
-    function avEvent(event) {
-        if (event.originalEvent) {
-            return event;
-        }
-        for (var i in event) {
-            if (!rconstant.test(i) && typeof event[i] !== 'function') {
-                this[i] = event[i];
-            }
-        }
-        if (!this.target) {
-            this.target = event.srcElement;
-        }
-        var target = this.target;
-        this.fixEvent();
-        this.timeStamp = new Date() - 0;
-        this.originalEvent = event;
-    }
-
-    avEvent.prototype = {
+    var eventProto = {
+        webkitMovementY: 1,
+        webkitMovementX: 1,
         fixEvent: function fixEvent() {},
         preventDefault: function preventDefault() {
             var e = this.originalEvent || {};
@@ -2909,6 +2893,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return '[object Event]'; //#1619
         }
     };
+
+    function avEvent(event) {
+        if (event.originalEvent) {
+            return event;
+        }
+        for (var i in event) {
+            if (!rconstant.test(i) && !eventProto[i]) {
+                this[i] = event[i];
+            }
+        }
+        if (!this.target) {
+            this.target = event.srcElement;
+        }
+        var target = this.target;
+        this.fixEvent();
+        this.timeStamp = new Date() - 0;
+        this.originalEvent = event;
+    }
+
+    avEvent.prototype = eventProto;
 
     //针对firefox, chrome修正mouseenter, mouseleave
     /* istanbul ignore if */
@@ -3436,6 +3440,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var falsy;
     var $$skipArray = {
         $id: falsy,
+        $computed: falsy,
         $render: falsy,
         $track: falsy,
         $element: falsy,
@@ -3886,6 +3891,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 $accessors[key] = createAccessor(key, val);
             }
         }
+        var computed = definition.$computed;
+        if (computed) {
+            for (var key in computed) {
+                if (key in $$skipArray) continue;
+                avalon.Array.ensure(keys, key);
+                if (typeof computed[key] === 'function') {
+                    $accessors[key] = createComputed(key, computed[key]);
+                }
+            }
+        }
         //将系统API以unenumerable形式加入vm,
         //添加用户的其他不可监听属性或方法
         //重写$track
@@ -3895,6 +3910,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return vm;
     };
     var $proxyItemBackdoorMap = {};
+
     function canHijack(key, val, $proxyItemBackdoor) {
         if (key in $$skipArray) return false;
         if (key.charAt(0) === '$') {
@@ -3957,7 +3973,27 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return childOb;
         }
     }
-
+    function createComputed(key, getter) {
+        var selfDep = new Depend(key); //当前值对象的Depend
+        return {
+            get: function Getter() {
+                var ret = getter.call(this);
+                //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
+                //     Getter.dd = selfDep
+                var child = collectDeps(selfDep, null);
+                if (child) {
+                    return child;
+                }
+                return ret;
+            },
+            set: function Setter() {
+                selfDep.beforeNotify();
+                selfDep.notify();
+            },
+            enumerable: true,
+            configurable: true
+        };
+    }
     function createAccessor(key, val) {
         var priVal = val;
         var selfDep = new Depend(key); //当前值对象的Depend
