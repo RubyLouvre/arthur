@@ -211,24 +211,59 @@ describe('for', function() {
         avalon.scan(div, vm)
         setTimeout(function() {
             var ds = div.getElementsByTagName('div')
-            var prop = 'innerText' in div ? 'innerText' : 'textContent'
-            expect(ds[0][prop]).toBe('面板1')
+            expect(ds[0][textProp]).toBe('面板1')
             vm.curIndex = 1
             setTimeout(function() {
-                expect(ds[0][prop]).toBe('面板2')
+                expect(ds[0][textProp]).toBe('面板2')
                 vm.curIndex = 2
                 setTimeout(function() {
-                    expect(ds[0][prop]).toBe('面板3')
+                    expect(ds[0][textProp]).toBe('面板3')
                     done()
                 }, 100)
             }, 100)
         }, 100)
     })
+ it('使用注释循环', function(done) {
+        //在IE6-8中,div.innerHTML =str, 如果里面的元素标签素直接跟注释节点会被移除,
+        //这与空白节点的情况一样
+        //这里在前面加一个&nbsp;就好了
+        var removeFirstComment = heredoc(function() {
+            /*
+             <div ms-controller="for5">
+             <!--ms-for:el in @forlist-->
+             <p>{{el}}</p>
+             <!--ms-for-end:-->
+             </div>
+             */
+        })
+        div.innerHTML = heredoc(function() {
+            /*
+             <div ms-controller="for5">
+             &nbsp;<!--ms-for:el in @forlist-->
+             <p>{{el}}</p>
+             <!--ms-for-end:-->
+             </div>
+             */
+        })
+
+        vm = avalon.define({
+            $id: "for5",
+            forlist: [1, 2, 3]
+        })
+        avalon.scan(div)
+        setTimeout(function() {
+            var ps = div.getElementsByTagName('p')
+            console.log(div.innerHTML,'00000')
+            expect(ps.length).toBe(3)
+
+            done()
+        }, 300)
+    })
 
     it('ms-duplex与ms-for并用', function(done) {
         div.innerHTML = heredoc(function() {
             /*
-             <table ms-controller="for5" border="1">
+             <table ms-controller="for6" border="1">
              <tr>
              <td><input type="checkbox" 
              ms-duplex-checked="@allchecked" 
@@ -241,7 +276,7 @@ describe('for', function() {
              */
         })
         vm = avalon.define({
-            $id: "for5",
+            $id: "for6",
             data: [{ checked: false }, { checked: false }, { checked: false }],
             allchecked: false,
             checkAll: function(e) {
@@ -279,30 +314,7 @@ describe('for', function() {
             }, 100)
         }, 100)
     })
-    it('使用注释循环', function(done) {
-        div.innerHTML = heredoc(function() {
-            /*
-             <div ms-controller="for6" >
-             <!--ms-for:el in @forlist -->
-             <p>{{el}}</p>
-             <!--ms-for-end:-->
-             </div>
-             */
-        })
-
-        vm = avalon.define({
-            $id: "for6",
-            forlist: [1, 2, 3]
-        })
-        avalon.scan(div)
-        setTimeout(function() {
-            var ps = div.getElementsByTagName('p')
-            expect(ps.length).toBe(3)
-
-            done()
-        }, 300)
-    })
-
+   
     it('数组循环+对象循环', function(done) {
         div.innerHTML = heredoc(function() {
             /*
@@ -558,15 +570,15 @@ describe('for', function() {
              }
              </style>
              <div ms-controller="for14">
-             <!--ms-for:(idx1, item1) in @arr-->
+             &nbsp;<!--ms-for:(idx1, item1) in @arr-->
              <p>Group这是标题</p>
-             <!--ms-for:(idx2, item2) in item1-->
+             &nbsp;<!--ms-for:(idx2, item2) in item1-->
              <div>内容1</div>
              <strong :class="'c-' + (idx1 < 1 ? 'red' : idx1 > 1 ? 'green' : 'blue')">
              内容2 {{ (idx1 < 1 ? 'red' : idx1 > 1 ? 'green' : 'blue') + '-' + item2 }}
              </strong>
-             <!--ms-for-end:-->
-             <!--ms-for-end:-->
+             &nbsp;<!--ms-for-end:-->
+             &nbsp;<!--ms-for-end:-->
              </div>
              */
         })

@@ -3948,8 +3948,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 });
             } else if (avalon.deepCollect) {
 
-                for (var i in childOb) {
-                    if (childOb.hasOwnProperty(i)) var e = childOb[i];
+                for (var key in childOb) {
+                    if (childOb.hasOwnProperty(key)) {
+                        var collectIt = childOb[key];
+                    }
                 }
             }
             return childOb;
@@ -4234,6 +4236,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         for (var i = 0; i < keys.length; i++) {
             key = keys[i];
             if (!(key in ac)) {
+                if (avalon.msie < 9 && typeof core[key] === 'function') {
+                    vm[key] = core[key].bind(vm);
+                    continue;
+                }
                 vm[key] = core[key];
             }
         }
@@ -4487,16 +4493,31 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (aIsArray !== Array.isArray(b)) {
             return false;
         } else if (aIsArray) {
-            if (a.length !== b.length) return false;
+            if (a.length !== b.length) {
+                return false;
+            }
             for (var i = a.length - 1; i >= 0; i--) {
-                if (!deepEquals(a[i], b[i], level - 1)) return false;
-            }return true;
+                try {
+                    if (!deepEquals(a[i], b[i], level - 1)) {
+                        return false;
+                    }
+                } catch (noThisPropError) {
+                    return false;
+                }
+            }
+            return true;
         } else if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) === "object" && (typeof b === 'undefined' ? 'undefined' : _typeof(b)) === "object") {
             if (a === null || b === null) return false;
             if (getEnumerableKeys(a).length !== getEnumerableKeys(b).length) return false;
             for (var prop in a) {
                 if (!(prop in b)) return false;
-                if (!deepEquals(a[prop], b[prop], level - 1)) return false;
+                try {
+                    if (!deepEquals(a[prop], b[prop], level - 1)) {
+                        return false;
+                    }
+                } catch (noThisPropError) {
+                    return false;
+                }
             }
             return true;
         }

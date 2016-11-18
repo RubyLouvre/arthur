@@ -21,7 +21,7 @@ var cssDir = avalon.directive('css', {
                 hasChange = true
             } else {
                 if (this.deep) {
-                     var deep = typeof this.deep == 'number' ? this.deep: 6
+                    var deep = typeof this.deep == 'number' ? this.deep : 6
                     for (var i in newVal) {//diff差异点  
                         if (!deepEquals(newVal[i], oldVal[i], 4)) {
                             this.value = newVal
@@ -69,27 +69,34 @@ export var cssDiff = cssDir.diff
 export function getEnumerableKeys(obj) {
     const res = [];
     for (let key in obj)
-        res.push(key);
-    return res;
+        res.push(key)
+    return res
 }
 
 export function deepEquals(a, b, level) {
-    if(level === 0)
+    if (level === 0)
         return a === b
     if (a === null && b === null)
-        return true;
+        return true
     if (a === undefined && b === undefined)
-        return true;
-    const aIsArray = Array.isArray(a);
+        return true
+    const aIsArray = Array.isArray(a)
     if (aIsArray !== Array.isArray(b)) {
-        return false;
+        return false
     } else if (aIsArray) {
-        if (a.length !== b.length)
-            return false;
-        for (let i = a.length - 1; i >= 0; i--)
-            if (!deepEquals(a[i], b[i], level-1))
-                return false;
-        return true;
+        if (a.length !== b.length) {
+            return false
+        }
+        for (let i = a.length - 1; i >= 0; i--) {
+            try {
+                if (!deepEquals(a[i], b[i], level - 1)) {
+                    return false
+                }
+            } catch (noThisPropError) {
+                return false
+            }
+        }
+        return true
     } else if (typeof a === "object" && typeof b === "object") {
         if (a === null || b === null)
             return false;
@@ -97,11 +104,16 @@ export function deepEquals(a, b, level) {
             return false;
         for (let prop in a) {
             if (!(prop in b))
-                return false;
-            if (!deepEquals(a[prop], b[prop],level-1))
-                return false;
+                return false
+            try {
+                if (!deepEquals(a[prop], b[prop], level - 1)) {
+                    return false
+                }
+            } catch (noThisPropError) {
+                return false
+            }
         }
-        return true;
+        return true
     }
-    return a === b;
+    return a === b
 }

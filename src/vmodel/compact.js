@@ -115,6 +115,10 @@ export function afterCreate(vm, core, keys) {
     for (var i = 0; i < keys.length; i++) {
         key = keys[i]
         if (!(key in ac)) {
+            if (avalon.msie < 9 && typeof core[key] === 'function') {
+                vm[key] = core[key].bind(vm)
+                continue
+            }
             vm[key] = core[key]
         }
     }

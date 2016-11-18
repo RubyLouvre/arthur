@@ -16,20 +16,20 @@ import { Depend } from './depend'
  */
 
 
-avalon.define = function(definition) {
-        var $id = definition.$id
-        if (!$id) {
-            avalon.error('vm.$id must be specified')
-        }
-        if (avalon.vmodels[$id]) {
-            avalon.warn('error:[' + $id + '] had defined!')
-        }
-        var vm = platform.modelFactory(definition)
-        return avalon.vmodels[$id] = vm
+avalon.define = function (definition) {
+    var $id = definition.$id
+    if (!$id) {
+        avalon.error('vm.$id must be specified')
     }
-    /**
-     * 在末来的版本,avalon改用Proxy来创建VM,因此
-     */
+    if (avalon.vmodels[$id]) {
+        avalon.warn('error:[' + $id + '] had defined!')
+    }
+    var vm = platform.modelFactory(definition)
+    return avalon.vmodels[$id] = vm
+}
+/**
+ * 在末来的版本,avalon改用Proxy来创建VM,因此
+ */
 export function IProxy(definition, dd) {
     avalon.mix(this, definition)
     avalon.mix(this, $$skipArray)
@@ -79,11 +79,11 @@ var $proxyItemBackdoorMap = {}
 export function canHijack(key, val, $proxyItemBackdoor) {
     if (key in $$skipArray)
         return false
-    if (key.charAt(0) === '$' ){
-        if($proxyItemBackdoor){
-            if(!$proxyItemBackdoorMap[key]){
-              $proxyItemBackdoorMap[key] = 1
-               avalon.warn('ms-for中的变量不再建议以$为前缀')
+    if (key.charAt(0) === '$') {
+        if ($proxyItemBackdoor) {
+            if (!$proxyItemBackdoorMap[key]) {
+                $proxyItemBackdoorMap[key] = 1
+                avalon.warn('ms-for中的变量不再建议以$为前缀')
             }
             return true
         }
@@ -123,16 +123,17 @@ export function collectDeps(selfDep, childOb) {
     }
     if (childOb && childOb.$events) {
         if (Array.isArray(childOb)) {
-            childOb.forEach(function(item) {
+            childOb.forEach(function (item) {
                 if (item && item.$events) {
                     item.$events.__dep__.collect()
                 }
             })
         } else if (avalon.deepCollect) {
 
-            for (var i in childOb) {
-                if (childOb.hasOwnProperty(i))
-                    var e = childOb[i]
+            for (var key in childOb) {
+                if (childOb.hasOwnProperty(key)) {
+                    var collectIt = childOb[key]
+                }
             }
         }
         return childOb
@@ -178,8 +179,8 @@ platform.itemFactory = function itemFactory(before, after) {
     var core = new IProxy(keyMap)
     var state = avalon.shadowCopy(core.$accessors, before.$accessors) //防止互相污染
     var data = after.data
-        //core是包含系统属性的对象
-        //keyMap是不包含系统属性的对象, keys
+    //core是包含系统属性的对象
+    //keyMap是不包含系统属性的对象, keys
     for (var key in data) {
         var val = keyMap[key] = core[key] = data[key]
         state[key] = createAccessor(key, val)
@@ -197,10 +198,10 @@ platform.fuseFactory = function fuseFactory(before, after) {
         $id: before.$id + after.$id
     }))
     var state = avalon.mix(core.$accessors,
-            before.$accessors, after.$accessors) //防止互相污染
+        before.$accessors, after.$accessors) //防止互相污染
 
     var keys = Object.keys(keyMap)
-        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+    //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
     var vm = platform.createViewModel(core, state, core)
     platform.afterCreate(vm, core, keys)
     return vm

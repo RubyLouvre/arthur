@@ -32,7 +32,7 @@ import './parser/index'
 
 import '../src/directives/compact'
 import '../src/renders/domRender'
-
+/*
 import './directives/attr.spec'
 import './directives/duplex.spec'
 
@@ -50,6 +50,7 @@ import './directives/active.spec'
 import './directives/visible.spec'
 import './directives/validate.spec'
 import './directives/rules.spec'
+*/
 import './directives/for.spec'
 import './directives/effect.spec'
 

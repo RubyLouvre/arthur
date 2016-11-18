@@ -29,7 +29,6 @@ avalon.component('ms-panel', {
 })
 
 describe('widget', function () {
-    var textProp = 'textContent' in document ? 'textContent' : 'innerText'
 
     var body = document.body, div, vm
     beforeEach(function () {
