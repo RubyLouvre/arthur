@@ -19,35 +19,7 @@ try {
 }
 
 
-var modelAccessor = {
-    get: function () {
-        return toJson(this)
-    },
-    set: avalon.noop,
-    enumerable: false,
-    configurable: true
-}
 
-export function toJson(val) {
-    var xtype = avalon.type(val)
-    if (xtype === 'array') {
-        var array = []
-        for (var i = 0; i < val.length; i++) {
-            array[i] = toJson(val[i])
-        }
-        return array
-    } else if (xtype === 'object') {
-        if (typeof val.$track === 'string') {
-            var obj = {}
-            val.$track.split('Ȣ').forEach(function (i) {
-                var value = val[i]
-                obj[i] = value && value.$events ? toJson(value) : value
-            })
-            return obj
-        }
-    }
-    return val
-}
 var protectedVB = { $vbthis: 1, $vbsetter: 1 }
 /* istanbul ignore next */
 export function hideProperty(host, name, value) {
@@ -137,11 +109,9 @@ platform.hideProperty = hideProperty
 platform.fireFactory = fireFactory
 platform.watchFactory = watchFactory
 platform.afterCreate = afterCreate
-platform.modelAccessor = modelAccessor
-platform.toJson = toJson
 platform.toModel = function (obj) {
     if (avalon.msie < 9) {
-        return obj.$model = toJson(obj)
+        return obj.$model = platform.toJson(obj)
     }
 }
 

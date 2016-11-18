@@ -16,7 +16,8 @@ import {
     canHijack,
     createProxy
 } from './share'
-if (typeof Proxy === 'function2') {
+
+if (typeof Proxy === 'function') {
     avalon.config.inProxyMode = true
     platform.modelFactory = function modelFactory(definition, dd) {
         var clone = {}
@@ -27,12 +28,11 @@ if (typeof Proxy === 'function2') {
         definition.$id = clone.$id
         var proxy = new IProxy(definition, dd)
         proxy.$track = ''
-
         var vm = toProxy(proxy)
         for (var i in clone) {
-           
             vm[i] = clone[i]
         }
+
         return vm
     }
 
@@ -45,7 +45,6 @@ if (typeof Proxy === 'function2') {
     function wrapIt(str) {
         return 'Ȣ' + str + 'Ȣ'
     }
-
     var traps = {
         deleteProperty: function(target, name) {
             if (target.hasOwnProperty(name)) {
@@ -57,36 +56,37 @@ if (typeof Proxy === 'function2') {
                 delete target[name]
                 target.$track = wrapIt(target.$track).replace(wrapIt(name), '').slice(1, -1)
             }
-            return true 
+            return true
         },
         get: function(target, name) {
             if (name === '$model') {
                 return platform.toJson(target)
             }
             //收集依赖
+            var selfDep = target.$accessors[name]
             var childObj = target[name]
-            var selfDep  = target.$accessors[name]
-            selfDep && collectDeps(selfDep, childObj)
-            return selfDep ? selfDep.value :  childObj
+            if (selfDep) {
+                collectDeps(selfDep, childObj)
+            }
+            return selfDep ? selfDep.value : childObj
         },
         set: function(target, name, value) {
             if (name === '$model') {
                 return true
             }
+            var ac = target.$accessors
+
             var oldValue = target[name]
             if (oldValue !== value) {
                 if (canHijack(name, value, target.$proxyItemBackdoor)) {
                     var ac = target.$accessors
-                    //如果是新属性
+                        //如果是新属性
                     if (!(name in $$skipArray) && !ac[name]) {
-                        var arr = target.$track.split('Ȣ')
-                        arr.push(name)
-                        ac[name] = new Depend(name)
-                        target.$track = arr.sort().join('Ȣ')
+                        updateTrack(target, ac, name)
                     }
                     var selfDep = ac[name]
                     selfDep && selfDep.beforeNotify()
-                    //创建子对象
+                        //创建子对象
                     var hash = oldValue && oldValue.$hashcode
                     var childObj = createProxy(value, selfDep)
                     if (childObj) {
@@ -95,7 +95,7 @@ if (typeof Proxy === 'function2') {
                     }
                     target[name] = selfDep.value = value //必须修改才notify
                     selfDep.notify()
-                }else{
+                } else {
                     target[name] = value
                 }
             }
@@ -108,8 +108,17 @@ if (typeof Proxy === 'function2') {
         }
     }
 
+    function updateTrack(target, ac, name) {
+        var arr = target.$track.split('Ȣ')
+        if (arr[0] === '') {
+            arr.shift()
+        }
+        arr.push(name)
+        ac[name] = new Depend(name)
+        target.$track = arr.sort().join('Ȣ')
+    }
     platform.itemFactory = function itemFactory(before, after) {
-        var definition =  before.$model
+        var definition = before.$model
         definition.$proxyItemBackdoor = true
         definition.$id = before.$hashcode +
             String(after.hashcode || Math.random()).slice(6)
@@ -125,8 +134,8 @@ if (typeof Proxy === 'function2') {
         var definition = avalon.mix(before.$model, after.$model)
         definition.$id = before.$hashcode + after.$hashcode
         definition.$accessors = avalon.mix({},
-             before.$accessors,
-             after.$accessors)
+            before.$accessors,
+            after.$accessors)
         return platform.modelFactory(definition)
     }
 }

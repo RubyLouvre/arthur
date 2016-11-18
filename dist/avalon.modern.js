@@ -2,13 +2,11 @@
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 (function (global, factory) {
-    (typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory() : typeof define === 'function' && define.amd ? define(factory) : factory();
 })(this, function () {
 
-    var win = (typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' ? window : (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : {};
+    var win = typeof window === 'object' ? window : typeof global === 'object' ? global : {};
 
     var inBrowser = !!win.location && win.navigator;
     /* istanbul ignore if  */
@@ -30,7 +28,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         undefinedobject: NaN //Mobile Safari 8.0.0 (iOS 8.4.0) 
     };
     /* istanbul ignore next  */
-    var msie = document$1.documentMode || versions[_typeof(document$1.all) + (typeof XMLHttpRequest === 'undefined' ? 'undefined' : _typeof(XMLHttpRequest))];
+    var msie = document$1.documentMode || versions[typeof document$1.all + typeof XMLHttpRequest];
 
     var modern = /NaN/.test(msie) || msie > 8;
 
@@ -207,7 +205,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var ohasOwn = op.hasOwnProperty;
     var ap = Array.prototype;
 
-    var hasConsole = (typeof console === 'undefined' ? 'undefined' : _typeof(console)) === 'object';
+    var hasConsole = typeof console === 'object';
     avalon.config = { debug: true };
     function log() {
         if (hasConsole && avalon.config.debug) {
@@ -226,7 +224,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     function noop() {}
     function isObject(a) {
-        return a !== null && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object';
+        return a !== null && typeof a === 'object';
     }
 
     function range(start, end, step) {
@@ -459,7 +457,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return String(obj);
         }
         // 早期的webkit内核浏览器实现了已废弃的ecma262v4标准，可以将正则字面量当作函数使用，因此typeof在判定正则时会返回function
-        return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj === 'undefined' ? 'undefined' : _typeof(obj);
+        return typeof obj === 'object' || typeof obj === 'function' ? class2type[inspect.call(obj)] || 'object' : typeof obj;
     };
 
     avalon._quote = JSON.stringify;
@@ -499,7 +497,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
 
         //确保接受方为一个复杂的数据类型
-        if ((typeof target === 'undefined' ? 'undefined' : _typeof(target)) !== 'object' && typeof target !== 'function') {
+        if (typeof target !== 'object' && typeof target !== 'function') {
             target = {};
         }
 
@@ -543,7 +541,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     /*判定是否类数组，如节点集合，纯数组，arguments与拥有非负整数的length属性的纯JS对象*/
     function isArrayLike(obj) {
         /* istanbul ignore if*/
-        if (obj && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+        if (obj && typeof obj === 'object') {
             var n = obj.length,
                 str = inspect.call(obj);
             if (rarraylike.test(str)) {
@@ -2289,25 +2287,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     var rconstant = /^[A-Z_]+$/;
-    function avEvent(event) {
-        if (event.originalEvent) {
-            return event;
-        }
-        for (var i in event) {
-            if (!rconstant.test(i) && typeof event[i] !== 'function') {
-                this[i] = event[i];
-            }
-        }
-        if (!this.target) {
-            this.target = event.srcElement;
-        }
-        var target = this.target;
-        this.fixEvent();
-        this.timeStamp = new Date() - 0;
-        this.originalEvent = event;
-    }
-
-    avEvent.prototype = {
+    var eventProto = {
+        webkitMovementY: 1,
+        webkitMovementX: 1,
         fixEvent: function fixEvent() {},
         preventDefault: function preventDefault() {
             var e = this.originalEvent || {};
@@ -2331,6 +2313,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             return '[object Event]'; //#1619
         }
     };
+
+    function avEvent(event) {
+        if (event.originalEvent) {
+            return event;
+        }
+        for (var i in event) {
+            if (!rconstant.test(i) && !eventProto[i]) {
+                this[i] = event[i];
+            }
+        }
+        if (!this.target) {
+            this.target = event.srcElement;
+        }
+        var target = this.target;
+        this.fixEvent();
+        this.timeStamp = new Date() - 0;
+        this.originalEvent = event;
+    }
+
+    avEvent.prototype = eventProto;
 
     //针对firefox, chrome修正mouseenter, mouseleave
     /* istanbul ignore if */
@@ -2729,19 +2731,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
      $$skipArray被hasOwnProperty后返回false
      $skipArray被hasOwnProperty后返回true
      */
+    var falsy;
     var $$skipArray = {
-        $id: void 0,
-        $render: void 0,
-        $track: void 0,
-        $element: void 0,
-        $watch: void 0,
-        $fire: void 0,
-        $events: void 0,
-        $accessors: void 0,
-        $hashcode: void 0,
-        __proxy__: void 0,
-        __data__: void 0,
-        __const__: void 0
+        $id: falsy,
+        $render: falsy,
+        $track: falsy,
+        $element: falsy,
+        $watch: falsy,
+        $fire: falsy,
+        $events: falsy,
+        $accessors: falsy,
+        $hashcode: falsy,
+        $vbthis: falsy,
+        $vbsetter: falsy
     };
 
     var rendering = null;
@@ -3158,7 +3160,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             this.$accessors = this.$accessors || {};
         } else {
             this.$accessors = {
-                $model: platform.modelAccessor
+                $model: modelAccessor
             };
         }
         if (dd === void 0) {
@@ -3191,6 +3193,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return vm;
     };
     var $proxyItemBackdoorMap = {};
+
     function canHijack(key, val, $proxyItemBackdoor) {
         if (key in $$skipArray) return false;
         if (key.charAt(0) === '$') {
@@ -3243,9 +3246,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
                 });
             } else if (avalon.deepCollect) {
-
-                for (var i in childOb) {
-                    if (childOb.hasOwnProperty(i)) var e = childOb[i];
+                for (var key in childOb) {
+                    if (childOb.hasOwnProperty(key)) {
+                        var collectIt = childOb[key];
+                    }
                 }
             }
             return childOb;
@@ -3304,7 +3308,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
 
     platform.fuseFactory = function fuseFactory(before, after) {
-
         var keyMap = avalon.mix(before.$model, after.$model);
         var core = new IProxy(avalon.mix(keyMap, {
             $id: before.$id + after.$id
@@ -3317,6 +3320,39 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         platform.afterCreate(vm, core, keys);
         return vm;
     };
+
+    function toJson(val) {
+        var xtype = avalon.type(val);
+        if (xtype === 'array') {
+            var array = [];
+            for (var i = 0; i < val.length; i++) {
+                array[i] = toJson(val[i]);
+            }
+            return array;
+        } else if (xtype === 'object') {
+            if (typeof val.$track === 'string') {
+                var obj = {};
+                val.$track.split('Ȣ').forEach(function (i) {
+                    var value = val[i];
+                    obj[i] = value && value.$events ? toJson(value) : value;
+                });
+                return obj;
+            }
+        }
+        return val;
+    }
+
+    var modelAccessor = {
+        get: function get() {
+            return toJson(this);
+        },
+        set: avalon.noop,
+        enumerable: false,
+        configurable: true
+    };
+
+    platform.toJson = toJson;
+    platform.modelAccessor = modelAccessor;
 
     var _splice = ap.splice;
     var __array__ = {
@@ -3424,31 +3460,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     platform.listFactory = listFactory;
 
-    delete $$skipArray.__const__;
-    delete $$skipArray.__data__;
-    delete $$skipArray.__proxy__;
-
-    function toJson(val) {
-        var xtype = avalon.type(val);
-        if (xtype === 'array') {
-            var array = [];
-            for (var i = 0; i < val.length; i++) {
-                array[i] = toJson(val[i]);
-            }
-            return array;
-        } else if (xtype === 'object') {
-            if (typeof val.$track === 'string') {
-                var obj = {};
-                val.$track.split('Ȣ').forEach(function (i) {
-                    var value = val[i];
-                    obj[i] = value && value.$events ? toJson(value) : value;
-                });
-                return obj;
-            }
-        }
-        return val;
-    }
-
     function hideProperty(host, name, value) {
         Object.defineProperty(host, name, {
             value: value,
@@ -3457,15 +3468,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             configurable: true
         });
     }
-
-    var modelAccessor = {
-        get: function get() {
-            return toJson(this);
-        },
-        set: avalon.noop,
-        enumerable: false,
-        configurable: true
-    };
 
     function $fire(expr, a) {
         var list = this.$events[expr];
@@ -3524,13 +3526,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     platform.fireFactory = fireFactory;
     platform.watchFactory = watchFactory;
     platform.afterCreate = afterCreate;
-    platform.modelAccessor = modelAccessor;
     platform.hideProperty = hideProperty;
-    platform.toJson = toJson;
     platform.toModel = function () {};
     platform.createViewModel = Object.defineProperties;
 
-    if (typeof Proxy === 'function2') {
+    if (typeof Proxy === 'function') {
         var traps;
 
         (function () {
@@ -3544,6 +3544,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return 'Ȣ' + str + 'Ȣ';
             };
 
+            var updateTrack = function updateTrack(target, ac, name) {
+                var arr = target.$track.split('Ȣ');
+                if (arr[0] === '') {
+                    arr.shift();
+                }
+                arr.push(name);
+                ac[name] = new Depend(name);
+                target.$track = arr.sort().join('Ȣ');
+            };
+
             avalon.config.inProxyMode = true;
             platform.modelFactory = function modelFactory(definition, dd) {
                 var clone = {};
@@ -3554,12 +3564,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 definition.$id = clone.$id;
                 var proxy = new IProxy(definition, dd);
                 proxy.$track = '';
-
                 var vm = toProxy(proxy);
                 for (var i in clone) {
-
                     vm[i] = clone[i];
                 }
+
                 return vm;
             };traps = {
                 deleteProperty: function deleteProperty(target, name) {
@@ -3579,25 +3588,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         return platform.toJson(target);
                     }
                     //收集依赖
-                    var childObj = target[name];
                     var selfDep = target.$accessors[name];
-                    selfDep && collectDeps(selfDep, childObj);
+                    var childObj = target[name];
+                    if (selfDep) {
+                        collectDeps(selfDep, childObj);
+                    }
                     return selfDep ? selfDep.value : childObj;
                 },
                 set: function set(target, name, value) {
                     if (name === '$model') {
                         return true;
                     }
+                    var ac = target.$accessors;
+
                     var oldValue = target[name];
                     if (oldValue !== value) {
                         if (canHijack(name, value, target.$proxyItemBackdoor)) {
                             var ac = target.$accessors;
                             //如果是新属性
                             if (!(name in $$skipArray) && !ac[name]) {
-                                var arr = target.$track.split('Ȣ');
-                                arr.push(name);
-                                ac[name] = new Depend(name);
-                                target.$track = arr.sort().join('Ȣ');
+                                updateTrack(target, ac, name);
                             }
                             var selfDep = ac[name];
                             selfDep && selfDep.beforeNotify();
@@ -3622,7 +3632,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return target.hasOwnProperty(name);
                 }
             };
-
 
             platform.itemFactory = function itemFactory(before, after) {
                 var definition = before.$model;
@@ -3770,16 +3779,31 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (aIsArray !== Array.isArray(b)) {
             return false;
         } else if (aIsArray) {
-            if (a.length !== b.length) return false;
+            if (a.length !== b.length) {
+                return false;
+            }
             for (var i = a.length - 1; i >= 0; i--) {
-                if (!deepEquals(a[i], b[i], level - 1)) return false;
-            }return true;
-        } else if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) === "object" && (typeof b === 'undefined' ? 'undefined' : _typeof(b)) === "object") {
+                try {
+                    if (!deepEquals(a[i], b[i], level - 1)) {
+                        return false;
+                    }
+                } catch (noThisPropError) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (typeof a === "object" && typeof b === "object") {
             if (a === null || b === null) return false;
             if (getEnumerableKeys(a).length !== getEnumerableKeys(b).length) return false;
             for (var prop in a) {
                 if (!(prop in b)) return false;
-                if (!deepEquals(a[prop], b[prop], level - 1)) return false;
+                try {
+                    if (!deepEquals(a[prop], b[prop], level - 1)) {
+                        return false;
+                    }
+                } catch (noThisPropError) {
+                    return false;
+                }
             }
             return true;
         }
@@ -4458,7 +4482,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     });
 
     function getTraceKey(item) {
-        var type = typeof item === 'undefined' ? 'undefined' : _typeof(item);
+        var type = typeof item;
         return item && type === 'object' ? item.$hashcode : type + ':' + item;
     }
 
@@ -4657,7 +4681,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var classes = [];
         for (var i = 0; i < arguments.length; i++) {
             var arg = arguments[i];
-            var argType = typeof arg === 'undefined' ? 'undefined' : _typeof(arg);
+            var argType = typeof arg;
             if (argType === 'string' || argType === 'number' || arg === true) {
                 classes.push(arg);
             } else if (Array.isArray(arg)) {
@@ -4694,7 +4718,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             var className = classNames(newVal);
 
-            if ((typeof oldVal === 'undefined' ? 'undefined' : _typeof(oldVal)) === void 0 || oldVal !== className) {
+            if (typeof oldVal === void 0 || oldVal !== className) {
                 this.value = className;
 
                 vdom['change-' + type] = className;
@@ -5563,7 +5587,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             //如果promises不为空，说明经过验证拦截器
             return Promise.all(promises).then(function (array) {
                 var reasons = array.filter(function (el) {
-                    return (typeof el === 'undefined' ? 'undefined' : _typeof(el)) === 'object';
+                    return typeof el === 'object';
                 });
                 if (!isValidateAll) {
                     var validator = field.validator;

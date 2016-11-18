@@ -16,20 +16,20 @@ import { Depend } from './depend'
  */
 
 
-avalon.define = function (definition) {
-    var $id = definition.$id
-    if (!$id) {
-        avalon.error('vm.$id must be specified')
+avalon.define = function(definition) {
+        var $id = definition.$id
+        if (!$id) {
+            avalon.error('vm.$id must be specified')
+        }
+        if (avalon.vmodels[$id]) {
+            avalon.warn('error:[' + $id + '] had defined!')
+        }
+        var vm = platform.modelFactory(definition)
+        return avalon.vmodels[$id] = vm
     }
-    if (avalon.vmodels[$id]) {
-        avalon.warn('error:[' + $id + '] had defined!')
-    }
-    var vm = platform.modelFactory(definition)
-    return avalon.vmodels[$id] = vm
-}
-/**
- * 在末来的版本,avalon改用Proxy来创建VM,因此
- */
+    /**
+     * 在末来的版本,avalon改用Proxy来创建VM,因此
+     */
 export function IProxy(definition, dd) {
     avalon.mix(this, definition)
     avalon.mix(this, $$skipArray)
@@ -42,7 +42,7 @@ export function IProxy(definition, dd) {
         this.$accessors = this.$accessors || {}
     } else {
         this.$accessors = {
-            $model: platform.modelAccessor
+            $model: modelAccessor
         }
     }
     if (dd === void 0) {
@@ -66,17 +66,6 @@ platform.modelFactory = function modelFactory(definition, dd) {
         if (canHijack(key, val)) {
             $accessors[key] = createAccessor(key, val)
         }
-    }
-    var computed = definition.$computed
-    if(computed){
-         for (var key in computed) {
-          if (key in $$skipArray)
-              continue
-          avalon.Array.ensure(keys, key)
-          if(typeof computed[key] === 'function'){
-               $accessors[key] = createComputed(key, computed[key])
-          }
-      }
     }
     //将系统API以unenumerable形式加入vm,
     //添加用户的其他不可监听属性或方法
@@ -135,13 +124,12 @@ export function collectDeps(selfDep, childOb) {
     }
     if (childOb && childOb.$events) {
         if (Array.isArray(childOb)) {
-            childOb.forEach(function (item) {
+            childOb.forEach(function(item) {
                 if (item && item.$events) {
                     item.$events.__dep__.collect()
                 }
             })
         } else if (avalon.deepCollect) {
-
             for (var key in childOb) {
                 if (childOb.hasOwnProperty(key)) {
                     var collectIt = childOb[key]
@@ -151,27 +139,8 @@ export function collectDeps(selfDep, childOb) {
         return childOb
     }
 }
-function createComputed(key, getter) {
-    var selfDep = new Depend(key) //当前值对象的Depend
-    return {
-        get: function Getter() {
-            var ret = getter.call(this)
-            //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
-            //     Getter.dd = selfDep
-            var child = collectDeps(selfDep, null)
-            if (child) {
-                return child
-            }
-            return ret
-        },
-        set: function Setter() {
-            selfDep.beforeNotify()
-            selfDep.notify()
-        },
-        enumerable: true,
-        configurable: true
-    }
-}
+
+
 function createAccessor(key, val) {
     var priVal = val
     var selfDep = new Depend(key) //当前值对象的Depend
@@ -180,8 +149,8 @@ function createAccessor(key, val) {
     return {
         get: function Getter() {
             var ret = priVal
-            //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
-            //     Getter.dd = selfDep
+                //nodejs中,函数内部通过函数名,对原函数进行操作,比如下面这句会报错
+                //     Getter.dd = selfDep
             var child = collectDeps(selfDep, childOb)
             if (child) {
                 return child
@@ -211,8 +180,8 @@ platform.itemFactory = function itemFactory(before, after) {
     var core = new IProxy(keyMap)
     var state = avalon.shadowCopy(core.$accessors, before.$accessors) //防止互相污染
     var data = after.data
-    //core是包含系统属性的对象
-    //keyMap是不包含系统属性的对象, keys
+        //core是包含系统属性的对象
+        //keyMap是不包含系统属性的对象, keys
     for (var key in data) {
         var val = keyMap[key] = core[key] = data[key]
         state[key] = createAccessor(key, val)
@@ -224,18 +193,49 @@ platform.itemFactory = function itemFactory(before, after) {
 }
 
 platform.fuseFactory = function fuseFactory(before, after) {
-
     var keyMap = avalon.mix(before.$model, after.$model)
     var core = new IProxy(avalon.mix(keyMap, {
         $id: before.$id + after.$id
     }))
     var state = avalon.mix(core.$accessors,
-        before.$accessors, after.$accessors) //防止互相污染
+            before.$accessors, after.$accessors) //防止互相污染
 
     var keys = Object.keys(keyMap)
-    //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
+        //将系统API以unenumerable形式加入vm,并在IE6-8中添加hasOwnPropert方法
     var vm = platform.createViewModel(core, state, core)
     platform.afterCreate(vm, core, keys)
     return vm
 }
 
+ function toJson(val) {
+    var xtype = avalon.type(val)
+    if (xtype === 'array') {
+        var array = []
+        for (var i = 0; i < val.length; i++) {
+            array[i] = toJson(val[i])
+        }
+        return array
+    } else if (xtype === 'object') {
+        if (typeof val.$track === 'string') {
+            var obj = {}
+            val.$track.split('Ȣ').forEach(function(i) {
+                var value = val[i]
+                obj[i] = value && value.$events ? toJson(value) : value
+            })
+            return obj
+        }
+    }
+    return val
+}
+
+var modelAccessor = {
+    get: function() {
+        return toJson(this)
+    },
+    set: avalon.noop,
+    enumerable: false,
+    configurable: true
+}
+
+platform.toJson = toJson
+platform.modelAccessor = modelAccessor

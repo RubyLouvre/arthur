@@ -9,7 +9,6 @@ $skipArray: 是当前对象特有的不可监听属性
 var falsy
 export var $$skipArray = {
     $id: falsy,
-    $computed:falsy,
     $render: falsy,
     $track: falsy,
     $element: falsy,
